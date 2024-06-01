@@ -20,12 +20,12 @@ campus buildings spread across 303 acres of total area. This includes over 800 s
 The campus is also actively expanding, with the recent opening of Harmony Commons with over 700 further residence beds, as well
 as the opening of the Retail and Parking Commons in 2027 [according to the Office of the Governing Council](https://governingcouncil.utoronto.ca/media/31497) and the ongoing construction of a new Health Sciences center.
 
-In recent years, the wider market for food delivery has increased substantially. A 2024 Statista survey found that 50% of Canadian respondents ordered delivery using Uber Eats, with a similar percentage also using DoorDash. Statista estimates that Uber Eats, DoorDash and SkipTheDishes each had over 1 million downloads in Canada in 2022. [A 2024 paper by Gupta et al](https://www.sciencedirect.com/science/article/pii/S2211335524001815) found that in 2021, a survey revealed that 19.2% of Canadian respondents ordered using food delivery services in the past 7 days. Applied to the UTSC undergraduate population, a market penetration rate of even 19% would equate to over 2600 users for the application.
+In recent years, the wider market for food delivery has increased substantially. A [2024 Statista survey](https://www.statista.com/outlook/emo/online-food-delivery/canada) found that 50% of Canadian respondents ordered delivery using Uber Eats, with a similar percentage also using DoorDash. Statista estimates that Uber Eats, DoorDash and SkipTheDishes each had over 1 million downloads in Canada in 2022. [A 2024 paper by Gupta et al](https://www.sciencedirect.com/science/article/pii/S2211335524001815) found that in 2021, a survey revealed that 19.2% of Canadian respondents ordered using food delivery services in the past 7 days. Applied to the UTSC undergraduate population, a market penetration rate of even 19% would equate to over 2600 users for the application.
 
 Additionally, our app will be used by workers at food establishments operating on UTSC property. [According to the university's food website](https://www.utsc.utoronto.ca/programs/utscfood/), 26 food and beverage entities operate here through agreements called "Food Partnerships".
 At a glance, this includes large multinational franchises such as Starbucks, KFC and Subway, as well as smaller entities such as Fired Up Pizza Co and 1265 Bistro. Website design and rollout will have to consider the needs of users working at these establishments.
 
-Based on this preliminary research, we created four personas which can be viewed in the [personas.pdf file in this repository.](doc/sprint0/personas.pdf).
+Based on this preliminary research, we created four personas which can be viewed in the [personas.pdf file in this repository.](/doc/sprint0/personas.pdf).
 
 ## Why would your users choose your product? What are they using today to solve their problem/need? 
 
