@@ -1,0 +1,78 @@
+# Product Backlog
+
+## User Stories
+
+User stories are also on Jira (https://quick-bytes.atlassian.net/jira/software/projects/SCRUM/issues/?jql=project%20%3D%20%22SCRUM%22%20ORDER%20BY%20created%20DESC)
+
+- As a customer, I want to set the location of my desired pickup so that I can meet with the courier at an agreed location.
+    - Given a valid pickup location, when an order is placed, then the courier is directed to drop off the order at that location.
+    - Priority: High
+- As a customer, I want to view the live location and estimated time of arrival (ETA) of my order on a map so that I can know when to expect my order.
+    - Given an “In progress” order, when I track that order, then the courier’s live location and their route to me is displayed and routinely updated.
+    - Priority: High
+- As a courier, I want to update the order status (e.g. waiting, picked up, etc.) so that the customer is kept up to date on their order.
+    - Given an accepted order, when I’ve arrived at the restaurant/picked up the order/arrived at the customer, then I am given the option to update the order status to notify the customer. 
+    - Priority: Highest
+- As a customer/courier, I want to be able to login so that I can make/take orders.
+    - Given an existing account and valid credentials, when I input my email and password, then I am logged in and have access to my account.
+    - Priority: Highest
+- As a customer, I want to receive notifications at different stages of the order so that I can prepare to meet the courier.
+    - Given an “In progress” order, when the order enters a new stage, then I receive a notification indicating this new stage.
+    - Priority: Medium
+- As a customer, I want to communicate with the courier of my order through real-time chat while my delivery is being fulfilled so that I can coordinate with them.
+    - Given an “In progress” order, when I chat with the courier, then I am given a line of communication to send and receive messages with my courier.
+    - Priority: Low
+- As a courier, I want to accept a delivery request so that I can fulfill the order.
+    - Given that there is an outstanding delivery request ready to be accepted by a courier, when I accept the delivery then that delivery will become assigned to me for fulfillment.
+    - Priority: Highest
+- As a customer, I want to be able to update the location of my desired pickup in case of emergency.
+    - Given an existing order, when I want to change the location of pickup or cancel my order, then I am given the option to update the pickup location.
+    - Priority: Lowest
+ - As a customer, I want to be able to cancel the order in case of an emergency.
+    - Given an existing order and order hasn’t been picked up by the courier, when I want to cancel my order, then I am given the option to cancel the order.
+    - Priority: Lowest
+- As a courier, I want to be able to cancel the order in case of an emergency.
+    - Given I haven’t picked up the order and in case of emergency, when I want to cancel the order, then I am able to cancel the order. 
+    - Priority: Lowest
+- As a courier, I want to be able to confirm that the correct customer is picking up the order. (e.g. courier enters a 4 digit pin which only the customer has).
+    - Given that the courier is carrying out an order that they have accepted, when they meet with the customer to physically deliver the product, then the courier must be able to confirm that the person is indeed the customer by exchanging a secret and unique identifier.
+    - Priority: Medium
+- As a courier, I want to receive a notification of new orders around my area so I can be informed of new possible deliveries.
+    - Given that the courier has enabled notifications of new delivery orders nearby, when a customer places a new order at a restaurant then the courier should receive a notification that this order is waiting for a courier to accept.
+    - Priority: Low
+- As a restaurant worker, I want to receive a notification of new orders so that I can know when to start making an order.
+    - Given that the restaurant worker has the website open and has notifications turned on, when a customer places a new order with the restaurant, then the restaurant worker should receive a notification that the order has been placed.
+    - Priority: Low
+- As a restaurant worker, I want to receive a notification when a courier has arrived to pick up an order so that I can ready it.
+    - Given that the restaurant worker has an order ready to be picked up, when the courier has indicated that they have arrived at the restaurant, then the worker will receive a notification.
+    - Priority: Medium
+- As a restaurant worker, I want to view all the orders made so that I can organize their preparation.
+    - Given that the user is a restaurant worker, when they check their order list details then the worker should see all pending orders being fulfilled
+    - Priority: Lowest
+- As a restaurant worker, I want to view the location of the courier in charge of the order so I know that they will be picking up my product.
+    - Given that my delivery order is still being fulfilled, when I view my order details then I want to see the map location of my order updated in real-time in the app.
+    - Priority: High
+- As a restaurant worker, I want to be able to confirm that the correct courier is picking up the order. (e.g. restaurant worker enters a 4 digit pin which only the courier has).
+    - Given that the courier has accepted the delivery order, when they meet with the restaurant worker to physically pick up the product, then the restaurant worker must be able to confirm that the courier is assigned to the order by exchanging a secret and unique identifier.
+    - Priority: Medium
+- As a courier, I want to view the location, directions, and ETA to the restaurant so that I know how to travel there from their current location.
+    - Given that the courier has accepted a delivery order and the product has not been picked up yet, when they view the order details they should see a map, directions and ETA for how to travel to the restaurant.
+    - Priority: High
+- As a courier, I want to view the location, directions and ETA to the customer's pickup location so that I know how to travel there from the restaurant.
+    - Given that the courier has accepted the delivery and has picked up the product, when the courier goes to view order details then they can view the delivery location of the customer along with directions and ETA.
+    - Priority: High
+- As a customer, I want to browse through a list of all available restaurants so that I can choose a restaurant.
+    - Given that the user is logged in, when they view the ordering interface then they should be able to browse a list of restaurants.
+    - Priority: Low
+- As a customer, I want to browse a restaurant’s menu so that I can make an order.
+    - Given that the user is logged into the website, when they click to view restaurants, then they can view a list of all restaurants that they can order from in the website.
+    - Priority: Medium
+- As a customer/courier I would like to be able to create an account, so that I can log in and make orders and do deliveries.
+    - Given that the user has a valid U of T email, when they enter their account information and press create, they should get a confirmation email which verifies that they’re a U of T student.
+    - Priority: Highest
+- As a customer I would like to be able to log in, so that I can begin using the app/have access to information associated with my account.
+    - Given that the user has already created an account, when they enter in their login details, then they should be able to be authenticated and start using the app with their account.
+    - Priority: Highest
+- As a customer/courier I want to be able to change the settings for what notifications I receive, so that I can only see those relevant to me and whether I want to be a customer and/or courier.
+    - Given that the user is logged into the website, when they click into their profile settings then they can turn the different types of notifications on or off.
+    - Priority: Medium
