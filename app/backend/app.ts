@@ -12,14 +12,14 @@ dotenv.config();
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: process.env.API_KEY,//"AIzaSyDDG42MoF9S4Qtgf3LCysRLqSuIqowXzlE",
-  authDomain: "quickbytes-85385.firebaseapp.com",
-  projectId: "quickbytes-85385",
-  storageBucket: "quickbytes-85385.appspot.com",
-  messagingSenderId: "838310654462",
-  appId: "1:838310654462:web:acb2adb8449a50edeb10af",
-  measurementId: "G-MYWP2MNCSS",
-  databaseURL: "https://quickbytes-85385-default-rtdb.firebaseio.com/"
+  apiKey: process.env.FIREBASE_API_KEY,
+  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.FIREBASE_PROJECT_ID,
+  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.FIREBASE_APP_ID,
+  measurementId: process.env.FIREBASE_MEASUREMENT_ID,
+  databaseURL: process.env.FIREBASE_DATABASE_URL
 };
 
 // Initialize Firebase
@@ -34,7 +34,7 @@ app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', true);
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
   next();
 });
 
