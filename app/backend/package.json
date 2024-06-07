@@ -2,7 +2,8 @@
   "dependencies": {
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
-    "firebase": "^10.12.2"
+    "firebase": "^10.12.2",
+    "firebase-admin": "^12.1.1"
   },
   "scripts": {
     "build": "npx tsc --outDir .\\build ",
@@ -11,6 +12,7 @@
   "devDependencies": {
     "@types/express": "^4.17.21",
     "@types/firebase": "^3.2.1",
+    "@types/node": "^20.14.2",
     "typescript": "^5.4.5"
   }
 }
