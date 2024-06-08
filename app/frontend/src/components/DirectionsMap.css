@@ -1,0 +1,11 @@
+/* DirectionsMap.css */
+
+.map-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    height: 90vh; 
+    width: 100vw; 
+}
+
+
