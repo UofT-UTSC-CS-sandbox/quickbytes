@@ -5,6 +5,7 @@ import { getDatabase, ref, set, get, child } from "firebase/database";
 import express from 'express';
 
 import * as dotenv from 'dotenv';
+import menuRouter from "./routes/menuRoutes";
 dotenv.config();
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -52,6 +53,8 @@ app.get('/', (req, res) => {
       });
   
 });
+
+app.use('/restaurants', menuRouter)
 
 // Start the server
 app.listen(port, () => {
