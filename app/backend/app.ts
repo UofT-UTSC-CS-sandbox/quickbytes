@@ -16,6 +16,8 @@ dotenv.config();
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+
+/*
 const firebaseConfig = {
   apiKey: process.env.FIREBASE_API_KEY,
   authDomain: process.env.FIREBASE_AUTH_DOMAIN,
@@ -25,6 +27,18 @@ const firebaseConfig = {
   appId: process.env.FIREBASE_APP_ID,
   measurementId: process.env.FIREBASE_MEASUREMENT_ID,
   databaseURL: process.env.FIREBASE_DATABASE_URL
+};
+*/
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDDG42MoF9S4Qtgf3LCysRLqSuIqowXzlE",
+  authDomain: "quickbytes-85385.firebaseapp.com",
+  databaseURL: "https://quickbytes-85385-default-rtdb.firebaseio.com",
+  projectId: "quickbytes-85385",
+  storageBucket: "quickbytes-85385.appspot.com",
+  messagingSenderId: "838310654462",
+  appId: "1:838310654462:web:acb2adb8449a50edeb10af",
+  measurementId: "G-MYWP2MNCSS"
 };
 
 // Initialize Firebase
@@ -51,7 +65,7 @@ app.post('/create-account', async (req, res) => {
   const { email, password } = req.body;
 
   //Will be changed later, need to check valid email
-  if (!email.endsWith('@utoronto.ca')) {
+  if (!email.endsWith('@mail.utoronto.ca')) {
     return res.status(400).send('invalid email');
   }
 
