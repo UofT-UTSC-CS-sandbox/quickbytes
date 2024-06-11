@@ -1,43 +1,38 @@
 
+import { Card, CardActionArea, CardContent, Typography } from '@mui/material';
+import { MenuItem } from '../model/Menu';
 import styles from './MenuItemCard.module.css'
+import currencyFormatter from './CurrencyFormatter';
 
-export type MenuItemOption = {
-    name: string,
-    price: number
-}
-
-export type MenuItem = {
-    name: string
-    options?: MenuItemOption[]
-    price?: number
-    description?: string
-}
-
-const MenuItemCard = ({ data }: { data: MenuItem }) => {
+const MenuItemCard = ({ data, onClick }: { data: MenuItem, onClick: (itemName: string) => void }) => {
     return (
-        <div className={styles.card}>
-            <h3 className={styles.cardTitle}>{data.name}</h3>
-            <p className={styles.cardDescription}>{data.description}</p>
-            {
-                typeof data.price !== 'undefined' &&
-                <p>${data.price}</p>
-            }
-            {
-                (typeof data.price === 'undefined' && data.options) &&
-                <ul className={styles.optionsList}>
+        <Card className={styles.card} >
+            <CardActionArea onClick={() => onClick(data.name)}>
+                <CardContent>
+                    <h3 className={styles.cardTitle}>{data.name}</h3>
+                    <p className={styles.cardDescription}>{data.description}</p>
                     {
-                        data.options.map((option) => {
-                            return (
-                                <li className={styles.optionsListElement}>
-                                    <h4 className={styles.optionsListElementName}>{option.name}</h4>
-                                    <p className={styles.optionsListElementPrice}>${option.price}</p>
-                                </li>
-                            )
-                        })
+                        (data.options.length === 1) &&
+                        <Typography>{currencyFormatter.format(data.options[0].price)}</Typography>
                     }
-                </ul>
-            }
-        </div>
+                    {
+                        (data.options.length > 1) &&
+                        <ul className={styles.optionsList}>
+                            {
+                                data.options.map((option) => {
+                                    return (
+                                        <li className={styles.optionsListElement} key={`${data.name}-${option.name}`}>
+                                            <h4 className={styles.optionsListElementName}>{option.name}</h4>
+                                            <p className={styles.optionsListElementPrice}>${option.price}</p>
+                                        </li>
+                                    )
+                                })
+                            }
+                        </ul>
+                    }
+                </CardContent>
+            </CardActionArea>
+        </Card>
     )
 }
 

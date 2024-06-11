@@ -1,8 +1,3 @@
-.menuContainer {
-    width: 100%;
-    text-align: left;
-}
-
 .menuLayout {
     display: flex;
     flex-direction: row;
@@ -10,31 +5,7 @@
 }
 
 .categoryList {
-    display: block;
     width: 200px;
-    margin: 50px;
-}
-
-.categoryList {
-    width: 200px;
-    position: relative;
-}
-
-.categoryOption button {
-    width: 100%;
-    background-color: transparent;
-    color: var(--text-primary);
-    margin: 10px 0;
-}
-
-.categoryOption button:hover {
-    border: 1px solid var(--background-green);
-    background-color: rgb(180, 180, 180);
-}
-
-.categoryOption button:disabled {
-    background-color: var(--background-green);
-    color: white;
 }
 
 .itemList {

@@ -3,6 +3,7 @@ import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getDatabase, ref, set, get, child } from "firebase/database";
 import express from 'express';
+import bodyParser from 'body-parser';
 
 import * as dotenv from 'dotenv';
 import menuRouter from "./routes/menuRoutes";
@@ -29,6 +30,9 @@ const database = getDatabase(fb);
 // const analytics = getAnalytics(app);
 // Create an Express application
 const app = express();
+
+app.use(bodyParser.json())
+
 const port = 3000;
 
 app.use((req, res, next) => {

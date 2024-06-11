@@ -1,16 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
-import MenuItemCard, { MenuItem } from "../components/MenuItemCard";
+import MenuItemCard from "../components/MenuItemCard";
 import { useState } from "react";
 import styles from './Menu.module.css'
+import { MenuCategory, MenuItem } from "../model/Menu";
+import MenuAdd from "../components/MenuAdd";
+import { OrderCart } from "../model/OrderCart";
+import { Box, ListItem, Dialog, Stack, Tab, Tabs, Typography } from "@mui/material";
 
 type RestaurantMenuParams = {
     id: string
-}
-
-type MenuCategory = {
-    name: string,
-    options: MenuItem[]
 }
 
 type RestaurantMenuResponse = {
@@ -35,6 +34,8 @@ const RestaurantMenu = () => {
         })
     });
     const [category, setCategory] = useState<MenuCategory | null>(null);
+    const [item, setItem] = useState<MenuItem | null>(null);
+    const [order, setOrder] = useState<OrderCart | null>(null);
 
     if (isLoading) {
         return <div>Loading...</div>
@@ -44,38 +45,61 @@ const RestaurantMenu = () => {
         return <div>Sorry, we could not find the menu for this restaurant. Please try again later.</div>
     }
 
-    const { data: { name, categories, description } } = data;
+    const { data: { name, categories, description, address } } = data;
 
-    const onSelectCategory = (category: string) => {
-        const newCategory = categories.find(data => data.name === category);
-        setCategory(newCategory ? newCategory : (categories.length > 0 ? categories[0] : null));
+    const handleChange = (event: React.SyntheticEvent, newCategory: string) => {
+        const newCategoryObj = categories.find(data => data.name === newCategory);
+        setCategory(newCategoryObj || (categories.length > 0 ? categories[0] : null));
+    };
+
+    const onClickItem = (itemName: string) => {
+        setItem(category?.options.find(data => data.name === itemName) || null);
     }
 
     return (
         <div className={styles.menuContainer}>
-            <h1>{name}</h1>
-            <p>{description}</p>
+            <Typography variant='h2'>{name}</Typography>
+            <Typography>{description}</Typography>
+            <Typography>{address}</Typography>
             <div className={styles.menuLayout}>
-                <div className={styles.categoryList}>
-                    {
-                        categories.map((data) => {
-                            return (
-                                <div className={styles.categoryOption}>
-                                    <button onClick={() => onSelectCategory(data.name)} key={data.name} disabled={data.name === category?.name}>{data.name}</button>
-                                </div>
-                            )
-                        })
-                    }
-                </div>
-                <div className={styles.itemList}>
+                <Box>
+                    <Tabs value={category?.name || categories[0].name} onChange={handleChange} orientation="vertical">
+                        {
+                            categories.map((data) => <Tab label={data.name} key={data.name} value={data.name} />)
+                        }
+                    </Tabs>
+                </Box>
+                <Stack className={styles.itemList}>
                     {
                         category ?
-                            category.options.map((menuItem) => <MenuItemCard data={menuItem} />)
+                            category.options.map((menuItem) =>
+                                <ListItem key={menuItem.name}>
+                                    <MenuItemCard onClick={onClickItem} data={menuItem} />
+                                </ListItem>)
                             :
-                            <div>Choose a menu category to start browsing.</div>
+                            <Typography>Choose a menu category to start browsing.</Typography>
                     }
-                </div>
+                </Stack>
+                {/* {
+                    order &&
+                    <div>
+                        {
+                            Object.entries(order.items).map(([key, value]) => <CheckoutItem data={value} key={key} />)
+                        }
+                    </div>
+                } */}
+
             </div>
+            {(item && id) &&
+                <Dialog open={!!item} onClose={() => setOrder(null)}>
+                    <MenuAdd data={item}
+                        close={() => setItem(null)}
+                        order={order}
+                        setOrder={setOrder}
+                        restaurantId={id}
+                    />
+                </Dialog>
+            }
         </div>
     )
 }
