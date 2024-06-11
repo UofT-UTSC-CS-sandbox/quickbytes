@@ -91,7 +91,7 @@ const RestaurantMenu = () => {
 
             </div>
             {(item && id) &&
-                <Dialog open={!!item} onClose={() => setOrder(null)}>
+                <Dialog open={!!item} onClose={() => setItem(null)}>
                     <MenuAdd data={item}
                         close={() => setItem(null)}
                         order={order}

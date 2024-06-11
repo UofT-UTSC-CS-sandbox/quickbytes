@@ -27,6 +27,8 @@ type CreateOrderRequest = {
 
 type UserOrderResponse = {
     data: OrderCart;
+    orderKey: string;
+    itemKey: string;
 }
 
 // A popup modal for adding a new menu item and specify options 
@@ -51,7 +53,7 @@ const MenuAdd = ({ data, close, setOrder, order, restaurantId }: MenuAddProps) =
                 setSelectedAddOns([]);
             }
         }
-    }, [data])
+    }, [data.name]);
 
     const onOptionSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSelectedOption((event.target as HTMLInputElement).value);
@@ -86,17 +88,15 @@ const MenuAdd = ({ data, close, setOrder, order, restaurantId }: MenuAddProps) =
     // Create order
     const { mutate: createOrder } = useMutation({
         mutationFn: (newOrderData: CreateOrderRequest): Promise<UserOrderResponse> => {
-            return fetch(`http://localhost:3000/restaurant/${restaurantId}/order/`, {
+            return fetch(`http://localhost:3000/restaurants/${restaurantId}/order`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                credentials: 'include',
                 body: JSON.stringify(newOrderData)
             }).then(res => res.json());
         },
         onSuccess: (data) => {
-            console.log("Order created", data);
             setOrder(data.data);
         }
     });
@@ -104,17 +104,15 @@ const MenuAdd = ({ data, close, setOrder, order, restaurantId }: MenuAddProps) =
     const { isPending: isAddItemPending, mutate: addItem } = useMutation({
         mutationKey: ['order', order?.id],
         mutationFn: (newOrderData: CreateOrderRequest): Promise<UserOrderResponse> => {
-            return fetch(`http://localhost:3000/order/${order?.id}/`, {
+            return fetch(`http://localhost:3000/restaurants/order/${order?.id}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                credentials: 'include',
                 body: JSON.stringify(newOrderData)
             }).then(res => res.json());
         },
         onSuccess: (data) => {
-            console.log("Item added", data);
             setOrder(data.data);
         }
     });

@@ -143,7 +143,11 @@ async function addItemToOrder(req: Request, res: Response, database: Database, o
     // Return order object in response
     .then((snapshot) => {
         if (snapshot.exists()) {
-            res.status(201).send({ key: snapshot.key, data: snapshot.val() });
+            res.status(201).send({ 
+                orderKey: orderId, 
+                menuKey: itemKey, 
+                data: { ...snapshot.val(), id: orderId } 
+            });
         } else {
             res.status(404).send({ data: "Something went wrong" });
         }
