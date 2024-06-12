@@ -3,8 +3,8 @@ import { addToOrder, createUserOrder, getActiveOrder, getAllRestaurants, getOneR
 
 const menuRouter = Router();
 
-menuRouter.post('/order/:orderId', addToOrder);
-menuRouter.get('/order/:orderId', getOrder);
+menuRouter.post('/:id/order/:orderId', addToOrder);
+menuRouter.get('/:id/order/:orderId', getOrder);
 menuRouter.post('/:id/order', createUserOrder);
 menuRouter.get('/:id/order', getActiveOrder);
 menuRouter.get('/:id', getOneRestaurant)

@@ -1,12 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import MenuItemCard from "../components/MenuItemCard";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styles from './Menu.module.css'
 import { MenuCategory, MenuItem } from "../model/Menu";
 import MenuAdd from "../components/MenuAdd";
 import { OrderCart } from "../model/OrderCart";
-import { Box, ListItem, Dialog, Stack, Tab, Tabs, Typography } from "@mui/material";
+import { ListItem, Dialog, Stack, Tab, Tabs, Typography, Divider, Paper } from "@mui/material";
+import CheckoutCart from "../components/CheckoutCart";
+import { Place } from "@mui/icons-material";
 
 type RestaurantMenuParams = {
     id: string
@@ -36,6 +38,29 @@ const RestaurantMenu = () => {
     const [category, setCategory] = useState<MenuCategory | null>(null);
     const [item, setItem] = useState<MenuItem | null>(null);
     const [order, setOrder] = useState<OrderCart | null>(null);
+    useEffect(() => {
+        // On first load, check if the user has any existing order in-progress
+        fetch(`http://localhost:3000/restaurants/${id}/order`)
+            .then((res) => {
+                if (res.ok) {
+                    return res.json();
+                } else {
+                    Promise.reject(res);
+                }
+            })
+            .then((data) => {
+                if (data.data) {
+                    const order = {
+                        ...data.data,
+                        items: data.data.items ?? {},
+                        price: data.data.price ?? 0,
+                    };
+                    setOrder(order);
+                } else {
+                    setOrder(null);
+                }
+            })
+    }, [])
 
     if (isLoading) {
         return <div>Loading...</div>
@@ -58,18 +83,27 @@ const RestaurantMenu = () => {
 
     return (
         <div className={styles.menuContainer}>
-            <Typography variant='h2'>{name}</Typography>
-            <Typography>{description}</Typography>
-            <Typography>{address}</Typography>
-            <div className={styles.menuLayout}>
-                <Box>
+            <Stack spacing={1} padding={2}>
+                <Typography variant='h2' align="left">{name}</Typography>
+                <Typography align="left">{description}</Typography>
+                <Typography align="left"><Place/> {address}</Typography>
+            </Stack>
+            <Divider />
+            <Stack direction='row' className={styles.menuLayout} padding={2}>
+                <Paper sx={{ height: 'min-content' }}>
                     <Tabs value={category?.name || categories[0].name} onChange={handleChange} orientation="vertical">
                         {
-                            categories.map((data) => <Tab label={data.name} key={data.name} value={data.name} />)
+                            categories.map((data) =>
+                                <Tab
+                                    sx={{ textTransform: 'none', fontWeight: 'bold' }}
+                                    label={data.name}
+                                    key={data.name}
+                                    value={data.name} />
+                            )
                         }
                     </Tabs>
-                </Box>
-                <Stack className={styles.itemList}>
+                </Paper>
+                <Stack className={styles.itemList} padding={0}>
                     {
                         category ?
                             category.options.map((menuItem) =>
@@ -80,18 +114,10 @@ const RestaurantMenu = () => {
                             <Typography>Choose a menu category to start browsing.</Typography>
                     }
                 </Stack>
-                {/* {
-                    order &&
-                    <div>
-                        {
-                            Object.entries(order.items).map(([key, value]) => <CheckoutItem data={value} key={key} />)
-                        }
-                    </div>
-                } */}
-
-            </div>
+                <CheckoutCart order={order} />
+            </Stack>
             {(item && id) &&
-                <Dialog open={!!item} onClose={() => setItem(null)}>
+                <Dialog open={!!item} onClose={() => setItem(null)} fullWidth maxWidth="sm">
                     <MenuAdd data={item}
                         close={() => setItem(null)}
                         order={order}

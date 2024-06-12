@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { MenuItem } from "../model/Menu";
 import { useMutation } from "@tanstack/react-query";
 import { OrderCart } from "../model/OrderCart";
-import { Button, DialogContent, DialogTitle, FormControl, FormControlLabel, FormLabel, List, ListItem, Radio, RadioGroup, TextField, Typography } from "@mui/material";
+import { Alert, Button, DialogContent, DialogTitle, Divider, FormControl, FormControlLabel, FormLabel, List, ListItem, Radio, RadioGroup, Stack, TextField, Typography } from "@mui/material";
 import currencyFormatter from "./CurrencyFormatter";
+import { Add } from "@mui/icons-material";
 
 type MenuAddProps = {
     data: MenuItem,
@@ -73,11 +74,11 @@ const MenuAdd = ({ data, close, setOrder, order, restaurantId }: MenuAddProps) =
     const renderOptions = (data: MenuItem) => {
         return (
             <FormControl>
-                <FormLabel>Options</FormLabel>
+                <Typography><FormLabel>Options</FormLabel></Typography>
                 <RadioGroup value={selectedOption} onChange={onOptionSelect} row>
                     {
                         data.options.map((option) =>
-                            <FormControlLabel value={option.name} label={`${option.name} ${currencyFormatter.format(option.price)}`} control={<Radio />} key={option.name}/>
+                            <FormControlLabel value={option.name} label={`${option.name} ${currencyFormatter.format(option.price)}`} control={<Radio />} key={option.name} />
                         )
                     }
                 </RadioGroup>
@@ -85,8 +86,11 @@ const MenuAdd = ({ data, close, setOrder, order, restaurantId }: MenuAddProps) =
         )
     }
 
+    console.log("current id", order)
+
     // Create order
-    const { mutate: createOrder } = useMutation({
+    const { mutate: createOrder, isError: isCreateOrderError } = useMutation({
+        mutationKey: ['order', restaurantId],
         mutationFn: (newOrderData: CreateOrderRequest): Promise<UserOrderResponse> => {
             return fetch(`http://localhost:3000/restaurants/${restaurantId}/order`, {
                 method: 'POST',
@@ -101,10 +105,10 @@ const MenuAdd = ({ data, close, setOrder, order, restaurantId }: MenuAddProps) =
         }
     });
 
-    const { isPending: isAddItemPending, mutate: addItem } = useMutation({
-        mutationKey: ['order', order?.id],
+    const { isPending: isAddItemPending, isError: isAddItemError, mutate: addItem } = useMutation({
+        mutationKey: ['order', order?.id, restaurantId],
         mutationFn: (newOrderData: CreateOrderRequest): Promise<UserOrderResponse> => {
-            return fetch(`http://localhost:3000/restaurants/order/${order?.id}`, {
+            return fetch(`http://localhost:3000/restaurants/${restaurantId}/order/${order!.id}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -114,6 +118,7 @@ const MenuAdd = ({ data, close, setOrder, order, restaurantId }: MenuAddProps) =
         },
         onSuccess: (data) => {
             setOrder(data.data);
+            close();
         }
     });
 
@@ -123,7 +128,7 @@ const MenuAdd = ({ data, close, setOrder, order, restaurantId }: MenuAddProps) =
         }, {});
 
         // If order is null, create a new order thru a request.
-        if (!order) {
+        if (!order || !order.id) {
             createOrder({
                 menuItemId: name,
                 optionSelected: selectedOption,
@@ -158,54 +163,68 @@ const MenuAdd = ({ data, close, setOrder, order, restaurantId }: MenuAddProps) =
     return (
         <>
             <DialogTitle>
-                <Typography>{data?.name}</Typography>
+                <Typography variant='h4'>{data?.name}</Typography>
             </DialogTitle>
 
             <DialogContent>
+                {/* add image here */}
+                <img style={{ width: '50%', borderRadius: 15 }} src='/menu/shawarma/ChickenShawarmaPlate.webp' alt={data?.name} />
+                <Stack spacing={2}>
                 <Typography>{data?.description}</Typography>
 
+                <Divider />
+
                 {data.options.length > 1 && renderOptions(data)}
+                    <Divider />
 
-                {data.addOns &&
-                    <>
-                        <h2>Add Ons</h2>
-                        <List>
-                            {
-                                data.addOns.map(({ name, addOns }) => {
-                                    return (
-                                        <ListItem key={name}>
-                                            <FormControl>
-                                                <FormLabel>{name}</FormLabel>
-                                                <RadioGroup
-                                                    name={name}
-                                                    value={selectedAddOns.find(addOn => addOn.addOnName === name)?.selectedName || null}
-                                                    onChange={(e) => onAddOnSelect(e, name)}
-                                                    row>
-                                                    {
-                                                        addOns.map(({ name: addOnOptionName, additionalPrice }) =>
-                                                            <FormControlLabel value={addOnOptionName} label={`${addOnOptionName} ${currencyFormatter.format(additionalPrice)}`} control={<Radio />} key={addOnOptionName} />
-                                                        )
-                                                    }
-                                                </RadioGroup>
-                                            </FormControl>
-                                        </ListItem>
-                                    )
-                                })
-                            }
-                        </List>
-                    </>
-                }
+                    {data.addOns &&
+                        <>
+                            <Typography>Add Ons</Typography>
+                            <List>
+                                {
+                                    data.addOns.map(({ name, addOns }) => {
+                                        return (
+                                            <ListItem key={name}>
+                                                <FormControl>
+                                                    <FormLabel>{name}</FormLabel>
+                                                    <RadioGroup
+                                                        name={name}
+                                                        value={selectedAddOns.find(addOn => addOn.addOnName === name)?.selectedName || null}
+                                                        onChange={(e) => onAddOnSelect(e, name)}
+                                                        row>
+                                                        {
+                                                            addOns.map(({ name: addOnOptionName, additionalPrice }) =>
+                                                                <FormControlLabel value={addOnOptionName} label={`${addOnOptionName} ${currencyFormatter.format(additionalPrice)}`} control={<Radio />} key={addOnOptionName} />
+                                                            )
+                                                        }
+                                                    </RadioGroup>
+                                                </FormControl>
+                                            </ListItem>
+                                        )
+                                    })
+                                }
+                            </List>
+                            <Divider />
+                        </>
+                    }
 
-                <h2>Details</h2>
-                <FormControl>
-                    <FormLabel>Order Quantity</FormLabel>
-                    <TextField inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }} value={quantity} onChange={(e) => setQuantity(parseInt(e.target.value))} />
-                </FormControl>
+                    <FormControl>
+                        <FormLabel>Order Quantity</FormLabel>
+                        <TextField inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }} value={quantity} onChange={(e) => setQuantity(parseInt(e.target.value))} />
+                    </FormControl>
 
-                <h2>Price</h2>
-                <p>${price}</p>
-                <Button disabled={isAddItemPending} onClick={close}>Cancel</Button>
-                <Button disabled={isAddItemPending} onClick={onAddSubmit}>Add to Order</Button>
+                    <Divider />
+
+                    <Typography>Price</Typography>
+                    <p>{currencyFormatter.format(price)}</p>
+                    <Stack direction='row' justifyContent="space-between">
+                        <Button disabled={isAddItemPending} variant='contained' color='success' onClick={onAddSubmit} startIcon={<Add />}> Add to Order</Button>
+                        <Button disabled={isAddItemPending} onClick={close} color='error'>Cancel</Button>
+                    </Stack>
+
+                    { isCreateOrderError && <Alert severity='error'>Encountered an error while creating your order. Please try again.</Alert> }
+                    { isAddItemError && <Alert severity='error'>Encountered an error while adding this item. Please try again.</Alert> }
+                </Stack>
             </DialogContent>
         </>
     )

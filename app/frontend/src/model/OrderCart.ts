@@ -3,10 +3,12 @@ export type CartItem = {
     optionSelected: string
     addOnsSelected: Record<string, string>
     quantity: number
+    price: number
 }
 
 export type OrderCart = {
     id: number,
     restaurant: string,
     items: Record<string, CartItem>,
+    price: number
 }

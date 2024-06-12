@@ -8,6 +8,10 @@
     width: 100%;
 }
 
+.cardTitle {
+    margin: 0;
+}
+
 .optionsList {
     display: flex;
     flex-wrap: wrap;
@@ -20,10 +24,10 @@
 .optionsListElement {
     border: 1px;
     text-align: left;
-    border-radius: 10px;
+    border-radius: 5px;
     border: 1px solid grey;
     font-size: 14px;
-    padding: 5px;
+    padding: 5px 20px;
     margin-right: 10px;
 }
 

@@ -1,7 +1,6 @@
 .menuLayout {
     display: flex;
     flex-direction: row;
-    width: 100%;
 }
 
 .categoryList {
@@ -10,6 +9,4 @@
 
 .itemList {
     flex-grow: 1;
-    margin-right: 200px;
-    max-width: 760px;
 }
