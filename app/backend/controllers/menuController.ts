@@ -78,9 +78,9 @@ export async function createUserOrder(req: Request, res: Response) {
         // Order object with all tracking and order information
         [`orders/${uniqueKey as string}`]: newOrderObject,
         // Record order under the restaurant for easy querying
-        [`restaurants/${restaurantId}/activeOrders/${uniqueKey as string}`]: true,
+        [`restaurants/${restaurantId}/ordering/${uniqueKey as string}`]: true,
         // Record order under the user ordering
-        [`user/${userId}/activeOrders/${restaurantId}`]: uniqueKey as string
+        [`user/${userId}/ordering/${restaurantId}`]: uniqueKey as string
     };
 
     update(ref(database), updates)
@@ -226,7 +226,7 @@ export async function getActiveOrder(req: Request, res: Response) {
     const database = getDatabase();
     const userId = 1;
     const restaurantId = req.params.id;
-    const userOrderLocation = child(ref(database), `user/${userId}/activeOrders/${restaurantId}`);
+    const userOrderLocation = child(ref(database), `user/${userId}/ordering/${restaurantId}`);
     const userOrdersSnapshot = await get(userOrderLocation);
     if (!userOrdersSnapshot.exists()) {
         res.send({ data: null });
@@ -302,10 +302,31 @@ export async function deleteItemFromOrder(req: Request, res: Response) {
 export async function placeOrder(req: Request, res: Response) {
     const database = getDatabase();
     const { orderId } = req.params;
+    
+    // Find the restaurant id of the order
+    const userId = 1;
+    const restaurantIdLocation = child(ref(database), `orders/${orderId}/restaurantId`);
+    const restaurantIdSnapshot = await get(restaurantIdLocation);
+    if (!restaurantIdSnapshot.exists() || !restaurantIdSnapshot.val()) {
+        res.status(500).send("Internal server error");
+        return;
+    }
+    // Remove this order from the list of in-progress (not yet placed) orders under the user and the restaurant.
+    const restaurantId = restaurantIdSnapshot.val();
+    const orderingLocation = child(ref(database), `user/${userId}/ordering/${restaurantId}`);
+    await remove(orderingLocation);
+    await remove(child(ref(database), `restaurants/${restaurantId}/ordering/${orderId}`));
+
+    // Add this order as the active order saved under the user and the restaurant
+    const activeOrderLocation = child(ref(database), `user/${userId}/activeOrders/`);
+    await update(activeOrderLocation, { [restaurantId]: orderId } )
+    await update(child(ref(database), `restaurants/${restaurantId}/activeOrders/`), { [orderId]: true });
 
     // Update the order status to ORDERED
     const trackingLocation = child(ref(database), `orders/${orderId}/tracking`);
-    update(trackingLocation, { status: OrderStatus.ORDERED } )
+
+    // Send back the order in the response
+    await update(trackingLocation, { status: OrderStatus.ORDERED } )
     .then(() => {
         const orderLocation = child(ref(database), `orders/${orderId}`);
         return get(orderLocation);

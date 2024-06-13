@@ -6,10 +6,11 @@ import styles from './Menu.module.css'
 import { MenuCategory, MenuItem } from "../model/Menu";
 import MenuAdd from "../components/MenuAdd";
 import { OrderCart } from "../model/OrderCart";
-import { ListItem, Dialog, Stack, Tab, Tabs, Typography, Divider, Paper } from "@mui/material";
+import { ListItem, Dialog, Stack, Tab, Tabs, Typography, Divider } from "@mui/material";
 import CheckoutCart from "../components/CheckoutCart";
 import { Place } from "@mui/icons-material";
 import { apiUrl } from "../components/APIUrl";
+import MenuCategoryDrawer from "../components/MenuCategoryDrawer";
 
 type RestaurantMenuParams = {
     id: string
@@ -98,8 +99,8 @@ const RestaurantMenu = () => {
                 <Typography align="left"><Place/> {address}</Typography>
             </Stack>
             <Divider />
-            <Stack direction='row' className={styles.menuLayout} padding={2}>
-                <Paper sx={{ height: 'min-content' }}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} className={styles.menuLayout} padding={2}>
+                <MenuCategoryDrawer category={category} categories={categories}>
                     <Tabs value={category?.name || categories[0].name} onChange={handleChange} orientation="vertical">
                         {
                             categories.map((data) =>
@@ -111,7 +112,7 @@ const RestaurantMenu = () => {
                             )
                         }
                     </Tabs>
-                </Paper>
+                </MenuCategoryDrawer>
                 <Stack className={styles.itemList} padding={0}>
                     {
                         category ?
