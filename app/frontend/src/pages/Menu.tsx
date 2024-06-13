@@ -33,7 +33,7 @@ const RestaurantMenu = () => {
             } else {
                 Promise.reject(res);
             }
-        })
+        }),
     });
     const [category, setCategory] = useState<MenuCategory | null>(null);
     const [item, setItem] = useState<MenuItem | null>(null);
@@ -61,6 +61,14 @@ const RestaurantMenu = () => {
                 }
             })
     }, [])
+
+    useEffect(() => {
+        if (data && data.data.categories.length > 0) {
+            setCategory(data.data.categories[0]);
+        } else {
+            setCategory(null);
+        }
+    }, [data])
 
     if (isLoading) {
         return <div>Loading...</div>
