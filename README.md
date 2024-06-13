@@ -97,16 +97,18 @@ cd app/frontend && npm install && npm run dev
 You should be able to acces the web app at the outputted URL.
 
 ## Backend
-You will need to set the `API_KEY` environment variable for Firbase before proceeding:
+You will need to set up the required Firebase configuration using environment variables or a `.env` file before proceeding. All required variables are listed in [example.env](/app/backend/example.env)
 
 ```bash
-export API_KEY=api_key_from_firebase
+export FIREBASE_API_KEY=api_key_from_firebase
+export FIREBASE_AUTH_DOMAIN=auth_domain_from_firebase
+# and so on ...
 ```
 
 Then, change to the `backend` directory, install dependencies, and start the server
 
 ```bash
-cd app/backend && npm install && node app.js
+cd app/backend && npm install && npm run build && npm run dev
 ```
 
 [![Open in Visual Studio Code](https://classroom.github.com/assets/open-in-vscode-718a45dd9cf7e7f842a935f5ebbe5719a5e09af4491e668f4dbf3b35d5cca122.svg)](https://classroom.github.com/online_ide?assignment_repo_id=15094173&assignment_repo_type=AssignmentRepo)
