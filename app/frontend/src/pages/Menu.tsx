@@ -9,6 +9,7 @@ import { OrderCart } from "../model/OrderCart";
 import { ListItem, Dialog, Stack, Tab, Tabs, Typography, Divider, Paper } from "@mui/material";
 import CheckoutCart from "../components/CheckoutCart";
 import { Place } from "@mui/icons-material";
+import { apiUrl } from "../components/APIUrl";
 
 type RestaurantMenuParams = {
     id: string
@@ -27,7 +28,7 @@ const RestaurantMenu = () => {
     const { id } = useParams<RestaurantMenuParams>();
     const { data, isLoading, isError } = useQuery<RestaurantMenuResponse>({
         queryKey: ['menu', id],
-        queryFn: () => fetch(`http://localhost:3000/restaurants/${id}`).then((res) => {
+        queryFn: () => fetch(`${apiUrl}/restaurants/${id}`).then((res) => {
             if (res.ok) {
                 return res.json();
             } else {
@@ -40,7 +41,7 @@ const RestaurantMenu = () => {
     const [order, setOrder] = useState<OrderCart | null>(null);
     useEffect(() => {
         // On first load, check if the user has any existing order in-progress
-        fetch(`http://localhost:3000/restaurants/${id}/order`)
+        fetch(`${apiUrl}/restaurants/${id}/order`)
             .then((res) => {
                 if (res.ok) {
                     return res.json();
@@ -122,7 +123,7 @@ const RestaurantMenu = () => {
                             <Typography>Choose a menu category to start browsing.</Typography>
                     }
                 </Stack>
-                <CheckoutCart order={order} />
+                <CheckoutCart order={order} setOrder={setOrder}/>
             </Stack>
             {(item && id) &&
                 <Dialog open={!!item} onClose={() => setItem(null)} fullWidth maxWidth="sm">

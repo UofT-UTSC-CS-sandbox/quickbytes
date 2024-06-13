@@ -8,7 +8,8 @@ export type CartItem = {
 
 export type OrderCart = {
     id: number,
-    restaurant: string,
+    restaurantId: string,
     items: Record<string, CartItem>,
-    price: number
+    price: number,
+    status: string,
 }

@@ -1,8 +1,10 @@
 import { Router } from "express";
-import { addToOrder, createUserOrder, getActiveOrder, getAllRestaurants, getOneRestaurant, getOrder } from "../controllers/menuController";
+import { addToOrder, createUserOrder, deleteItemFromOrder, getActiveOrder, getAllRestaurants, getOneRestaurant, getOrder, placeOrder } from "../controllers/menuController";
 
 const menuRouter = Router();
 
+menuRouter.delete('/order/:orderId/items/:itemId', deleteItemFromOrder);
+menuRouter.post('/order/:orderId/place', placeOrder);
 menuRouter.post('/:id/order/:orderId', addToOrder);
 menuRouter.get('/:id/order/:orderId', getOrder);
 menuRouter.post('/:id/order', createUserOrder);

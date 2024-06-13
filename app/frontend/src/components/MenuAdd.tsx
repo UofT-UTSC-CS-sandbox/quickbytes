@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { MenuItem } from "../model/Menu";
 import { useMutation } from "@tanstack/react-query";
 import { OrderCart } from "../model/OrderCart";
-import { Alert, Button, DialogContent, DialogTitle, Divider, FormControl, FormControlLabel, FormLabel, List, ListItem, Radio, RadioGroup, Stack, TextField, Typography } from "@mui/material";
+import { Alert, Button, CircularProgress, DialogContent, DialogTitle, Divider, FormControl, FormControlLabel, FormLabel, List, ListItem, Radio, RadioGroup, Stack, TextField, Typography } from "@mui/material";
 import currencyFormatter from "./CurrencyFormatter";
 import { Add } from "@mui/icons-material";
 
@@ -86,8 +86,6 @@ const MenuAdd = ({ data, close, setOrder, order, restaurantId }: MenuAddProps) =
         )
     }
 
-    console.log("current id", order)
-
     // Create order
     const { mutate: createOrder, isError: isCreateOrderError } = useMutation({
         mutationKey: ['order', restaurantId],
@@ -102,6 +100,7 @@ const MenuAdd = ({ data, close, setOrder, order, restaurantId }: MenuAddProps) =
         },
         onSuccess: (data) => {
             setOrder(data.data);
+            close();
         }
     });
 
@@ -218,7 +217,7 @@ const MenuAdd = ({ data, close, setOrder, order, restaurantId }: MenuAddProps) =
                     <Typography>Price</Typography>
                     <p>{currencyFormatter.format(price)}</p>
                     <Stack direction='row' justifyContent="space-between">
-                        <Button disabled={isAddItemPending} variant='contained' color='success' onClick={onAddSubmit} startIcon={<Add />}> Add to Order</Button>
+                        <Button disabled={isAddItemPending} variant='contained' color='success' onClick={onAddSubmit} startIcon={!isAddItemPending ? <Add /> : <CircularProgress/>}>Add To Order</Button>
                         <Button disabled={isAddItemPending} onClick={close} color='error'>Cancel</Button>
                     </Stack>
 

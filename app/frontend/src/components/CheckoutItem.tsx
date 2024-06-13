@@ -1,7 +1,15 @@
-import { Chip, Stack, Typography } from "@mui/material";
-import { CartItem } from "../model/OrderCart";
+import { Chip, IconButton, Stack, Typography } from "@mui/material";
+import { CartItem, OrderCart } from "../model/OrderCart";
+import { Delete } from "@mui/icons-material";
+import { UseMutationResult } from "@tanstack/react-query";
 
-const CheckoutItem = ({data}: {data: CartItem}) => {
+export type ItemDeleteResponse = {
+    data: OrderCart;
+    orderKey: string;
+}
+
+
+const CheckoutItem = ({data, id, mutation, canDelete }: {data: CartItem, id: string, mutation: UseMutationResult<ItemDeleteResponse, Error, string, unknown>, canDelete: boolean}) => {
 
     const { menuItemId, quantity, optionSelected, price } = data;
     const addOnsSelected = data?.addOnsSelected || {};
@@ -19,9 +27,10 @@ const CheckoutItem = ({data}: {data: CartItem}) => {
                 <p style={{margin: 0}}>{optionSelected}</p>
                 <p style={{margin: 0}}>{Object.entries(addOnsSelected).map(([key, value]) => `${key}: ${value}`).join(', ')}</p>
             </Stack> 
-            {/* <IconButton aria-label='delete'>
+            { canDelete && 
+            <IconButton aria-label='delete' disabled={mutation.isPending} onClick={() => mutation.mutate(id)}>
                 <Delete color='error'/>
-            </IconButton> */}
+            </IconButton> }
         </Stack>
     )
 }
