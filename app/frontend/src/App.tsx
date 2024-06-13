@@ -1,7 +1,5 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import DirectionsMap from './components/DirectionsMap'
+import SetDirectionsMap from './components/SetDirectionsMap'
 import './App.css'
 
 function App() {
@@ -25,16 +23,14 @@ function App() {
 
   return (
     <div style={{ width: "100%" }}>
-      <button onClick={() => setViewMap(!viewMap)}>Set Location</button>
-      {viewMap ?
+      {!viewMap && (
+        <button onClick={() => setViewMap(true)}>Select Pickup Location</button>
+      )}
+      {viewMap && (
         <div style={{ width: "100%", height: "100vh" }}>
-          <DirectionsMap />
+          <SetDirectionsMap />
         </div>
-        :
-        <>
-
-        </>
-      }
+      )}
     </div>
   );
 }
