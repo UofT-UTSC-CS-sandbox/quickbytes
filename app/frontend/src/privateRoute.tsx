@@ -1,33 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
+import { auth } from './firebaseConfig';
 
 interface PrivateRouteProps {
   children: React.ReactNode;
 }
 
 const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
-  const { currentUser, loading } = useAuth();
-  const [emailVerified, setEmailVerified] = useState(false);
-  
 
-  useEffect(() => {
-    const checkEmailVerification = async () => {
-      if (currentUser) {
-        try {
-          await currentUser.reload(); // Reload user profile to get latest info
-          setEmailVerified(currentUser.emailVerified);
-        } catch (error) {
-          console.error('Error reloading user:', error);
-          setEmailVerified(false); // Fallback to false
-        }
-      } else {
-        setEmailVerified(false); // If no currentUser, not verified
-      }
-    };
-
-    checkEmailVerification();
-  }, [currentUser]);
+  //You can ignore the code involving email verification for now since I commented out the lines that redirect to
+  //the verification-instructions page in the case that the email has not been verified yet (this functionality has issues)
+  const { currentUser, loading, emailVerified} = useAuth();
 
   if (loading) {
     return <div>Loading...</div>;
@@ -37,9 +21,13 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
     return <Navigate to="/login" />;
   }
 
-  //if (!emailVerified) {
-   // return <Navigate to="/verification-instructions" />;
-  //}
+  
+  if (!emailVerified) {
+    auth.currentUser?.reload();
+    if(!auth.currentUser?.emailVerified){
+      return <Navigate to="/verification-instructions" />;
+    }
+  }
 
   return <>{children}</>;
 };

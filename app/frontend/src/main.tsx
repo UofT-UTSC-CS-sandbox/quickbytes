@@ -36,6 +36,7 @@ const theme = createTheme({
   },
 });
 
+//If you use a route which requires the user to be logged in first, then put <PrivateRoute> around it
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <ThemeProvider theme={theme}>
@@ -53,3 +54,5 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     </ThemeProvider>
   </React.StrictMode>
 );
+
+
