@@ -221,6 +221,23 @@ export function getOrder(req: Request, res: Response) {
     });
 }
 
+export function getOrderDropOff(req: Request, res: Response) {
+    const database = getDatabase();
+    const orderID = req.params.orderId;
+    const order = child(ref(database), `orders/${orderID}/tracking/dropOff`);
+
+    get(order).then((snapshot) => {
+        if (snapshot.exists()) {
+            res.status(200).send({ data: snapshot.val() });
+        } else {
+            res.status(404).send({ data: "Something went wrong" });
+        }
+    }).catch((error) => {
+        console.error("Error retrieving data:", error);
+        res.status(500).send("Internal server error");
+    });
+}
+
 // Get the only in-progress order for the user
 export async function getActiveOrder(req: Request, res: Response) {
     const database = getDatabase();

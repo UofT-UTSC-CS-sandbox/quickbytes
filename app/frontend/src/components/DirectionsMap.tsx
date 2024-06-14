@@ -5,6 +5,12 @@ import Button from '@mui/material/Button';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import './DirectionsMap.css';
+import { getCourierActiveOrder, getOrder } from '../middleware';
+import CircularProgress from '@mui/material/CircularProgress';
+import AppBar from '@mui/material/AppBar';
+import Toolbar from '@mui/material/Toolbar';
+import Typography from '@mui/material/Typography';
+import { Snackbar, Alert } from '@mui/material';
 
 interface DirectionsRoute {
   summary: string;
@@ -63,17 +69,66 @@ function BasicMenu({ routes, setRouteIndex }: BasicMenuProps) {
   );
 }
 
+const responseHandler = (response: Response) => response.json();
+
+interface DirectionProps {
+  errorHandler: (error: Error) => void;
+  loadHandler: (loadVal:boolean) => void;
+}
+
 /* Generates and renders directions */
-function Directions() {
+function Directions({ errorHandler, loadHandler }:DirectionProps) {
   const map = useMap("map");
   const routesLibrary = useMapsLibrary("routes");
   const [directionsService, setDirectionsService] = useState<google.maps.DirectionsService>();
   const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer>();
   const [routes, setRoutes] = useState<google.maps.DirectionsRoute[]>([]);
   const [routeIndex, setRouteIndex] = useState(0);
+  const [originCoord, setOriginCoord] = useState<google.maps.LatLngLiteral | null>(null);
+  const [dropOffCoord, setDropOffCoord] = useState<google.maps.LatLngLiteral | null>(null);
   console.log(routes)
   const selected = routes[routeIndex];
   const leg = selected?.legs[0];
+  
+  useEffect(() => {
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position: GeolocationPosition) => {
+
+          const pos = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          };
+
+          //infoWindow.open(map);
+          map?.setCenter(pos);
+          setOriginCoord(pos);
+        },
+        () => {
+          console.error('loc')
+          errorHandler(new Error("Could not find your location, please try again later"));
+          loadHandler(false);
+        }
+      );
+    } else {
+      // Browser doesn't support Geolocation
+      errorHandler(new Error("Browser doesn't support Geolocation"));
+      loadHandler(false);
+    }
+
+    getCourierActiveOrder(8).then(responseHandler)
+    .then(data => {
+      console.log('Order data:', data)
+      getOrder(data.data[0]).then(responseHandler)
+      .then(locationData => {
+        console.log(locationData);
+        setDropOffCoord(locationData.data);
+      })
+      .catch(errorHandler);
+    })
+    .catch(errorHandler);
+  }, []);
 
   useEffect(() => {
     if (!routesLibrary || !map) return;
@@ -85,25 +140,26 @@ function Directions() {
      Store some state to update and re-render origin from courier's queried realtime location in database
   */
   useEffect(() => {
-    if (!directionsRenderer || !directionsService) return;
+    if (!directionsRenderer || !directionsService || !originCoord || !dropOffCoord) return;
     directionsService.route({
-      origin: "1265 Military Trail, Scarborough, ON M1C 1A4",
-      destination: "755 Morningside Ave, Scarborough, ON M1C 4Z4",
+      origin: originCoord,
+      destination: dropOffCoord,
       travelMode: google.maps.TravelMode.WALKING,
       provideRouteAlternatives: true
     }).then(result => {
       directionsRenderer.setDirections(result);
       setRoutes(result.routes);
     });
-  }, [directionsService, directionsRenderer]);
+  }, [directionsService, directionsRenderer, originCoord, dropOffCoord]);
 
   useEffect(() => {
-    if (!directionsRenderer) return;
+    if (!directionsRenderer || !dropOffCoord || originCoord) return;
     directionsRenderer.setRouteIndex(routeIndex);
-  }, [routeIndex, directionsRenderer]);
+  }, [routeIndex, directionsRenderer])
 
   if (!leg) return null;
 
+  loadHandler(false);
   /* Render header, status, and buttons based on input parameters, update header and buttons workflow*/
   return (
     <div className='sidebar-container'>
@@ -125,19 +181,48 @@ function Directions() {
 
 export default function DirectionsMap() {
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string;
+  const [displayError, setDisplayError] = useState<Error | null>(null);
+  const errorHandler = (err:Error) => {
+    console.error(err);
+    setDisplayError(err);
+  }
+  const [loading, setLoading] = useState(true);
+  const loadHandler = (loadVal:boolean) => setLoading(loadVal);
   return (
-    <APIProvider apiKey={apiKey} onLoad={() => console.log('Maps API has loaded.')}>
-      <div className='map-container'>
-        <Directions />
-        <Map
-          id={'map'}
-          defaultZoom={13}
-          defaultCenter={{ lat: -33.860664, lng: 151.208138 }}
-          onCameraChanged={(ev: MapCameraChangedEvent) =>
-            console.log('camera changed:', ev.detail.center, 'zoom:', ev.detail.zoom)
-          }>
-        </Map>
-      </div>
-    </APIProvider>
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: "100%", height: "100vh" }}>
+          <div style={{width: "100%", height: "100vh"}}>
+            <APIProvider apiKey={apiKey} onLoad={() => console.log('Maps API has loaded.')}>
+              <div className='map-container'>
+                <Directions loadHandler={loadHandler} errorHandler={errorHandler} />
+                <Map
+                  id={'map'}
+                  defaultZoom={13}
+                  defaultCenter={{ lat: -33.860664, lng: 151.208138 }}
+                  onCameraChanged={(ev: MapCameraChangedEvent) =>
+                    console.log('camera changed:', ev.detail.center, 'zoom:', ev.detail.zoom)
+                  }>
+                </Map>
+              </div>
+            </APIProvider>
+            <Snackbar open={displayError != null} autoHideDuration={6000} onClose={() => setDisplayError(null)}>
+              <Alert
+                onClose={() => setDisplayError(null)}
+                severity="error"
+                variant="filled"
+                sx={{ width: '100%' }}
+              >
+                {displayError?.message}
+              </Alert>
+            </Snackbar>
+            {loading?
+             <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <Typography variant="h6">Loading...</Typography>
+                <CircularProgress />
+              </div>
+            </div> : null}
+
+          </div> 
+    </div>
   );
 }

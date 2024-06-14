@@ -1,12 +1,13 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
-import { getDatabase, ref, set, get, child } from "firebase/database";
+import { getDatabase, ref, set, get, child, query, limitToFirst } from "firebase/database";
 import express from 'express';
 import bodyParser from 'body-parser';
 
 import * as dotenv from 'dotenv';
 import menuRouter from "./routes/menuRoutes";
+import deliveryRouter from "./routes/deliveryRoutes";
 dotenv.config();
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -59,6 +60,25 @@ app.get('/', (req, res) => {
         res.status(500).send("Internal server error");
       });
   
+});
+
+app.use('/deliveries', deliveryRouter);
+
+app.post('/order', (req, res) => {
+  const orderID = req.body.orderID;
+  console.log(req.body.orderID);
+  const order = child(ref(database), `orders/${orderID}/tracking/dropOff`);
+
+  get(order).then((snapshot) => {
+      if (snapshot.exists()) {
+          res.status(200).send({ data: snapshot.val() });
+      } else {
+          res.status(404).send({ data: "Something went wrong" });
+      }
+  }).catch((error) => {
+      console.error("Error retrieving data:", error);
+      res.status(500).send("Internal server error");
+  });
 });
 
 app.use('/restaurants', menuRouter)
