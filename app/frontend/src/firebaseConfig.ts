@@ -1,6 +1,7 @@
 // src/firebaseConfig.ts
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getAuth, setPersistence, browserSessionPersistence} from "firebase/auth";
+
 
 const firebaseConfig = {
   apiKey: "AIzaSyDDG42MoF9S4Qtgf3LCysRLqSuIqowXzlE",
@@ -14,4 +15,13 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
+const auth = getAuth(app);
+try {
+  await setPersistence(auth, browserSessionPersistence);
+  console.log('Session persistence set successfully');
+} catch (error) {
+  console.error('Error setting session persistence:', error);
+}
+
+
+export { app, auth }

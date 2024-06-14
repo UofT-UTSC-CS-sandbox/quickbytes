@@ -1,12 +1,16 @@
 // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-import { getDatabase, ref, set, get, child } from "firebase/database";
+//import { initializeApp } from "firebase/app";
+//import { getAnalytics } from "firebase/analytics";
+//import { getDatabase, ref, set, get, child } from "firebase/database";
 import express from 'express';
+//const cors = require('cors');
+const cors = require('cors'); 
+//import { Request, Response, NextFunction } from 'express';
+import verifyToken from './middleware/verifyToken';
 
 
-import { getAuth, createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
-import { signInWithEmailAndPassword } from "firebase/auth";
+//import { getAuth, createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
+//import { signInWithEmailAndPassword } from "firebase/auth";
 
 
 import * as dotenv from 'dotenv';
@@ -29,7 +33,7 @@ const firebaseConfig = {
   databaseURL: process.env.FIREBASE_DATABASE_URL
 };
 */
-
+/*
 const firebaseConfig = {
   apiKey: "AIzaSyDDG42MoF9S4Qtgf3LCysRLqSuIqowXzlE",
   authDomain: "quickbytes-85385.firebaseapp.com",
@@ -45,11 +49,13 @@ const firebaseConfig = {
 const fb = initializeApp(firebaseConfig);
 const database = getDatabase(fb);
 // const analytics = getAnalytics(app);
+
+*/
 // Create an Express application
 const app = express();
 const port = 3000;
 
-
+app.use(cors());
 app.use(express.json());
 
 app.use((req, res, next) => {
@@ -60,65 +66,56 @@ app.use((req, res, next) => {
   next();
 });
 
-//Endpoint for account creation
-app.post('/create-account', async (req, res) => {
-  const { email, password } = req.body;
-
-  //Will be changed later, need to check valid email
-  if (!email.endsWith('@mail.utoronto.ca')) {
-    return res.status(400).send('invalid email');
+/*
+const verifyToken = async (req: Request, res: Response, next: NextFunction) => {
+  const idToken = req.headers.authorization?.split('Bearer ')[1];
+  if (!idToken) {
+    return res.status(401).send('Unauthorized');
   }
 
-  const auth = getAuth(fb);
   try {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    await sendEmailVerification(userCredential.user);
-    res.status(200).send('email sent');
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    req.user = decodedToken;
+    next();
   } catch (error) {
-    if (error instanceof Error) {
-      res.status(500).send(error.message);
-    } else {
-      res.status(500).send('unknown error');
-    }
+    res.status(401).send('Unauthorized');
   }
-});
+};
 
 
-//Endpoint for login
-app.post('/login', async (req, res) => {
-  const { email, password } = req.body;
 
-  const auth = getAuth(fb);
+const authenticate = async (req: Request, res: Response, next: NextFunction) => {
+  const idToken = req.headers.authorization && req.headers.authorization.split('Bearer ')[1];
+
+  if (!idToken) {
+    return res.status(401).send('Unauthorized');
+  }
+
   try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    if (!userCredential.user.emailVerified) {
-      return res.status(400).send('email not verified');
-    }
-    res.status(200).send('successful');
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    req.user = decodedToken;
+    next();
   } catch (error) {
-    if (error instanceof Error) {
-      res.status(401).send(error.message);
-    } else {
-      res.status(401).send('unknown error');
-    }
+    return res.status(401).send('Unauthorized');
+  }
+};
+*/
+
+
+app.get('/protected', verifyToken, (req, res) => {
+  res.send('This is a protected route');
+});
+
+app.get('/confidential', verifyToken, (req, res) => {
+  if (req.user) {
+    res.send({ secret: 'This is confidential data' });
+  } else {
+    res.status(401).send('Unauthorized');
   }
 });
 
 
-// Define a GET endpoint
-app.get('/', (req, res) => {
-    get(child(ref(database), `test`)).then((snapshot) => {
-        if (snapshot.exists()) {
-          res.send({data: snapshot.val()});
-        } else {
-          res.send({data: "Something went wrong"});
-        }
-      }).catch((error) => {
-        console.error("Error retrieving data:", error);
-        res.status(500).send("Internal server error");
-      });
-  
-});
+
 
 // Start the server
 app.listen(port, () => {
