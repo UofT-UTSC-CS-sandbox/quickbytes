@@ -1,4 +1,5 @@
 #root {
+  margin: 0 auto;
   text-align: center;
   --navbar-background: #25355A;
   --background-green: #028643;
