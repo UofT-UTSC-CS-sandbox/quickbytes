@@ -49,8 +49,8 @@ const UserPage: React.FC = () => {
   return (
     <div>
       <Navout />
-      <h1>User Page</h1>
-      <button onClick={handleLogout}>Logout</button>
+      <div style={{ height: '5rem' }}></div>
+    
       {confidentialData ? (
         <p>{confidentialData}</p>
       ) : (

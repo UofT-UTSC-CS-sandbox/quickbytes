@@ -17,7 +17,7 @@ export default function Navout() {
   return (
     <nav className="navbar">
       <div className="navbar-title">
-        <Link to="/">QuickBytes</Link>
+                <Link to="/" style={{ color: 'white' }}>QuickBytes</Link>
       </div>
       <div className="navbar-options">
         <button className="navbar-signout" onClick={handleSignOut}>Sign out</button>

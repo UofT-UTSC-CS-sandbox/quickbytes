@@ -11,7 +11,7 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
 
   //You can ignore the code involving email verification for now since I commented out the lines that redirect to
   //the verification-instructions page in the case that the email has not been verified yet (this functionality has issues)
-  const { currentUser, loading, emailVerified} = useAuth();
+  const { currentUser, loading} = useAuth();
 
   if (loading) {
     return <div>Loading...</div>;
@@ -22,11 +22,9 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
   }
 
   
-  if (!emailVerified) {
-    auth.currentUser?.reload();
-    if(!auth.currentUser?.emailVerified){
-      return <Navigate to="/verification-instructions" />;
-    }
+  auth.currentUser?.reload();
+  if(!auth.currentUser?.emailVerified){
+    return <Navigate to="/verification-instructions" />;
   }
 
   return <>{children}</>;

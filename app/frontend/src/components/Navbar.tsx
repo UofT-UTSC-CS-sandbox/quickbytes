@@ -5,7 +5,7 @@ export default function NavBar() {
     return (
         <nav className="navbar">
             <div className="navbar-title">
-                <Link to="/">QuickBytes</Link>
+                <Link to="/" style={{ color: 'white' }}>QuickBytes</Link>
             </div>
             <div className="navbar-options">
                 <Link to="/login" className="navbar-signout">Sign in</Link>

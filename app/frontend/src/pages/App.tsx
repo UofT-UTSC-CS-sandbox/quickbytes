@@ -8,7 +8,6 @@ const App: React.FC = () => {
     <>
       <NavBar /> {/* Add Navbar component */}
       <div id="main-content" style={{ paddingTop: '10vh', backgroundColor: 'white' }}>
-            hello
         </div>
     </>
   );
