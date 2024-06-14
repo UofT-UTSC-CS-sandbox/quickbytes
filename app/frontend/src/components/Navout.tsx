@@ -1,0 +1,28 @@
+import './Navbar.css';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../AuthContext'; // Import your AuthContext for Firebase authentication
+
+export default function Navout() {
+  const { logout } = useAuth(); // Assuming useAuth provides a logout function
+
+  const handleSignOut = async () => {
+    try {
+      await logout(); // Calls the logout function from useAuth (Firebase signOut method)
+    } catch (error) {
+      console.error('Error signing out:', error);
+      // Handle sign-out error if needed
+    }
+  };
+
+  return (
+    <nav className="navbar">
+      <div className="navbar-title">
+        <Link to="/">QuickBytes</Link>
+      </div>
+      <div className="navbar-options">
+        <button className="navbar-signout" onClick={handleSignOut}>Sign out</button>
+      </div>
+    </nav>
+  );
+}
+

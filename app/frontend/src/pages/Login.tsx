@@ -16,8 +16,12 @@ const Login: React.FC = () => {
     event.preventDefault();
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      await userCredential.user.reload();
       const idToken = await userCredential.user.getIdToken();
 
+      
+      //This is how you would make a get request to the backend using a token
+      //In this case we don't actually do anything with whats returned, its just an example
       const response = await axios.get('http://localhost:3000/protected', {
         headers: {
           Authorization: `Bearer ${idToken}`,
