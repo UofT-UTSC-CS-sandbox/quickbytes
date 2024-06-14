@@ -1,11 +1,12 @@
-import { Alert, Badge, Box, Button, Card, CircularProgress, Divider, Drawer, Fab, Snackbar, Stack, Typography } from "@mui/material";
+import { Alert, Badge, Button, Card, CircularProgress, Divider, Drawer, Fab, Snackbar, Stack, Typography } from "@mui/material";
 import { OrderCart } from "../model/OrderCart"
 import CheckoutItem, { ItemDeleteResponse } from "./CheckoutItem"
-import { Close, CloseRounded, Place, Shop, ShoppingCart, ShoppingCartCheckout } from "@mui/icons-material";
+import { Close, Place, ShoppingCart, ShoppingCartCheckout } from "@mui/icons-material";
 import currencyFormatter from "./CurrencyFormatter";
 import React from "react";
 import { useMutation } from "@tanstack/react-query";
 import { apiUrl } from "./APIUrl";
+import OrderStatus from "../model/OrderStatus";
 
 const CheckoutCart = ({ order, setOrder }: { order: OrderCart | null, setOrder: React.Dispatch<React.SetStateAction<OrderCart | null>> }) => {
 
@@ -56,7 +57,7 @@ const CheckoutCart = ({ order, setOrder }: { order: OrderCart | null, setOrder: 
                     key={id}
                     data={item}
                     mutation={deleteItemMutation} id={id}
-                    canDelete={order.status === 'ORDERING'} />
+                    canDelete={order.status === OrderStatus.ORDERING} />
             )
         }
         <Divider />
@@ -82,7 +83,7 @@ const CheckoutCart = ({ order, setOrder }: { order: OrderCart | null, setOrder: 
         <Divider />
         <Stack spacing={2}>
             <Typography>You have not set a pick-up location yet.</Typography>
-            {order.status === 'ORDERING' && <Button variant='contained' startIcon={<Place />} color='secondary'> Set Pick-up Location</Button>}
+            {order.status === OrderStatus.ORDERING && <Button variant='contained' startIcon={<Place />} color='secondary'> Set Pick-up Location</Button>}
         </Stack>
         <Divider />
         {
@@ -90,11 +91,11 @@ const CheckoutCart = ({ order, setOrder }: { order: OrderCart | null, setOrder: 
                 <Typography><CircularProgress /> Placing order ... </Typography>
                 :
                 <>
-                    {order.status === 'ORDERING' && <Button variant='contained' startIcon={<ShoppingCartCheckout />} color='success' onClick={() => placeOrder()}>Checkout</Button>}
+                    {order.status === OrderStatus.ORDERING && <Button variant='contained' startIcon={<ShoppingCartCheckout />} color='success' onClick={() => placeOrder()}>Checkout</Button>}
                     {isError && <Alert severity="error" sx={{ display: isError ? 'flex' : 'none' }}>Something went wrong. Please try again.</Alert>}
                 </>
         }
-        {!['CANCELLED', 'ORDERING'].includes(order.status) && <Alert severity="success">Order successfully placed.</Alert>}
+        {(order.status !== OrderStatus.CANCELLED && order.status !== OrderStatus.ORDERING) && <Alert severity="success">Order successfully placed.</Alert>}
         {showSuccess && <Snackbar open={showSuccess} onClose={() => setShowSuccess(false)} autoHideDuration={3000}><Alert severity="success">Order successfully placed.</Alert></Snackbar>}
     </Stack>
 
@@ -115,15 +116,15 @@ const CheckoutCart = ({ order, setOrder }: { order: OrderCart | null, setOrder: 
                     <ShoppingCart />
                 </Badge>
             </Fab>
-            {/* Button to close mobile cart */}
             {/* Checkout cart on mobile */}
             <Drawer
                 anchor='bottom'
                 open={mobileOpen}
                 onClose={() => setMobileOpen(false)}
                 sx={{ display: { xs: 'block', md: 'none' } }}
-            >
+                >
                 {content}
+                {/* Button to close mobile cart */}
                 <Fab
                     color="secondary"
                     size='medium'

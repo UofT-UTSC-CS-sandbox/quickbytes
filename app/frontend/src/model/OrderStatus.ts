@@ -1,4 +1,4 @@
-export enum OrderStatus {
+enum OrderStatus {
     // The starting status for an order when created.
     // Items can be added or removed from cart
     ORDERING = 'ORDERING',
@@ -16,15 +16,4 @@ export enum OrderStatus {
     CANCELLED = 'CANCELLED',
 }
 
-export type Order = {
-    userId: number;
-    orderId: number;
-    restaurantId: number;
-    status: OrderStatus;
-    items: {
-        option: string;
-        quantity: number;
-        addOnOptions: { [key: string]: string };
-        price: number;
-    }[];
-}
+export default OrderStatus;
