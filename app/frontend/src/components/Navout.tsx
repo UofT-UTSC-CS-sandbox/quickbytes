@@ -1,9 +1,9 @@
 import './Navbar.css';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../AuthContext'; // Import your AuthContext for Firebase authentication
+import { useAuth } from '../AuthContext'; // Import AuthContext for Firebase authentication
 
 export default function Navout() {
-  const { logout } = useAuth(); // Assuming useAuth provides a logout function
+  const { logout } = useAuth(); //useAuth provides a logout function
 
   const handleSignOut = async () => {
     try {

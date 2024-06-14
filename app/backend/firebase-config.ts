@@ -1,10 +1,12 @@
 var admin = require("firebase-admin");
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 var serviceAccount = require("./serviceAccount.json");
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://quickbytes-85385-default-rtdb.firebaseio.com"
+  databaseURL: process.env.FIREBASE_DATABASE_URL,
 });
 
 

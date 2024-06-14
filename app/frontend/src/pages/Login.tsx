@@ -1,11 +1,9 @@
-// src/Login.tsx
 import React, { useState } from 'react';
 import axios from 'axios';
 import './Login.css';
 import { useNavigate } from 'react-router-dom';
-import { signInWithEmailAndPassword,currentUser } from 'firebase/auth';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
-//import NavBar from '../components/Navbar';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -20,7 +18,7 @@ const Login: React.FC = () => {
       const idToken = await userCredential.user.getIdToken();
 
       
-      //This is how you would make a get request to the backend using a token
+      //This is how you would make a get request to the backend using a token to get data from a protected route
       //In this case we don't actually do anything with whats returned, its just an example
       const response = await axios.get('http://localhost:3000/protected', {
         headers: {
