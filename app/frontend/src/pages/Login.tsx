@@ -26,7 +26,6 @@ const Login: React.FC = () => {
         },
       });
 
-      alert('Protected data accessed');
       navigate('/user-page');
     } catch (error) {
       if (axios.isAxiosError(error)) {
