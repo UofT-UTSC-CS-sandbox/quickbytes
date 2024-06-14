@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { auth } from '../firebaseConfig'; // Adjust the path as necessary
 import { useNavigate } from 'react-router-dom';
 import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
+import './SignUp.css';
 
 const SignUp: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -28,37 +29,34 @@ const SignUp: React.FC = () => {
   };
 
   return (
-    <div>
-      <form onSubmit={handleSubmit}>
-        <h1>Sign Up</h1>
-        <label>
-          Email:
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </label>
-        <br />
-        <label>
-          Password:
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </label>
-        <br />
+    <div className="login-container">
+      <form onSubmit={handleSubmit} className="login-form">
+      <h1 className="sign-up-header">Create an account</h1>
+      <p className="sign-up-text">Enter your email to sign up</p>
+        <div>
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="example@mail.utoronto.ca" required />
+        </div>
+        <div>
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter Password" required />
+        </div>
         <button type="submit">Sign Up</button>
+        <hr style={{ marginTop: '20px', marginBottom: '0px', color: '#E6E6E6', borderWidth: '1px', width: '100%' }} />
       </form>
-      <p>Already have an account? 
-        <button 
-          onClick={goToLogin} 
-          style={{ fontWeight: 'bold', color: 'blue', textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer' }}
+      <p style={{ color: '#828282', marginTop: '0px' }}>
+        Already have an account? Sign in
+        <button
+          onClick={goToLogin}
+          style={{
+            color: '#828282',
+            textDecoration: 'none',
+	          background: 'none', 
+	          border: 'none',
+            fontWeight: 'normal',
+            cursor: 'pointer',
+            paddingLeft: '4px',
+          }}
         >
-          Sign in here
+           <strong><u>Here</u></strong>
         </button>
       </p>
     </div>

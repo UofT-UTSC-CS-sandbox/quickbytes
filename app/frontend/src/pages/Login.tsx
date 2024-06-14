@@ -44,7 +44,7 @@ const Login: React.FC = () => {
       <form onSubmit={handleSubmit} className="login-form">
       <h2 style={{ fontSize: '24px', fontWeight: '600' }}>Sign In</h2>
         <div>
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter Email" required />
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="example@mail.utoronto.ca" required />
         </div>
         <div>
           <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter Password" required />
@@ -66,7 +66,7 @@ const Login: React.FC = () => {
             paddingLeft: '4px',
           }}
         >
-           <strong>here</strong>
+           <strong><u>Here</u></strong>
         </button>
       </p>
 

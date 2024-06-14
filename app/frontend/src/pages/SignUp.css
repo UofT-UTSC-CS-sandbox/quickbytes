@@ -73,3 +73,17 @@
   font-family: 'Inter', sans-serif;
 }
 
+.sign-up-header {
+    font-size: 24px;
+    font-weight: 600; /* Semi-bold */
+    margin-bottom: 0px;
+    padding-bottom: 0px;
+  }
+  
+  .sign-up-text {
+    font-size: 16px;
+    font-weight: 500; /* Regular bolding */
+    margin-top: 0; /* Adjust top margin */
+    margin-bottom: 30px; /* Adjust bottom margin */
+    padding-top: 0px;
+  }
