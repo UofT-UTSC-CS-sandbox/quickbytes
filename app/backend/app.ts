@@ -3,6 +3,7 @@ import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getDatabase, ref, set, get, child } from "firebase/database";
 import express from 'express';
+import bodyParser from 'body-parser';
 
 import * as dotenv from 'dotenv';
 dotenv.config();
@@ -29,6 +30,7 @@ const database = getDatabase(fb);
 // Create an Express application
 const app = express();
 const port = 3000;
+app.use(bodyParser.json())
 
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173');
@@ -40,17 +42,17 @@ app.use((req, res, next) => {
 
 // Define a GET endpoint
 app.get('/', (req, res) => {
-    get(child(ref(database), `test`)).then((snapshot) => {
-        if (snapshot.exists()) {
-          res.send({data: snapshot.val()});
-        } else {
-          res.send({data: "Something went wrong"});
-        }
-      }).catch((error) => {
-        console.error("Error retrieving data:", error);
-        res.status(500).send("Internal server error");
-      });
-  
+  get(child(ref(database), `test`)).then((snapshot) => {
+    if (snapshot.exists()) {
+      res.send({ data: snapshot.val() });
+    } else {
+      res.send({ data: "Something went wrong" });
+    }
+  }).catch((error) => {
+    console.error("Error retrieving data:", error);
+    res.status(500).send("Internal server error");
+  });
+
 });
 
 // Start the server

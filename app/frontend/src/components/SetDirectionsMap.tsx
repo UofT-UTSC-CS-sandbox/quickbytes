@@ -1,31 +1,42 @@
-import { APIProvider, Map, MapCameraChangedEvent, useMap, useMapsLibrary } from '@vis.gl/react-google-maps';
+import { APIProvider, Map, MapCameraChangedEvent, useMap } from '@vis.gl/react-google-maps';
 import { useEffect, useState } from 'react';
+import { Button, TextField, Typography } from "@mui/material";
+import styles from './SetDirectionsMap.module.css';
 
 export default function SingleMarkerMap() {
     const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
     const [markerPosition, setMarkerPosition] = useState({ lat: 43.7845, lng: -79.1876 });
     const [confirmedPosition, setConfirmedPosition] = useState(null);
+    const [additionalInfo, setAdditionalInfo] = useState("");
 
     const handleConfirmPosition = () => {
         setConfirmedPosition(markerPosition);
-        alert(`Confirmed position: ${markerPosition.lat}, ${markerPosition.lng}`);
+        alert(`Confirmed position: ${markerPosition.lat}, ${markerPosition.lng}\nAdditional Info: ${additionalInfo}`);
     };
 
     return (
         <APIProvider apiKey={apiKey} onLoad={() => console.log('Maps API has loaded.')}>
-            <div className='location-map-layout'>
-                <div className='left-side-layout'>
-                    <div className='marker-descrip'>
-                        <p>Drag the red marker to the desired pickup location.</p>
+            <div className={styles.locationMapLayout}>
+                <div className={styles.leftSideLayout}>
+                    <div className={styles.markerDescrip}>
+                        <Typography>Drag the red marker to the desired pickup location.</Typography>
                     </div>
-                    <div className='addi-info'>
-                        <p>Additional Pickup Location Info:</p><input type="text" placeholder="Enter room #"></input>
+                    <div className={styles.addiInfo}>
+                        <Typography>Additional Pickup Location Info:</Typography>
+                        <TextField
+                            inputProps={{ inputMode: 'text', className: styles.textFieldInput }}
+                            placeholder="Enter room # / Other info"
+                            value={additionalInfo}
+                            size="small"
+                            onChange={(e) => setAdditionalInfo(e.target.value)}
+                            fullWidth
+                        />
                     </div>
-                    <div className='confirm-button'>
-                        <button onClick={handleConfirmPosition}>Confirm Pickup Location</button>
+                    <div className={styles.confirmButton}>
+                        <Button variant='contained' onClick={() => handleConfirmPosition()}>Confirm Pickup Location</Button>
                     </div>
                 </div>
-                <div className='map'>
+                <div className={styles.map}>
                     <Map
                         defaultZoom={13}
                         defaultCenter={{ lat: 43.7845, lng: -79.1876 }}
@@ -48,12 +59,6 @@ export default function SingleMarkerMap() {
                     </Map>
                 </div>
             </div>
-
-            {confirmedPosition && (
-                <div style={{ position: 'absolute', top: 50, right: 10, zIndex: 1000 }}>
-                    <p>Confirmed Position: {confirmedPosition.lat}, {confirmedPosition.lng}</p>
-                </div>
-            )}
         </APIProvider>
     );
 }
@@ -86,7 +91,7 @@ function MarkerAtCenter({ setMarkerPosition }) {
             const position = marker.getPosition();
             setMarkerPosition({ lat: position.lat(), lng: position.lng() });
             infoWindow.close();
-            infoWindow.setContent(`Pin dropped at: ${position.lat()}, ${position.lng()}`);
+            infoWindow.setContent(`<div class=${styles.infoWindowContent}>Pin dropped at: ${position.lat()}, ${position.lng()}</div>`);
             infoWindow.open(map, marker);
         });
 
