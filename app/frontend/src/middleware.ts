@@ -1,19 +1,14 @@
-const baseURL = 'http://localhost:3000/';
+import { apiUrl } from "./components/APIUrl";
 
 export async function getCourierActiveOrder(courierID: number): Promise<Response> {
-    const url = `${baseURL}deliveries`;
-    
-    const requestBody = {
-        courierID: courierID
-    };
+    const url = `${apiUrl}/deliveries/active?courierID=${courierID}`;
 
     try {
         const response = await fetch(url, {
-            method: 'POST',
+            method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(requestBody)
+            }
         });
 
         if (!response.ok) {
@@ -29,19 +24,14 @@ export async function getCourierActiveOrder(courierID: number): Promise<Response
 
 /* Retreives the order with the given orderID */
 export async function getOrder(orderID: string): Promise<Response> {
-    const url = `${baseURL}order`;
+    const url = `${apiUrl}/restaurants/order/${orderID}/dropOff`;
     
-    const requestBody = {
-        orderID: orderID
-    };
-
     try {
         const response = await fetch(url, {
-            method: 'POST',
+            method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(requestBody)
+            }
         });
 
         if (!response.ok) {
