@@ -1,10 +1,13 @@
-// src/firebaseConfig.ts
+/*The initialization of firebase client SDK is done in the frontend because thats where I'm using
+the log in and sign out functions.
+*/
+
 import { initializeApp } from "firebase/app";
 import { getAuth, setPersistence, browserSessionPersistence} from "firebase/auth";
 //import * as dotenv from 'dotenv';
 //dotenv.config();
 
-
+//I couldn't figure out how to use environment variables in the frontend so I just hard coded it.
 const firebaseConfig = {
   apiKey: "AIzaSyDDG42MoF9S4Qtgf3LCysRLqSuIqowXzlE",
   authDomain: "quickbytes-85385.firebaseapp.com",

@@ -1,4 +1,7 @@
-// src/VerificationInstructions.tsx
+/*Just a page created to direct the user to in case they try to sign in
+without clicking the verification email.
+Still needs to be styled and equiped with a logout button.
+*/
 import React, { useState } from 'react';
 import { useAuth } from '../AuthContext';
 import { sendEmailVerification } from 'firebase/auth';

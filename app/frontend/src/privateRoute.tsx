@@ -1,3 +1,9 @@
+/*
+This should be added to all pages which should only be accessible after being logged in.
+It redirects the user to the login page or verification page if they're not logged in or their email
+is not verified and they try to access the protected page.
+*/
+
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';

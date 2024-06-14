@@ -1,3 +1,7 @@
+/*This page is just illustrative of how a page thats "protected" should work
+It uses a token from the current session to get a simple message from the backend
+*/
+
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';

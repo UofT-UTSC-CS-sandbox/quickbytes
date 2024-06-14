@@ -1,4 +1,7 @@
-// src/AuthContext.tsx
+/* This is used in main.tsx and provides all the pages between its tags with information about the current user
+and if they're signed in. And a logout function.
+*/
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { auth } from './firebaseConfig';

@@ -37,6 +37,7 @@ const theme = createTheme({
 });
 
 //If you use a route which requires the user to be logged in first, then put <PrivateRoute> around it
+//user-page is an example of a page which can only be accessed once logged in 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <ThemeProvider theme={theme}>
