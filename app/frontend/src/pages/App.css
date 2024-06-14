@@ -1,6 +1,14 @@
 #root {
   margin: 0 auto;
   text-align: center;
+  --navbar-background: #25355A;
+  --background-green: #028643;
+  --background-yellow: #FC8A06;
+  --text-primary: #000000;
+  width: 100%;
+  min-height: 100vh;
+  background-color: white;
+  color: var(--text-primary);
 }
 
 .logo {

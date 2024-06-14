@@ -1,0 +1,12 @@
+.menuLayout {
+    display: flex;
+    flex-direction: row;
+}
+
+.categoryList {
+    width: 200px;
+}
+
+.itemList {
+    flex-grow: 1;
+}
