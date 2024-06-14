@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from './AuthContext';
+import { useAuth } from '../AuthContext';
 
 const UserPage: React.FC = () => {
   const [confidentialData, setConfidentialData] = useState<string>('');

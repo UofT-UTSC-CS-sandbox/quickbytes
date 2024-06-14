@@ -1,6 +1,6 @@
 // src/VerificationInstructions.tsx
 import React, { useState } from 'react';
-import { useAuth } from './AuthContext';
+import { useAuth } from '../AuthContext';
 import { sendEmailVerification } from 'firebase/auth';
 
 const VerificationInstructions: React.FC = () => {

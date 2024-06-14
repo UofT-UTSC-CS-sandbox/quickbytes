@@ -1,9 +1,11 @@
 // src/Login.tsx
 import React, { useState } from 'react';
 import axios from 'axios';
+import './Login.css';
 import { useNavigate } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from './firebaseConfig';
+import { auth } from '../firebaseConfig';
+//import NavBar from '../components/Navbar';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -38,26 +40,36 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div>
-      <form onSubmit={handleSubmit}>
+    <div className="login-container">
+      <form onSubmit={handleSubmit} className="login-form">
+      <h2 style={{ fontSize: '24px', fontWeight: '600' }}>Sign In</h2>
         <div>
-          <label>Email</label>
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter Email" required />
         </div>
         <div>
-          <label>Password</label>
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter Password" required />
         </div>
-        <button type="submit">Login</button>
+        <button type="submit">Sign In</button>
+        <hr style={{ marginTop: '20px', marginBottom: '0px', color: '#E6E6E6', borderWidth: '1px', width: '100%' }} />
       </form>
-      <p>Don't have an account? 
-        <button 
-          onClick={goToSignUp} 
-          style={{ fontWeight: 'bold', color: 'blue', textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer' }}
+      <p style={{ color: '#828282', marginTop: '0px' }}>
+        Don't have an account? Sign up
+        <button
+          onClick={goToSignUp}
+          style={{
+            color: '#828282',
+            textDecoration: 'none',
+	          background: 'none', 
+	          border: 'none',
+            fontWeight: 'normal',
+            cursor: 'pointer',
+            paddingLeft: '4px',
+          }}
         >
-          Sign up here
+           <strong>here</strong>
         </button>
       </p>
+
     </div>
   );
 };

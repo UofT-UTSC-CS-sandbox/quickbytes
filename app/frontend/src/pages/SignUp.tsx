@@ -1,6 +1,6 @@
 // src/SignUp.tsx
 import React, { useState } from 'react';
-import { auth } from './firebaseConfig'; // Adjust the path as necessary
+import { auth } from '../firebaseConfig'; // Adjust the path as necessary
 import { useNavigate } from 'react-router-dom';
 import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
 
