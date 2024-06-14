@@ -6,11 +6,12 @@ import styles from './Menu.module.css'
 import { MenuCategory, MenuItem } from "../model/Menu";
 import MenuAdd from "../components/MenuAdd";
 import { OrderCart } from "../model/OrderCart";
-import { ListItem, Dialog, Stack, Tab, Tabs, Typography, Divider } from "@mui/material";
+import { ListItem, Dialog, Stack, Tab, Tabs, Typography, Divider, CircularProgress } from "@mui/material";
 import CheckoutCart from "../components/CheckoutCart";
 import { Place } from "@mui/icons-material";
 import { apiUrl } from "../components/APIUrl";
 import MenuCategoryDrawer from "../components/MenuCategoryDrawer";
+import NavBar from "../components/Navbar";
 
 type RestaurantMenuParams = {
     id: string
@@ -73,11 +74,16 @@ const RestaurantMenu = () => {
     }, [data])
 
     if (isLoading) {
-        return <div>Loading...</div>
+        return <div>
+            <NavBar />
+            <CircularProgress/> <Typography>Loading ...</Typography>
+        </div>
     }
 
     if (isError || !data) {
-        return <div>Sorry, we could not find the menu for this restaurant. Please try again later.</div>
+        return <div>
+            <Typography>Sorry, we could not find the menu for this restaurant. Please try again later.</Typography>
+        </div>
     }
 
     const { data: { name, categories, description, address } } = data;
@@ -93,6 +99,7 @@ const RestaurantMenu = () => {
 
     return (
         <div className={styles.menuContainer}>
+            <NavBar/>
             <Stack spacing={1} padding={2}>
                 <Typography variant='h2' align="left">{name}</Typography>
                 <Typography align="left">{description}</Typography>
