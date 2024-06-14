@@ -31,9 +31,9 @@ export default function SingleMarkerMap() {
                             onChange={(e) => setAdditionalInfo(e.target.value)}
                             fullWidth
                         />
-                    </div>
-                    <div className={styles.confirmButton}>
-                        <Button variant='contained' onClick={() => handleConfirmPosition()}>Confirm Pickup Location</Button>
+                        <div className={styles.confirmButton}>
+                            <Button variant='contained' onClick={() => handleConfirmPosition()}>Confirm Pickup Location</Button>
+                        </div>
                     </div>
                 </div>
                 <div className={styles.map}>

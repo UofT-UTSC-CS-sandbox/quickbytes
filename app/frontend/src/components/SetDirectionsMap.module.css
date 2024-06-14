@@ -1,3 +1,8 @@
+.confirmButton {
+    position: absolute;
+    bottom: 25px;
+}
+
 .confirmButton button {
     border-radius: 8px;
     border: 1px solid transparent;

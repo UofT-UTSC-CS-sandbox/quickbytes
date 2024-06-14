@@ -6,6 +6,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 
 import * as dotenv from 'dotenv';
+import menuRouter from "./routes/menuRoutes";
 dotenv.config();
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -29,11 +30,17 @@ const database = getDatabase(fb);
 // const analytics = getAnalytics(app);
 // Create an Express application
 const app = express();
+
+app.use(bodyParser.json())
+
+var cors = require('cors');
+app.use(cors());
+
 const port = 3000;
 app.use(bodyParser.json())
 
 app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173');
+  res.setHeader('Access-Control-Allow-Origin', process.env.FRONTEND_ALLOW_ORIGIN as string);
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -54,6 +61,8 @@ app.get('/', (req, res) => {
   });
 
 });
+
+app.use('/restaurants', menuRouter)
 
 // Start the server
 app.listen(port, () => {
