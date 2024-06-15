@@ -38,7 +38,6 @@ var cors = require('cors');
 app.use(cors());
 
 const port = 3000;
-app.use(bodyParser.json())
 
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', process.env.FRONTEND_ALLOW_ORIGIN as string);
