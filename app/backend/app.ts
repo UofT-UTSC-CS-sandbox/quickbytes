@@ -19,14 +19,13 @@ const database = admin.database();
 // Create an Express application
 const app = express();
 
-app.use(bodyParser.json())
+app.use(bodyParser.json());
 
-//var cors = require('cors');
 app.use(cors());
 
 const port = 3000;
 
-app.use(cors());
+//app.use(cors());
 app.use(express.json());
 
 app.use((req, res, next) => {
