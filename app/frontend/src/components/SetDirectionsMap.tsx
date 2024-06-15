@@ -2,17 +2,30 @@ import { APIProvider, Map, MapCameraChangedEvent, useMap } from '@vis.gl/react-g
 import { useEffect, useState } from 'react';
 import { Button, TextField, Typography } from "@mui/material";
 import styles from './SetDirectionsMap.module.css';
+import { apiUrl } from "./APIUrl";
 
-export default function SingleMarkerMap() {
+export default function SingleMarkerMap({ onConfirmPickupLocation, orderId }: { onConfirmPickupLocation: (position: { lat: number, lng: number }) => void, orderId: string }) {
     const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
     const [markerPosition, setMarkerPosition] = useState({ lat: 43.7845, lng: -79.1876 });
     const [confirmedPosition, setConfirmedPosition] = useState(null);
     const [additionalInfo, setAdditionalInfo] = useState("");
 
     const handleConfirmPosition = () => {
-        setConfirmedPosition(markerPosition);
-        alert(`Confirmed position: ${markerPosition.lat}, ${markerPosition.lng}\nAdditional Info: ${additionalInfo}`);
+        fetch(`${apiUrl}/restaurants/order/${orderId}/pickup-location`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                lat: markerPosition.lat,
+                lng: markerPosition.lng
+            })
+        }).then(res => res.json())
+            .then(() => {
+                onConfirmPickupLocation(markerPosition);
+            });
     };
+
 
     return (
         <APIProvider apiKey={apiKey} onLoad={() => console.log('Maps API has loaded.')}>
@@ -32,7 +45,7 @@ export default function SingleMarkerMap() {
                             fullWidth
                         />
                         <div className={styles.confirmButton}>
-                            <Button variant='contained' onClick={() => handleConfirmPosition()}>Confirm Pickup Location</Button>
+                            <Button variant='contained' onClick={handleConfirmPosition}>Confirm Pickup Location</Button>
                         </div>
                     </div>
                 </div>

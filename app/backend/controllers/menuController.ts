@@ -84,19 +84,19 @@ export async function createUserOrder(req: Request, res: Response) {
     };
 
     update(ref(database), updates)
-    // Now add the item to the order
-    .then(() => {
-        return addItemToOrder(req, res, database, uniqueKey, restaurantId, {
-            menuItemId,
-            optionSelected,
-            addOnsSelected,
-            quantity
+        // Now add the item to the order
+        .then(() => {
+            return addItemToOrder(req, res, database, uniqueKey, restaurantId, {
+                menuItemId,
+                optionSelected,
+                addOnsSelected,
+                quantity
+            });
+        })
+        .catch((error) => {
+            console.error("Error creating order:", error);
+            res.status(500).send("Internal server error");
         });
-    })
-    .catch((error) => {
-        console.error("Error creating order:", error);
-        res.status(500).send("Internal server error");
-    });
 }
 
 export async function addToOrder(req: Request, res: Response) {
@@ -106,7 +106,7 @@ export async function addToOrder(req: Request, res: Response) {
 
     // Prevent adding to order if order already placed
     const trackingRef = ref(database, `orders/${orderId}/tracking`);
-    get(trackingRef).then((snapshot) => { 
+    get(trackingRef).then((snapshot) => {
         if (snapshot.exists()) {
             if (snapshot.val().status != OrderStatus.ORDERING) {
                 res.status(400).send({ data: "Cannot add items to an order that has already been placed" });
@@ -118,7 +118,7 @@ export async function addToOrder(req: Request, res: Response) {
 
     // Add our menu item to the newly made order.
     addItemToOrder(req, res, database, orderId, restaurantId, {
-        menuItemId, 
+        menuItemId,
         optionSelected,
         addOnsSelected,
         quantity
@@ -179,20 +179,20 @@ async function addItemToOrder(req: Request, res: Response, database: Database, o
     // Update the price of the entire order 
     // Get order object from database
     await get(ref(database, `orders/${orderId}/order/price`))
-    .then((snapshot) => {
-        const oldPrice = snapshot.exists() ? snapshot.val() : 0;
-        const newPrice = oldPrice + price;
-        update(ref(database, `orders/${orderId}/order`), { price: newPrice });
-    })
+        .then((snapshot) => {
+            const oldPrice = snapshot.exists() ? snapshot.val() : 0;
+            const newPrice = oldPrice + price;
+            update(ref(database, `orders/${orderId}/order`), { price: newPrice });
+        })
 
     // Return order object in response
     const fullOrderSnapshot = await get(ref(database, `orders/${orderId}`))
-    if (fullOrderSnapshot.exists()) { 
+    if (fullOrderSnapshot.exists()) {
         const oldOrderObj = fullOrderSnapshot.val();
-        res.status(201).send({ 
-            orderKey: orderId, 
-            menuKey: itemKey, 
-            data: { ...oldOrderObj.order, id: orderId, status: oldOrderObj.tracking.status } 
+        res.status(201).send({
+            orderKey: orderId,
+            menuKey: itemKey,
+            data: { ...oldOrderObj.order, id: orderId, status: oldOrderObj.tracking.status }
         });
         return;
     } else {
@@ -234,7 +234,7 @@ export async function getActiveOrder(req: Request, res: Response) {
     }
 
     const orderId = userOrdersSnapshot.val();
-    
+
     const orderLocation = child(ref(database), `orders/${orderId}`);
     const orderSnapshot = await get(orderLocation);
     if (!orderSnapshot.exists()) {
@@ -243,7 +243,7 @@ export async function getActiveOrder(req: Request, res: Response) {
     } else {
         const value = orderSnapshot.val();
         const items = value.order.items ?? {};
-        res.send({ data: {...value.order, items, id: orderId, status: value.tracking.status } });
+        res.send({ data: { ...value.order, items, id: orderId, status: value.tracking.status } });
         return;
     }
 }
@@ -279,30 +279,30 @@ export async function deleteItemFromOrder(req: Request, res: Response) {
 
     // Remove the item
     remove(ref(database, itemLocation))
-    .then(() => {
-        const orderLocation = child(ref(database), `orders/${orderId}`);
-        return get(orderLocation);
-    }) 
-    .then((orderSnapshot) => {
-        if (!orderSnapshot.exists()) {
+        .then(() => {
+            const orderLocation = child(ref(database), `orders/${orderId}`);
+            return get(orderLocation);
+        })
+        .then((orderSnapshot) => {
+            if (!orderSnapshot.exists()) {
+                res.status(500).send("Internal server error");
+                return;
+            } else {
+                const items = orderSnapshot.val().order.items ?? {};
+                res.send({ data: { ...orderSnapshot.val().order, items, id: orderId, status: orderSnapshot.val().tracking.status }, orderKey: orderId });
+                return;
+            }
+        })
+        .catch((error) => {
+            console.error("Error deleting item:", error);
             res.status(500).send("Internal server error");
-            return;
-        } else {
-            const items = orderSnapshot.val().order.items ?? {};
-            res.send({ data: {...orderSnapshot.val().order, items, id: orderId, status: orderSnapshot.val().tracking.status }, orderKey: orderId });
-            return;
-        }
-    })
-    .catch((error) => {
-        console.error("Error deleting item:", error);
-        res.status(500).send("Internal server error");
-    });
+        });
 }
 
 export async function placeOrder(req: Request, res: Response) {
     const database = getDatabase();
     const { orderId } = req.params;
-    
+
     // Find the restaurant id of the order
     const userId = 1;
     const restaurantIdLocation = child(ref(database), `orders/${orderId}/restaurantId`);
@@ -319,30 +319,52 @@ export async function placeOrder(req: Request, res: Response) {
 
     // Add this order as the active order saved under the user and the restaurant
     const activeOrderLocation = child(ref(database), `user/${userId}/activeOrders/`);
-    await update(activeOrderLocation, { [restaurantId]: orderId } )
+    await update(activeOrderLocation, { [restaurantId]: orderId })
     await update(child(ref(database), `restaurants/${restaurantId}/activeOrders/`), { [orderId]: true });
 
     // Update the order status to ORDERED
     const trackingLocation = child(ref(database), `orders/${orderId}/tracking`);
 
     // Send back the order in the response
-    await update(trackingLocation, { status: OrderStatus.ORDERED } )
-    .then(() => {
-        const orderLocation = child(ref(database), `orders/${orderId}`);
-        return get(orderLocation);
-    })
-    .then((orderSnapshot) => {
-        if (!orderSnapshot.exists()) {
+    await update(trackingLocation, { status: OrderStatus.ORDERED })
+        .then(() => {
+            const orderLocation = child(ref(database), `orders/${orderId}`);
+            return get(orderLocation);
+        })
+        .then((orderSnapshot) => {
+            if (!orderSnapshot.exists()) {
+                res.status(500).send("Internal server error");
+                return;
+            } else {
+                const items = orderSnapshot.val().order.items ?? {};
+                res.send({ data: { ...orderSnapshot.val().order, items, id: orderId, status: orderSnapshot.val().tracking.status }, orderKey: orderId });
+                return;
+            }
+        })
+        .catch((error) => {
+            console.error("Error placing order:", error);
             res.status(500).send("Internal server error");
-            return;
-        } else {
-            const items = orderSnapshot.val().order.items ?? {};
-            res.send({ data: {...orderSnapshot.val().order, items, id: orderId, status: orderSnapshot.val().tracking.status }, orderKey: orderId });
-            return;
-        }
-    })
-    .catch((error) => {
-        console.error("Error placing order:", error);
-        res.status(500).send("Internal server error");
-    });
+        });
+}
+
+export async function setPickupLocation(req: Request, res: Response) {
+    const { orderId } = req.params;
+    const { lat, lng } = req.body;
+
+    const database = getDatabase();
+    const dropOffLocation = `orders/${orderId}/tracking/dropOff`;
+
+    const updates = {
+        [`${dropOffLocation}/lat`]: lat,
+        [`${dropOffLocation}/lng`]: lng
+    };
+
+    update(ref(database), updates)
+        .then(() => {
+            res.status(200).send({ message: "Pickup location updated successfully." });
+        })
+        .catch((error) => {
+            console.error("Error updating pickup location:", error);
+            res.status(500).send("Internal server error");
+        });
 }

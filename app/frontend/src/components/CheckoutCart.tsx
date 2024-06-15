@@ -12,6 +12,7 @@ import SingleMarkerMap from "./SetDirectionsMap";
 const CheckoutCart = ({ order, setOrder }: { order: OrderCart | null, setOrder: React.Dispatch<React.SetStateAction<OrderCart | null>> }) => {
 
     const [viewMap, setViewMap] = useState(false);
+    const [pickupLocationSet, setPickupLocationSet] = useState(false);
 
     const deleteItemMutation = useMutation({
         mutationKey: ['deleteItem', order?.id],
@@ -52,6 +53,13 @@ const CheckoutCart = ({ order, setOrder }: { order: OrderCart | null, setOrder: 
         return null;
     }
 
+    const handleConfirmPickupLocation = (position: { lat: number, lng: number }) => {
+        setViewMap(false);
+        setPickupLocationSet(true);
+        // You might want to save this location and info to the order or other state
+        console.log(`Pickup location set to: ${position.lat}, ${position.lng}`);
+    };
+
     const content = <Stack spacing='20px' padding='10px'>
         <Typography variant='h4'>Your Order</Typography>
         {
@@ -85,7 +93,12 @@ const CheckoutCart = ({ order, setOrder }: { order: OrderCart | null, setOrder: 
         </Stack>
         <Divider />
         <Stack spacing={2}>
-            <Typography>You have not set a pick-up location yet.</Typography>
+            <Typography>
+                {pickupLocationSet ?
+                    <span style={{ color: 'green' }}>&#10003; You have successfully set a pick-up location.</span> :
+                    "You have not set a pick-up location yet."
+                }
+            </Typography>
             {
                 order.status === OrderStatus.ORDERING &&
                 <Button variant='contained'
@@ -96,10 +109,10 @@ const CheckoutCart = ({ order, setOrder }: { order: OrderCart | null, setOrder: 
                 </Button>
             }
             <Drawer anchor='bottom' open={viewMap}>
-                <SingleMarkerMap />
+                <SingleMarkerMap onConfirmPickupLocation={handleConfirmPickupLocation} orderId={order.id} />
                 <Fab sx={{ position: 'absolute', top: 8, right: 8 }} color='secondary' onClick={() => setViewMap(false)}><Close /></Fab>
             </Drawer>
-        
+
         </Stack>
         <Divider />
         {
@@ -107,7 +120,7 @@ const CheckoutCart = ({ order, setOrder }: { order: OrderCart | null, setOrder: 
                 <Typography><CircularProgress /> Placing order ... </Typography>
                 :
                 <>
-                    {order.status === OrderStatus.ORDERING && <Button variant='contained' startIcon={<ShoppingCartCheckout />} color='success' onClick={() => placeOrder()}>Checkout</Button>}
+                    {order.status === OrderStatus.ORDERING && <Button variant='contained' startIcon={<ShoppingCartCheckout />} color='success' onClick={() => placeOrder()} disabled={!pickupLocationSet}>Checkout</Button>}
                     {isError && <Alert severity="error" sx={{ display: isError ? 'flex' : 'none' }}>Something went wrong. Please try again.</Alert>}
                 </>
         }
@@ -148,7 +161,7 @@ const CheckoutCart = ({ order, setOrder }: { order: OrderCart | null, setOrder: 
                     sx={{ display: { xs: mobileOpen ? 'block' : 'none', md: 'none' }, position: 'fixed', top: 16, right: 16 }}
                 >
                     <Close sx={{ marginTop: 0.5 }} />
-                    <SingleMarkerMap />
+
                 </Fab>
             </Drawer>
         </>
