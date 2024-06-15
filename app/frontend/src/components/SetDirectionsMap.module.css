@@ -1,0 +1,66 @@
+.confirmButton {
+    position: absolute;
+    bottom: 25px;
+}
+
+.confirmButton button {
+    border-radius: 8px;
+    border: 1px solid transparent;
+    padding: 0.6em 1.2em;
+    font-size: 1em;
+    font-weight: 500;
+    font-family: inherit;
+    background-color: #007FA3;
+    color: white;
+    cursor: pointer;
+    transition: border-color 0.25s;
+}
+
+button:hover {
+    border-color: #646cff;
+}
+
+.locationMapLayout {
+    display: flex;
+    width: 100%;
+    height: 100vh;
+}
+
+.leftSideLayout {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding: 30px;
+}
+
+.markerDescrip {
+    margin-bottom: 20px;
+}
+
+.addiInfo {
+    margin-bottom: 450px;
+    margin-top: 50px;
+}
+
+.addiInfo input {
+    width: 100%;
+}
+
+.confirmButton {
+    margin-top: 20px;
+}
+
+.map {
+    flex: 3;
+    position: relative;
+    height: 100%;
+}
+
+.map>div {
+    height: 100%;
+}
+
+.infoWindowContent {
+    color: rgb(74, 72, 72);
+}

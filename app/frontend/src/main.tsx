@@ -17,6 +17,7 @@ import PrivateRoute from './privateRoute';
 import './index.css'
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import './pages/App.css'
 
 const queryClient = new QueryClient();
 const theme = createTheme({
