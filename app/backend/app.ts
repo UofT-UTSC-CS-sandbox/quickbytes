@@ -14,7 +14,7 @@ import admin from "./firebase-config";
 dotenv.config();
 
 
-const database = admin.getDatabase();
+const database = admin.database();
 
 // Create an Express application
 const app = express();

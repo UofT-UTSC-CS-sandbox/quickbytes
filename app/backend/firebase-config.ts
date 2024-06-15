@@ -12,7 +12,7 @@ var serviceAccount = require("./serviceAccount.json");
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  databaseURL: process.env.FIREBASE_DATABASE_URL,
+  databaseURL: "https://quickbytes-85385-default-rtdb.firebaseio.com",
 });
 
 
