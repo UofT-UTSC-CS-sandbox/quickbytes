@@ -1,16 +1,24 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+
 import App from './pages/App';
 import SignUp from './pages/SignUp';
 import Login from './pages/Login';
 import UserPage from './pages/UserPage';
+import OrderTracking from './pages/OrderTracking.tsx';
+import Settings from './pages/Settings.tsx';
+import Menu from './pages/Menu.tsx';
+import VerificationInstructions from './pages/verificationInstructions';
+
 import { AuthProvider } from './AuthContext';
 import PrivateRoute from './privateRoute';
-import VerificationInstructions from './pages/verificationInstructions';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
 
+import './index.css'
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+
+const queryClient = new QueryClient();
 const theme = createTheme({
   palette: {
     primary: {
@@ -36,24 +44,25 @@ const theme = createTheme({
   },
 });
 
-//If you use a route which requires the user to be logged in first, then put <PrivateRoute> around it
-//user-page is an example of a page which can only be accessed once logged in 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <ThemeProvider theme={theme}>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider theme={theme}>
       <AuthProvider>
-        <Router>
+        <BrowserRouter>
           <Routes>
             <Route path="/" element={<App />} />
+            <Route path='/restaurant/:id' element={<Menu />} />
+            <Route path="/tracking" element={<OrderTracking />} />
+            <Route path="/settings" element={<Settings />} />
             <Route path="/sign-up" element={<SignUp />} />
             <Route path="/login" element={<Login />} />
             <Route path="/user-page" element={<PrivateRoute><UserPage /></PrivateRoute>} />
             <Route path="/verification-instructions" element={<VerificationInstructions />} />
           </Routes>
-        </Router>
-      </AuthProvider>
-    </ThemeProvider>
-  </React.StrictMode>
-);
-
-
+        </BrowserRouter>
+        </AuthProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  </React.StrictMode>,
+)
