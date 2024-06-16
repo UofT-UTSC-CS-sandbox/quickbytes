@@ -204,9 +204,9 @@ export async function addItemToOrder(req: Request, res: Response, database: Data
         await admin.database().ref(itemLocation).update(newObject);
 
         // Update the price of the entire order
-        const orderPriceRef = admin.database().ref(`orders/${orderId}/order/price`);
+        const orderPriceRef = admin.database().ref(`orders/${orderId}/order`);
         await orderPriceRef.get().then((snapshot: DataSnapshot) => {
-            const oldPrice = snapshot.exists() ? snapshot.val() : 0;
+            const oldPrice = snapshot.exists() ? snapshot.val().price : 0;
             const newPrice = oldPrice + price;
             return orderPriceRef.update({price:newPrice});
         });
