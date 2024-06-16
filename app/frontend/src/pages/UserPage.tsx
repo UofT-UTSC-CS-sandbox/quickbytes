@@ -6,7 +6,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
-import Navout from '../components/Navout';
+import NavBar from '../components/Navbar';
 
 const UserPage: React.FC = () => {
   const [confidentialData, setConfidentialData] = useState<string>('');
@@ -40,7 +40,7 @@ const UserPage: React.FC = () => {
 
   return (
     <div>
-      <Navout />
+      <NavBar />
       <div style={{ height: '5rem' }}></div>
     
       {confidentialData ? (
