@@ -1,7 +1,7 @@
 /*Same as the navbar except it has a logout button and it also has a handler for signing out with firebase
 */
 
-import './Navbar.css';
+import './Nav2.css';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../AuthContext'; // Import AuthContext for Firebase authentication
 
