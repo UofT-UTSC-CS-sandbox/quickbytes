@@ -4,11 +4,6 @@ import { Button, TextField, Typography } from "@mui/material";
 import styles from './SetDirectionsMap.module.css';
 import { apiUrl } from "./APIUrl";
 
-interface Position {
-    lat: number;
-    lng: number;
-}
-
 export default function SingleMarkerMap({ onConfirmPickupLocation, orderId }: { onConfirmPickupLocation: (position: { lat: number, lng: number }) => void, orderId: string }) {
     const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
     const [markerPosition, setMarkerPosition] = useState({ lat: 43.7845, lng: -79.1876 });
@@ -30,6 +25,7 @@ export default function SingleMarkerMap({ onConfirmPickupLocation, orderId }: { 
                 onConfirmPickupLocation(markerPosition);
             });
     };
+
 
     return (
         <APIProvider apiKey={apiKey} onLoad={() => console.log('Maps API has loaded.')}>
@@ -61,8 +57,17 @@ export default function SingleMarkerMap({ onConfirmPickupLocation, orderId }: { 
                             console.log('camera changed:', ev.detail.center, 'zoom:', ev.detail.zoom)
                         }
                         style={{ width: '100%', height: '100%' }}
-                    >
-                        <MapOptionsSetter />
+                        options={{
+                            restriction: {
+                                latLngBounds: {
+                                    north: 43.79761628441843,
+                                    south: 43.775626193692666,
+                                    east: -79.17779162319711,
+                                    west: -79.19601171604556,
+                                },
+                                strictBounds: true,
+                            },
+                        }}>
                         <MarkerAtCenter setMarkerPosition={setMarkerPosition} />
                     </Map>
                 </div>
@@ -71,31 +76,8 @@ export default function SingleMarkerMap({ onConfirmPickupLocation, orderId }: { 
     );
 }
 
-/* Component to set additional map options */
-function MapOptionsSetter() {
-    const map = useMap();
-
-    useEffect(() => {
-        if (!map) return;
-
-        map.setOptions({
-            restriction: {
-                latLngBounds: {
-                    north: 43.79761628441843,
-                    south: 43.775626193692666,
-                    east: -79.17779162319711,
-                    west: -79.19601171604556,
-                },
-                strictBounds: true,
-            },
-        });
-    }, [map]);
-
-    return null;
-}
-
 /* Adds a marker at the center of the map */
-function MarkerAtCenter({ setMarkerPosition }: { setMarkerPosition: (position: Position) => void }) {
+function MarkerAtCenter({ setMarkerPosition }) {
     const map = useMap();
 
     useEffect(() => {
@@ -120,12 +102,10 @@ function MarkerAtCenter({ setMarkerPosition }: { setMarkerPosition: (position: P
 
         marker.addListener('dragend', () => {
             const position = marker.getPosition();
-            if (position) {  // Check if position is not null
-                setMarkerPosition({ lat: position.lat(), lng: position.lng() });
-                infoWindow.close();
-                infoWindow.setContent(`<div class=${styles.infoWindowContent}>Pin dropped at: ${position.lat()}, ${position.lng()}</div>`);
-                infoWindow.open(map, marker);
-            }
+            setMarkerPosition({ lat: position.lat(), lng: position.lng() });
+            infoWindow.close();
+            infoWindow.setContent(`<div class=${styles.infoWindowContent}>Pin dropped at: ${position.lat()}, ${position.lng()}</div>`);
+            infoWindow.open(map, marker);
         });
 
         return () => {
