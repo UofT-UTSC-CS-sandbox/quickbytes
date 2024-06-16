@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 import App from './pages/App';
+import Firstpage from './pages/Firstpage';
 import SignUp from './pages/SignUp';
 import Login from './pages/Login';
 import UserPage from './pages/UserPage';
@@ -17,7 +18,6 @@ import PrivateRoute from './privateRoute';
 import './index.css'
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import './pages/App.css'
 
 const queryClient = new QueryClient();
 const theme = createTheme({
@@ -52,7 +52,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <AuthProvider>
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<App />} />
+            <Route path="/" element={<Firstpage />}/>
+            <Route path="/user-page" element={<PrivateRoute><App /></PrivateRoute>} />
             <Route path='/restaurant/:id' element={<Menu />} />
             <Route path="/tracking" element={<OrderTracking />} />
             <Route path="/settings" element={<Settings />} />
