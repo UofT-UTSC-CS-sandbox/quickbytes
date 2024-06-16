@@ -118,7 +118,7 @@ export async function createUserOrder(req: Request, res: Response) {
 
 export async function addToOrder(req: Request, res: Response) {
     const database = admin.database();
-    const { restaurantId, orderId } = req.params;
+    const { id:restaurantId, orderId } = req.params;
     const { menuItemId, optionSelected, addOnsSelected, quantity } = req.body;
 
     try {
@@ -208,7 +208,7 @@ export async function addItemToOrder(req: Request, res: Response, database: Data
         await orderPriceRef.get().then((snapshot: DataSnapshot) => {
             const oldPrice = snapshot.exists() ? snapshot.val() : 0;
             const newPrice = oldPrice + price;
-            return orderPriceRef.update(newPrice);
+            return orderPriceRef.update({price:newPrice});
         });
 
         // Return order object in response
