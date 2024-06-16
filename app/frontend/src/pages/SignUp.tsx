@@ -12,6 +12,10 @@ const SignUp: React.FC = () => {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     try {
+      if (!email.endsWith('@mail.utoronto.ca') && !email.endsWith('@utoronto.ca')) {
+        alert('Please sign up with a valid University of Toronto email address.');
+        return;
+      }
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       
       await sendEmailVerification(userCredential.user); //Send email verification
