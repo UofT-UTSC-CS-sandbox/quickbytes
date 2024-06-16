@@ -1,4 +1,3 @@
-//import { Database, child, get, getDatabase, push, ref, remove, update } from "firebase-admin/database"
 import { Request, Response } from 'express';
 import { OrderStatus } from "../schema/Order";
 import { MenuItem } from "../schema/Restaurant";
@@ -100,8 +99,6 @@ export async function createUserOrder(req: Request, res: Response) {
 
         // Perform the database update
         await database.ref().update(updates);
-
-        // Add item to the order (assuming this function exists)
         await addItemToOrder(req, res, database, newOrderRef.key, restaurantId, {
             menuItemId,
             optionSelected,
