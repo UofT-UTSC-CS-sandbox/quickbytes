@@ -77,7 +77,7 @@ interface DirectionProps {
 }
 
 /* Generates and renders directions */
-function Directions({ errorHandler, loadHandler }:DirectionProps) {
+function Directions({ errorHandler, loadHandler }: DirectionProps) {
   const map = useMap("map");
   const routesLibrary = useMapsLibrary("routes");
   const [directionsService, setDirectionsService] = useState<google.maps.DirectionsService>();
@@ -86,49 +86,41 @@ function Directions({ errorHandler, loadHandler }:DirectionProps) {
   const [routeIndex, setRouteIndex] = useState(0);
   const [originCoord, setOriginCoord] = useState<google.maps.LatLngLiteral | null>(null);
   const [dropOffCoord, setDropOffCoord] = useState<google.maps.LatLngLiteral | null>(null);
-  console.log(routes)
+
   const selected = routes[routeIndex];
   const leg = selected?.legs[0];
-  
-  useEffect(() => {
 
+  useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position: GeolocationPosition) => {
-
           const pos = {
             lat: position.coords.latitude,
             lng: position.coords.longitude,
           };
-
-          //infoWindow.open(map);
           map?.setCenter(pos);
           setOriginCoord(pos);
         },
         () => {
-          console.error('loc')
           errorHandler(new Error("Could not find your location, please try again later"));
           loadHandler(false);
         }
       );
     } else {
-      // Browser doesn't support Geolocation
       errorHandler(new Error("Browser doesn't support Geolocation"));
       loadHandler(false);
     }
 
     getCourierActiveOrder(8).then(responseHandler)
-    .then(data => {
-      console.log('Order data:', data)
-      getOrder(data.data[0]).then(responseHandler)
-      .then(locationData => {
-        console.log(locationData);
-        setDropOffCoord(locationData.data);
+      .then(data => {
+        getOrder(data.data[0]).then(responseHandler)
+          .then(locationData => {
+            setDropOffCoord(locationData.data);
+          })
+          .catch(errorHandler);
       })
       .catch(errorHandler);
-    })
-    .catch(errorHandler);
-  }, []);
+  }, [errorHandler, loadHandler, map]);
 
   useEffect(() => {
     if (!routesLibrary || !map) return;
@@ -136,9 +128,6 @@ function Directions({ errorHandler, loadHandler }:DirectionProps) {
     setDirectionsRenderer(new routesLibrary.DirectionsRenderer({ map }));
   }, [routesLibrary, map]);
 
-  /* Initialize origin and destination from fetched order (customer, courier, and restaurant location)
-     Store some state to update and re-render origin from courier's queried realtime location in database
-  */
   useEffect(() => {
     if (!directionsRenderer || !directionsService || !originCoord || !dropOffCoord) return;
     directionsService.route({
@@ -155,12 +144,16 @@ function Directions({ errorHandler, loadHandler }:DirectionProps) {
   useEffect(() => {
     if (!directionsRenderer || !dropOffCoord || originCoord) return;
     directionsRenderer.setRouteIndex(routeIndex);
-  }, [routeIndex, directionsRenderer])
+  }, [routeIndex, directionsRenderer]);
+
+  useEffect(() => {
+    if (leg) {
+      loadHandler(false);
+    }
+  }, [leg, loadHandler]);
 
   if (!leg) return null;
 
-  loadHandler(false);
-  /* Render header, status, and buttons based on input parameters, update header and buttons workflow*/
   return (
     <div className='sidebar-container'>
       <div className='header'>
@@ -178,6 +171,7 @@ function Directions({ errorHandler, loadHandler }:DirectionProps) {
     </div>
   );
 }
+
 
 export default function DirectionsMap() {
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string;

@@ -3,41 +3,30 @@ import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getDatabase, ref, set, get, child, query, limitToFirst } from "firebase/database";
 import express from 'express';
+const cors = require('cors');
+import verifyToken from './middleware/verifyToken';
 import bodyParser from 'body-parser';
 
 import * as dotenv from 'dotenv';
 import menuRouter from "./routes/menuRoutes";
 import deliveryRouter from "./routes/deliveryRoutes";
+import admin from "./firebase-config";
 dotenv.config();
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: process.env.FIREBASE_API_KEY,
-  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.FIREBASE_PROJECT_ID,
-  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.FIREBASE_APP_ID,
-  measurementId: process.env.FIREBASE_MEASUREMENT_ID,
-  databaseURL: process.env.FIREBASE_DATABASE_URL
-};
 
-// Initialize Firebase
-const fb = initializeApp(firebaseConfig);
-const database = getDatabase(fb);
-// const analytics = getAnalytics(app);
+const database = admin.database();
+
 // Create an Express application
 const app = express();
 
-app.use(bodyParser.json())
+app.use(bodyParser.json());
 
-var cors = require('cors');
 app.use(cors());
 
 const port = 3000;
+
+//app.use(cors());
+app.use(express.json());
 
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', process.env.FRONTEND_ALLOW_ORIGIN as string);
@@ -50,16 +39,28 @@ app.use((req, res, next) => {
 // Define a GET endpoint
 app.get('/', (req, res) => {
   get(child(ref(database), `test`)).then((snapshot) => {
-    if (snapshot.exists()) {
-      res.send({ data: snapshot.val() });
-    } else {
-      res.send({ data: "Something went wrong" });
-    }
-  }).catch((error) => {
-    console.error("Error retrieving data:", error);
-    res.status(500).send("Internal server error");
-  });
+      if (snapshot.exists()) {
+        res.send({data: snapshot.val()});
+      } else {
+        res.send({data: "Something went wrong"});
+      }
+    }).catch((error) => {
+      console.error("Error retrieving data:", error);
+      res.status(500).send("Internal server error");
+    });
 
+});
+
+app.get('/protected', verifyToken, (req, res) => {
+  res.send('This is a protected route');
+});
+
+app.get('/confidential', verifyToken, (req, res) => {
+  if (req.user) {
+    res.send({ secret: 'This is confidential data' });
+  } else {
+    res.status(401).send('Unauthorized');
+  }
 });
 
 app.use('/deliveries', deliveryRouter);
