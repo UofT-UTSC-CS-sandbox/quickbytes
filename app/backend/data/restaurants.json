@@ -1,0 +1,413 @@
+[
+  {
+    "activeOrders": false,
+    "historicalOrders": false,
+    "information": {
+      "address": "Humanities Wing Marketplace",
+      "categories": [
+        {
+          "name": "Drinks",
+          "options": [
+            {
+              "name": "Canned Pop",
+              "options": [
+                {
+                  "name": "Regular",
+                  "price": 1.49
+                }
+              ]
+            },
+            {
+              "name": "Bottle Pop",
+              "options": [
+                {
+                  "name": "Regular",
+                  "price": 2.99
+                }
+              ]
+            },
+            {
+              "name": "Nestle Water",
+              "options": [
+                {
+                  "name": "Regular",
+                  "price": 2.99
+                }
+              ]
+            },
+            {
+              "name": "Juice",
+              "options": [
+                {
+                  "name": "Regular",
+                  "price": 3.49
+                }
+              ]
+            },
+            {
+              "name": "Vitamin Water",
+              "options": [
+                {
+                  "name": "Regular",
+                  "price": 3.99
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "coordinateX": 0,
+      "coordinateY": 0,
+      "description": "Popular fast food chain famous for their secret recipe chicken.",
+      "name": "KFC"
+    }
+  },
+  {
+    "activeOrders": false,
+    "historicalOrders": false,
+    "information": {
+      "address": "Student Centre, Main Floor",
+      "categories": [
+        {
+          "name": "Drinks",
+          "options": [
+            {
+              "name": "Canned Pop",
+              "options": [
+                {
+                  "name": "Regular",
+                  "price": 1.49
+                }
+              ]
+            },
+            {
+              "name": "Bottle Pop",
+              "options": [
+                {
+                  "name": "Regular",
+                  "price": 2.99
+                }
+              ]
+            },
+            {
+              "name": "Nestle Water",
+              "options": [
+                {
+                  "name": "Regular",
+                  "price": 2.99
+                }
+              ]
+            },
+            {
+              "name": "Juice",
+              "options": [
+                {
+                  "name": "Regular",
+                  "price": 3.49
+                }
+              ]
+            },
+            {
+              "name": "Vitamin Water",
+              "options": [
+                {
+                  "name": "Regular",
+                  "price": 3.99
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "coordinateX": 0,
+      "coordinateY": 0,
+      "description": "Delicious burgers.",
+      "name": "Hero Burger"
+    }
+  },
+  {
+    "activeOrders": {
+      "-O-GtJHlFp7mEJLVoQRu": true
+    },
+    "historicalOrders": false,
+    "information": {
+      "address": "Student Centre, Lower Floor",
+      "categories": [
+        {
+          "name": "Signature Bubble Tea",
+          "options": [
+            {
+              "name": "Signature Chatime Bubble Tea with Pearls",
+              "options": [
+                {
+                  "name": "Regular",
+                  "price": 1.49
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "coordinateX": 0,
+      "coordinateY": 0,
+      "description": "Your local stop for bubble tea and beverages.",
+      "name": "Chatime"
+    }
+  },
+  {
+    "activeOrders": {
+      "-O-6csnpMq-ve_pSXm4l": true
+    },
+    "historicalOrders": false,
+    "information": {
+      "address": "Student Centre, Main Floor",
+      "categories": [
+        {
+          "name": "Salad",
+          "options": [
+            {
+              "name": "Garden Salad",
+              "options": [
+                {
+                  "name": "Base",
+                  "price": 9.99
+                }
+              ]
+            },
+            {
+              "name": "Greek Salad",
+              "options": [
+                {
+                  "name": "Base",
+                  "price": 11.99
+                }
+              ]
+            },
+            {
+              "name": "Tabouli Salad",
+              "options": [
+                {
+                  "name": "Base",
+                  "price": 12.99
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Drinks",
+          "options": [
+            {
+              "name": "Canned Pop",
+              "options": [
+                {
+                  "name": "Base",
+                  "price": 1.49
+                }
+              ]
+            },
+            {
+              "name": "Botted Pop",
+              "options": [
+                {
+                  "name": "Base",
+                  "price": 2.49
+                }
+              ]
+            },
+            {
+              "name": "Vitamin Water",
+              "options": [
+                {
+                  "name": "Base",
+                  "price": 2.49
+                }
+              ]
+            },
+            {
+              "name": "Bottled Water",
+              "options": [
+                {
+                  "name": "Base",
+                  "price": 2.49
+                }
+              ]
+            },
+            {
+              "name": "Orange Juice",
+              "options": [
+                {
+                  "name": "Base",
+                  "price": 2.49
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Chicken Shawarma",
+          "options": [
+            {
+              "addOns": [
+                {
+                  "addOns": [
+                    {
+                      "additionalPrice": 0,
+                      "name": "Regular"
+                    },
+                    {
+                      "additionalPrice": -0.99,
+                      "name": "No Sauce"
+                    },
+                    {
+                      "additionalPrice": 0.99,
+                      "name": "Signature Sauce"
+                    }
+                  ],
+                  "name": "Sauce"
+                }
+              ],
+              "name": "Chicken Shawarma Wrap",
+              "options": [
+                {
+                  "name": "Regular",
+                  "price": 9.99
+                },
+                {
+                  "name": "Large",
+                  "price": 10.99
+                }
+              ]
+            },
+            {
+              "name": "Chicken Shawarma Laffa",
+              "options": [
+                {
+                  "name": "Regular",
+                  "price": 9.99
+                },
+                {
+                  "name": "Large",
+                  "price": 11.99
+                }
+              ]
+            },
+            {
+              "name": "Chicken Shawarma Salad",
+              "options": [
+                {
+                  "name": "Regular",
+                  "price": 10.99
+                },
+                {
+                  "name": "Large",
+                  "price": 13.99
+                }
+              ]
+            },
+            {
+              "name": "Chicken Shawarma with Rice",
+              "options": [
+                {
+                  "name": "Regular",
+                  "price": 11.99
+                },
+                {
+                  "name": "Large",
+                  "price": 13.99
+                }
+              ]
+            },
+            {
+              "name": "Chicken Shawarma with Fries",
+              "options": [
+                {
+                  "name": "Regular",
+                  "price": 13.99
+                },
+                {
+                  "name": "Large",
+                  "price": 15.99
+                }
+              ]
+            },
+            {
+              "name": "Chicken Shawarma Plate",
+              "options": [
+                {
+                  "name": "Regular",
+                  "price": 11.99
+                },
+                {
+                  "name": "Large",
+                  "price": 16.99
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "coordinateX": 0,
+      "coordinateY": 0,
+      "description": "Mediterranean and Near East grill chain.",
+      "name": "Pita Lite"
+    },
+    "ordering": {
+      "-O-Ixk8QpgICHSCzhbKk": true
+    }
+  },
+  {
+    "activeOrders": false,
+    "historicalOrders": false,
+    "information": {
+      "address": "Bladen Wing Foyer",
+      "categories": [
+        {
+          "name": "Coffee",
+          "options": [
+            {
+              "name": "Freshly Brewed",
+              "options": [
+                {
+                  "name": "Regular",
+                  "price": 1.49
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "coordinateX": 0,
+      "coordinateY": 0,
+      "description": "Classic Canadian stop for coffee and snacks.",
+      "name": "Tim Hortons, BV"
+    }
+  },
+  {
+    "activeOrders": false,
+    "historicalOrders": false,
+    "information": {
+      "address": "Humanities Wing",
+      "categories": [
+        {
+          "name": "Coffee",
+          "options": [
+            {
+              "name": "Freshly Brewed",
+              "options": [
+                {
+                  "name": "Regular",
+                  "price": 1.49
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "coordinateX": 0,
+      "coordinateY": 0,
+      "description": "Classic Canadian stop for coffee and snacks.",
+      "name": "Tim Hortons, HW"
+    }
+  }
+]
