@@ -2,6 +2,7 @@ import { User } from "firebase/auth";
 import { useMutationEndpoint, createPost, useQueryEndpoint, createGet, createDelete } from "./base";
 import { MenuCategory } from "../model/Menu";
 import { OrderCart } from "../model/OrderCart";
+import OrderStatus from "../model/OrderStatus";
 
 /**
  * Response body for getMenu request
@@ -74,6 +75,25 @@ type GetOrderDropoffResponse = {
     }
 }
 
+/**
+ * Response body for the getClientActiveOrder request.
+ */
+type GetClientActiveOrderResponse = {
+    data: {
+        items: Record< string,
+            {
+                menuItemId: string,
+                optionSelected: string,
+                addOnsSelected: Record<string, string>,
+                price: number,
+                quantity: number,
+            }>;
+        price: number;
+        id: string;
+        status: OrderStatus;
+    }
+}
+
 export default {
     /**
      * Get the dropoff location of the given order. Only send a request if
@@ -118,7 +138,7 @@ export default {
      * @param onSuccess Success callback for the request, containing the response body
      * @returns Service endpoint to add an item to a cart.
      */
-    useAddItem: (restaurantId: string | undefined, orderId: number | undefined, onSuccess: (data: AddItemResponse) => void) => 
+    useAddItem: (restaurantId: string | undefined, orderId: string | undefined, onSuccess: (data: AddItemResponse) => void) => 
         useMutationEndpoint<AddItemResponse, Error, AddItemRequest>(
             {
                 mutationKey: ['order', orderId, restaurantId],
@@ -126,7 +146,7 @@ export default {
                     inputUrl: `restaurants/${restaurantId}/order/${orderId}`,
                     useAuth: false,
                 }),
-                onSuccess
+                onSuccess,
             }
         ),
     /**
@@ -199,6 +219,23 @@ export default {
                     useAuth: false,
                     currentUser: currentUser
                 }),
+            }
+        ),
+    /**
+     * Get the order that is in-progress and has not been placed, which
+     * belongs to the current user at the given restaurant
+     * @param restaurantId The ID of the restaurant to check for in-progress orders.
+     * @returns 
+     */
+    getClientActiveOrder: (restaurantId: string | undefined) => 
+        useQueryEndpoint<GetClientActiveOrderResponse>(
+            {
+                queryKey: ['getClientActiveOrder', restaurantId],
+                queryFn: createGet({
+                    inputUrl: `restaurants/${restaurantId}/order`,
+                    useAuth: false,
+                }),
+                enabled: !!restaurantId,
             }
         )
 }
