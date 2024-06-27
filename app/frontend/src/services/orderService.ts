@@ -1,4 +1,4 @@
-import { useMutationEndpoint, createPost, useQueryEndpoint, createGet, createDelete } from "./base";
+import { usePostEndpoint, useGetEndpoint, useDeleteEndpoint } from "./base";
 import { OrderCart } from "../model/OrderCart";
 import OrderStatus from "../model/OrderStatus";
 
@@ -67,7 +67,7 @@ type GetClientActiveOrderResponse = {
         price: number;
         id: string;
         status: OrderStatus;
-    }
+    } | null;
 }
 
 /**
@@ -82,13 +82,13 @@ export default {
      * @returns Service endpoint to create an order.
      */
     useCreateOrder: (restaurantId: string, onSuccess: (data: CreateOrderResponse) => void) => 
-        useMutationEndpoint<CreateOrderResponse, Error, CreateOrderRequest>(
+        usePostEndpoint<CreateOrderResponse, Error, CreateOrderRequest>(
+            {
+                inputUrl: `restaurants/${restaurantId}/order`, 
+                useAuth: false,
+            },
             {
                 mutationKey: ['createOrder', restaurantId],
-                mutationFn: createPost({
-                    inputUrl: `restaurants/${restaurantId}/order`, 
-                    useAuth: false,
-                }),
                 onSuccess
             }
         )
@@ -101,13 +101,13 @@ export default {
      * @returns Service endpoint to add an item to a cart.
      */
     useAddItem: (restaurantId: string | undefined, orderId: string | undefined, onSuccess: (data: AddItemResponse) => void) => 
-        useMutationEndpoint<AddItemResponse, Error, AddItemRequest>(
+        usePostEndpoint<AddItemResponse, Error, AddItemRequest>(
+            { 
+                inputUrl: `restaurants/${restaurantId}/order/${orderId}`,
+                useAuth: true
+            },
             {
                 mutationKey: ['order', orderId, restaurantId],
-                mutationFn: createPost({
-                    inputUrl: `restaurants/${restaurantId}/order/${orderId}`,
-                    useAuth: false,
-                }),
                 onSuccess,
             }
         ),
@@ -118,13 +118,13 @@ export default {
      * @returns Service endpoint to delete an item from a order.
      */
     deleteItem: (orderId: string, onSuccess: (data: ItemDeleteResponse) => void) => 
-        useMutationEndpoint<ItemDeleteResponse, Error, {id: string}>(
+        useDeleteEndpoint<ItemDeleteResponse, Error, {id: string}>(
+            {
+                inputUrl: ({id}) => `restaurants/order/${orderId}/items/${id}`,
+                useAuth: false
+            },
             {
                 mutationKey: ['deleteItem', orderId],
-                mutationFn: createDelete({
-                    inputUrl: ({id}) => `restaurants/order/${orderId}/items/${id}`,
-                    useAuth: false
-                }),
                 onSuccess
             }
         ),
@@ -139,13 +139,13 @@ export default {
      * @returns Service endpoint to set the pickup location of the order.
      */
     setPickupLocation: (orderId: string, onSuccess: (data: SetPickUpLocationResponse) => void) => 
-        useMutationEndpoint<SetPickUpLocationResponse, Error, SetPickupLocationRequest>(
+        usePostEndpoint<SetPickUpLocationResponse, Error, SetPickupLocationRequest>(
+            {
+                inputUrl: `restaurants/order/${orderId}/pickup-location`,
+                useAuth: false
+            },
             {
                 mutationKey: ['setPickupLocation', orderId],
-                mutationFn: createPost({
-                    inputUrl: `restaurants/order/${orderId}/pickup-location`,
-                    useAuth: false
-                }),
                 onSuccess
             }
         ),
@@ -156,13 +156,13 @@ export default {
      * @returns Service endpoint to place an item with a restaurant.
      */
     placeOrder: (orderId: string, onSuccess: (data: PlaceOrderResponse) => void) =>
-        useMutationEndpoint<PlaceOrderResponse>(
+        usePostEndpoint<PlaceOrderResponse>(
+            {
+                inputUrl: `restaurants/order/${orderId}/place`,
+                useAuth: false
+            },
             {
                 mutationKey: ['placeOrder', orderId],
-                mutationFn: createPost({
-                    inputUrl: `restaurants/order/${orderId}/place`,
-                    useAuth: false
-                }),
                 onSuccess
             }
         ),
@@ -173,13 +173,13 @@ export default {
      * @returns 
      */
     getClientActiveOrder: (restaurantId: string | undefined) => 
-        useQueryEndpoint<GetClientActiveOrderResponse>(
+        useGetEndpoint<GetClientActiveOrderResponse>(
+            {
+                inputUrl: `restaurants/${restaurantId}/order`,
+                useAuth: false,
+            },
             {
                 queryKey: ['getClientActiveOrder', restaurantId],
-                queryFn: createGet({
-                    inputUrl: `restaurants/${restaurantId}/order`,
-                    useAuth: false,
-                }),
                 enabled: !!restaurantId,
             }
         )

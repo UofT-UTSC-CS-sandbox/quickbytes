@@ -1,4 +1,4 @@
-import { useQueryEndpoint, createGet } from "./base"
+import { useGetEndpoint } from "./base"
 
 /**
  * Response body for the getOrderDropoff request.
@@ -22,13 +22,13 @@ export default {
      * @returns Service endpoint to fetch dropoff location.
      */
     getOrderDropoff: (orderID: string | undefined) => 
-        useQueryEndpoint<GetOrderDropoffResponse>(
+        useGetEndpoint<GetOrderDropoffResponse>(
+            {
+                inputUrl: `restaurants/order/${orderID}/dropOff`,
+                useAuth: false
+            },
             {
                 queryKey: ['getOrder', orderID],
-                queryFn: createGet({
-                    inputUrl: `restaurants/order/${orderID}/dropOff`,
-                    useAuth: false
-                }),
                 enabled: !!orderID,
             }
         )

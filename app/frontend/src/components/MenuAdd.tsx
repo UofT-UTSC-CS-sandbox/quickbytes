@@ -131,7 +131,7 @@ const MenuAdd = ({ data, close, setOrder, order, restaurantId }: MenuAddProps) =
     return (
         <>
             <DialogTitle>
-                <Typography variant='h4'>{data?.name}</Typography>
+                <Typography style={{fontSize: '24px'}}>{data?.name}</Typography>
             </DialogTitle>
 
             <DialogContent>

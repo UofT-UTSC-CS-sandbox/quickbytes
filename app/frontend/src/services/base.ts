@@ -1,6 +1,7 @@
 import { DefaultError, MutationKey, QueryKey, UndefinedInitialDataOptions, UseMutationOptions, UseMutationResult, UseQueryResult, useMutation, useQuery } from "@tanstack/react-query"
 import { apiUrl } from "../components/APIUrl";
 import { User } from "firebase/auth";
+import { useAuth as useAuthContext } from '../AuthContext';
 
 /**
  * The common set of parameters required to create a request using the
@@ -12,7 +13,7 @@ import { User } from "firebase/auth";
 interface CreateRequestParams<Req> {
     inputUrl: string | ((body: Req) => string);
     useAuth: boolean;
-    currentUser?: User | null;
+    additionalOptions?: RequestInit;
 }
 
 /**
@@ -47,14 +48,20 @@ async function fetchWithAuth<Req, Res>(fetchUrl: string | ((body: Req) => string
     }
 
     const token = useAuth ? await currentUser!.getIdToken() : undefined;
-    const headers: Record<string, string> = {
+
+    // If caller added more header options, add them to the request
+    const { headers: headerOptions, ...fetchOptions } = { ...options }
+    const headers: HeadersInit = {
+        ...(headerOptions ?? {}),
         'Content-Type': 'application/json',
         ...(useAuth && { 'Authorization': `Bearer ${token}` }),
     };
 
+    // Construct the fetch request
     const response = await fetch(`${apiUrl}/${finalUrl}`, {
-        ...options,
-        ...(body && { body: JSON.stringify(body) }),
+        ...fetchOptions,
+        // only add the body if it isn't undefined (i.e. for requests other than GET)
+        ...(typeof body !== 'undefined' && { body: JSON.stringify(body) }),
         method,
         headers,
     });
@@ -68,64 +75,24 @@ async function fetchWithAuth<Req, Res>(fetchUrl: string | ((body: Req) => string
 }
 
 /**
- * Create a promise that completes POST request and resolves with the response
- * JSON if the status code is ok. Else, an error is thrown.
- * @param { Object } params The parameters used to create the fetch request.
- * @param { string } params.inputUrl The url to send the request to, or a function which takes the request body and returns the url.
- * @param { boolean } params.useAuth If True, also attach the credentials for the current user to the request.
- * @param { Object } params.currentUser The firebase auth user whose credentials will be sent with the request.
- * @returns { function(Req): Promise(Res) } A function that when called with the request body will complete a POST request to the backend using a Promise.
+ * The type returned by usePostEndpoint() and useDeleteEndpoint()
  */
-export function createPost<Req, Res>({ inputUrl, useAuth = false, currentUser }: CreateRequestParams<Req>): (body: Req) => Promise<Res> {
-    return (body: Req): Promise<Res> => {
-        return fetchWithAuth<Req, Res>(inputUrl, 'POST', useAuth, currentUser, body, {});
-    };
-}
-
-/**
- * Create a promise that completes GET request and resolves with the response
- * JSON if the status code is ok. Else, an error is thrown.
- * @param { Object } params The parameters used to create the fetch request.
- * @param { string } params.inputUrl The url to send the request to, or a function that returns the url.
- * @param { boolean } params.useAuth If True, also attach the credentials for the current user to the request.
- * @param { Object } params.currentUser The firebase auth user whose credentials will be sent with the request.
- * @returns { function(Req): Promise(Res) } A function that when called completes a GET request to the backend.
- */
-export function createGet<Req, Res>({ inputUrl, useAuth = false, currentUser }: CreateRequestParams<Req>): () => Promise<Res> {
-    return (): Promise<Res> => {
-        return fetchWithAuth<Req, Res>(inputUrl, 'GET', useAuth, currentUser, undefined, {});
-    };
-}
-
-/**
- * Create a promise that completes DELETE request and resolves with the response
- * JSON if the status code is ok. Else, an error is thrown.
- * @param { Object } params The parameters used to create the fetch request.
- * @param { string } params.inputUrl The url to send the request to, or a function which takes the request body and returns the url.
- * @param { boolean } params.useAuth If True, also attach the credentials for the current user to the request.
- * @param { Object } params.currentUser The firebase auth user whose credentials will be sent with the request.
- * @returns { function(Req): Promise(Res) } A function that when called with the request body will complete a DELETE request to the backend using a Promise.
- */
-export function createDelete<Req, Res>({ inputUrl, useAuth = false, currentUser }: CreateRequestParams<Req>): (body: Req) => Promise<Res> {
-    return (body: Req): Promise<Res> => {
-        return fetchWithAuth<Req, Res>(inputUrl, 'DELETE', useAuth, currentUser, body, {});
-    };
-}
-
 export type UseMutationEndpointResult<TData, TError, TVariables, TContext> = { key: MutationKey | undefined, useMutation: () => UseMutationResult<TData, TError, TVariables, TContext> };
 
 /**
- * Constructor for a single endpoint that can be declared under a service,
- * representing a way to mutate / update data using a request to the backend.
+ * Constructor for a single POST endpoint that can be declared under a service,
+ * representing a way to mutate / update data using a POST request to the backend.
+ * 
+ * The first parameter (fetchOptions with inputUrl and useAuth) will be used
+ * to construct the fetch promise that sends the request. The second parameter
+ * provides the other arguments used by useMutation() from react-query
  * 
  * @example
- * const myService = { postRestaurant: (id: string) => useMutationEndpoint({
- *      mutationKey: ['postRestaurant'],
- *      mutationFn: createPost({
- *          inputUrl: `restaurants/${id}`, 
-            useAuth: false,
- *      })
- *  })
+ * const myService = { 
+ *  postRestaurant: (id: string) => usePostEndpoint(
+ *      { inputUrl: `restaurants/${id}`,  useAuth: false, },
+ *      { mutationKey: ['postRestaurant'] })
+ *  )
  * }
  * 
  * const MyComponent = () => {
@@ -133,35 +100,99 @@ export type UseMutationEndpointResult<TData, TError, TVariables, TContext> = { k
  *      mutate({ name: "My new Restaurant" })
  * }
  * 
- * @param options The options for setting up the useMutation functionality from react-query.
+ * @param fetchOptions.inputUrl The url to send request to
+ * @param fetchOptions.useAuth Whether to attach current user credentials to request.
+ * @param fetchOptions.additionalOptions Additional options to add to the fetch() setup
+ * @param options The options for useMutation functionality from react-query, excluding mutationFn.
  * @returns Returns a function that will create a useMutation using the options provided.
  */
-export function useMutationEndpoint<
+export function usePostEndpoint<
     TData = unknown, // Response body
     TError = DefaultError,
     TVariables = void, // Request body
     TContext = unknown
->(options: UseMutationOptions<TData, TError, TVariables, TContext>):
+>({ inputUrl, useAuth, additionalOptions = {} }: CreateRequestParams<TVariables>, options: Omit<UseMutationOptions<TData, TError, TVariables, TContext>, 'mutationFn'>):
     UseMutationEndpointResult<TData, TError, TVariables, TContext> {
+
+    const { currentUser } = useAuth ? useAuthContext() : { currentUser: undefined }
+
     return {
         key: options.mutationKey,
-        useMutation: () => useMutation(options)
+        useMutation: () => useMutation({
+            ...options,
+            mutationFn: (body: TVariables): Promise<TData> => {
+                return fetchWithAuth<TVariables, TData>(inputUrl, 'POST', useAuth, currentUser, body, additionalOptions);
+            }
+        })
     }
 };
 
+/**
+ * Constructor for a single DELETE endpoint that can be declared under a service,
+ * representing a way to mutate / update data using a DELETE request to the backend.
+ * 
+ * The first parameter (fetchOptions with inputUrl and useAuth) will be used
+ * to construct the fetch promise that sends the request. The second parameter
+ * provides the other arguments used by useMutation() from react-query
+ * 
+ * @example
+ * const myService = { 
+ *  deleteRestaurant: (id: string) => useDeleteEndpoint(
+ *      { inputUrl: ({id}) => `restaurants/${id}`,  useAuth: false, },
+ *      { mutationKey: ['deleteRestaurant'] })
+ *  )
+ * }
+ * 
+ * const MyComponent = () => {
+ *      const { mutate } = myService.deleteRestaurant().useMutation()
+ *      mutate({ id: 'idToDeleteFromDb' })
+ * }
+ * 
+ * @param fetchOptions.inputUrl The url to send request to
+ * @param fetchOptions.useAuth Whether to attach current user credentials to request.
+ * @param fetchOptions.additionalOptions Additional options to add to the fetch() setup
+ * @param options The options for useMutation functionality from react-query, excluding mutationFn.
+ * @returns Returns a function that will create a useMutation using the options provided.
+ */
+export function useDeleteEndpoint<
+    TData = unknown, // Response body
+    TError = DefaultError,
+    TVariables = void, // Request body
+    TContext = unknown
+>({ inputUrl, useAuth, additionalOptions }: CreateRequestParams<TVariables>, options: Omit<UseMutationOptions<TData, TError, TVariables, TContext>, 'mutationFn'>):
+    UseMutationEndpointResult<TData, TError, TVariables, TContext> {
+
+    const { currentUser } = useAuth ? useAuthContext() : { currentUser: undefined }
+
+    return {
+        key: options.mutationKey,
+        useMutation: () => useMutation({
+            ...options,
+            mutationFn: (body: TVariables): Promise<TData> => {
+                return fetchWithAuth<TVariables, TData>(inputUrl, 'DELETE', useAuth, currentUser, body, additionalOptions);
+            }
+        })
+    }
+};
+
+/**
+ * The type returned by useQueryEndpoint()
+ */
 export type UseQueryEndpointResult<TData, TError> = { key: QueryKey | undefined, useQuery: () => UseQueryResult<TData, TError> };
 
 /**
  * Constructor for a single endpoint that can be declared under a service,
- * representing a way to retrieve data using a request to the backend.
+ * representing a way to retrieve data using a GET request to the backend.
+ * 
+ * The first parameter (fetchOptions with inputUrl and useAuth) will be used
+ * to construct the fetch promise that sends the request. The second parameter
+ * provides the other arguments used by useQuery() from react-query
  * 
  * @example
- * const myService = { getRestaurant: () => useQueryEndpoint({
- *      queryKey: ['getRestaurant'],
- *      queryFn: createGet({
- *          inputUrl: `restaurants/${restaurantId}`, 
-            useAuth: false,
- *      })
+ * const myService = { 
+ *  getRestaurant: () => useGetEndpoint(
+ *      { inputUrl: `restaurants/${restaurantId}`, useAuth: false },     
+ *      { queryKey: ['getRestaurant'] }
  *  })
  * }
  * 
@@ -172,17 +203,28 @@ export type UseQueryEndpointResult<TData, TError> = { key: QueryKey | undefined,
  *      }
  * }
  * 
- * @param options The options for setting up the useQuery functionality from react-query.
+ * @param fetchOptions.inputUrl The url to send request to
+ * @param fetchOptions.useAuth Whether to attach current user credentials to request.
+ * @param fetchOptions.additionalOptions Additional options to add to the fetch() setup
+ * @param options The options for useQuery functionality from react-query, excluding queryFn.
  * @returns Returns a function that will create a useQuery using the options provided.
  */
-export function useQueryEndpoint<
+export function useGetEndpoint<
     TQueryFnData = unknown, // Response body
     TError = DefaultError, 
     TData = TQueryFnData  
->(options: UndefinedInitialDataOptions<TQueryFnData, TError, TData, QueryKey>):
+>({ inputUrl, useAuth, additionalOptions = {} }: CreateRequestParams<void>, options: Omit<UndefinedInitialDataOptions<TQueryFnData, TError, TData, QueryKey>, 'queryFn'>):
     UseQueryEndpointResult<TData, TError> {
+
+    const { currentUser } = useAuth ? useAuthContext() : { currentUser: undefined }
+
     return {
         key: options.queryKey,
-        useQuery: () => useQuery<TQueryFnData, TError, TData, QueryKey>(options)
+        useQuery: () => useQuery({
+            ...options,
+            queryFn: () => {
+                return fetchWithAuth<void, TQueryFnData>(inputUrl, 'GET', useAuth, currentUser, undefined, additionalOptions)
+            }
+        })
     }
 };

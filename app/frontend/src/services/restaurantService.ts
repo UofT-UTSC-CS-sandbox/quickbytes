@@ -1,6 +1,5 @@
-import { User } from "firebase/auth"
 import { MenuCategory } from "../model/Menu"
-import { useQueryEndpoint, createGet } from "./base"
+import { useGetEndpoint } from "./base"
 
 /**
  * Response body for getMenu request
@@ -25,15 +24,14 @@ export default {
      * @param currentUser The current firebase user that is signed in.
      * @returns Service endpoint to get restaurant information and its menu.
      */
-    getMenu: (restaurantId: string | undefined, currentUser: User | null) => 
-        useQueryEndpoint<RestaurantMenuResponse>(
+    getMenu: (restaurantId: string | undefined) => 
+        useGetEndpoint<RestaurantMenuResponse>(
+            {
+                inputUrl: `restaurants/${restaurantId}`, 
+                useAuth: false,
+            },
             {
                 queryKey: ['getMenu', restaurantId],
-                queryFn: createGet({
-                    inputUrl: `restaurants/${restaurantId}`, 
-                    useAuth: false,
-                    currentUser: currentUser
-                }),
             }
         ),
 }

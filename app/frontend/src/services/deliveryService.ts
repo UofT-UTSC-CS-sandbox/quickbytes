@@ -1,4 +1,4 @@
-import { createGet, useQueryEndpoint } from "./base";
+import { useGetEndpoint } from "./base";
 
 /**
  * Response body for getCourierActiveOrder request
@@ -18,13 +18,13 @@ export default {
      * @returns Service endpoint to get the active delivery ID of the courier.
      */
     getCourierActiveOrder: (courierID: number) =>
-        useQueryEndpoint<GetCourierActiveOrderResponse>(
+        useGetEndpoint<GetCourierActiveOrderResponse>(
+            {
+                inputUrl: `deliveries/active?courierID=${courierID}`,
+                useAuth: false
+            },
             {
                 queryKey: ['courierActiveOrder', courierID],
-                queryFn: createGet({
-                    inputUrl: `deliveries/active?courierID=${courierID}`,
-                    useAuth: false
-                }),
             }
         )
 }

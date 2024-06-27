@@ -10,7 +10,6 @@ import CheckoutCart from "../components/CheckoutCart";
 import { Place } from "@mui/icons-material";
 import MenuCategoryDrawer from "../components/MenuCategoryDrawer";
 import NavBar from "../components/Navbar";
-import { useAuth } from "../AuthContext";
 import orderService from "../services/orderService";
 import restaurantService from "../services/restaurantService";
 
@@ -20,8 +19,7 @@ type RestaurantMenuParams = {
 
 const RestaurantMenu = () => {
     const { id } = useParams<RestaurantMenuParams>();
-    const { currentUser } = useAuth();
-    const { data, isLoading, isError: isMenuError, error: menuError } = restaurantService.getMenu(id, currentUser).useQuery();
+    const { data, isLoading, isError: isMenuError, error: menuError } = restaurantService.getMenu(id).useQuery();
     const [displayError, setDisplayError] = useState<string | null>(null);
     const [category, setCategory] = useState<MenuCategory | null>(null);
     const [item, setItem] = useState<MenuItem | null>(null);
@@ -31,7 +29,7 @@ const RestaurantMenu = () => {
     // that haven't been placed yet.
     const { data: activeOrder, isError: isActiveOrderError, error: activeOrderError } = orderService.getClientActiveOrder(id).useQuery();
     useEffect(() => {
-        if (activeOrder && !isActiveOrderError && id) {
+        if (activeOrder?.data && !isActiveOrderError && id) {
             setOrder({
                 ...activeOrder.data,
                 restaurantId: id,
