@@ -9,7 +9,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Typography from '@mui/material/Typography';
 import { Snackbar, Alert } from '@mui/material';
 import deliveryService from '../services/deliveryService';
-import orderService from '../services/orderService';
+import trackingService from '../services/trackingService';
 
 interface DirectionsRoute {
   summary: string;
@@ -118,7 +118,7 @@ function Directions({ loadHandler }: DirectionProps) {
   }, [isActiveOrderError, locationSuccessful])
 
   // Get the current order ID that should be displayed by the map
-  const { data: dropOffData, error: dropoffError, isError: isDropoffError } = orderService.getOrderDropoff(
+  const { data: dropOffData, error: dropoffError, isError: isDropoffError } = trackingService.getOrderDropoff(
     activeOrderID,
   ).useQuery();
 

@@ -1,20 +1,6 @@
-import { User } from "firebase/auth";
 import { useMutationEndpoint, createPost, useQueryEndpoint, createGet, createDelete } from "./base";
-import { MenuCategory } from "../model/Menu";
 import { OrderCart } from "../model/OrderCart";
 import OrderStatus from "../model/OrderStatus";
-
-/**
- * Response body for getMenu request
- */
-type RestaurantMenuResponse = {
-    data: {
-        name: string,
-        description: string
-        address: string,
-        categories: MenuCategory[]
-    }
-}
 
 /**
  * POST request body for the useCreateOrder request
@@ -66,16 +52,6 @@ type SetPickupLocationRequest = { lat: number, lng: number }
 type SetPickUpLocationResponse = {}
 
 /**
- * Response body for the getOrderDropoff request.
- */
-type GetOrderDropoffResponse = {
-    data: {
-        lat: number,
-        lng: number
-    }
-}
-
-/**
  * Response body for the getClientActiveOrder request.
  */
 type GetClientActiveOrderResponse = {
@@ -94,25 +70,11 @@ type GetClientActiveOrderResponse = {
     }
 }
 
+/**
+ * All API endpoints related to creating and modifying a customer's menu
+ * order with a restaurant.
+ */
 export default {
-    /**
-     * Get the dropoff location of the given order. Only send a request if
-     * the orderID is not falsy.
-     * @param orderID Unique ID of the order within the database.
-     * @returns Service endpoint to fetch dropoff location.
-     */
-    getOrderDropoff: (orderID: string | undefined) => 
-        useQueryEndpoint<GetOrderDropoffResponse>(
-            {
-                queryKey: ['getOrder', orderID],
-                queryFn: createGet({
-                    inputUrl: `restaurants/order/${orderID}/dropOff`,
-                    useAuth: false
-                }),
-                enabled: !!orderID,
-            }
-        )
-    ,
     /**
      * Create a new order for the current user at the given restaurant.
      * @param restaurantId ID of the restaurant to create order at.
@@ -202,23 +164,6 @@ export default {
                     useAuth: false
                 }),
                 onSuccess
-            }
-        ),
-    /**
-     * Get the basic details of a restaurant including the entire menu.
-     * @param restaurantId The ID of the restaurant to get the menu for.
-     * @param currentUser The current firebase user that is signed in.
-     * @returns Service endpoint to get restaurant information and its menu.
-     */
-    getMenu: (restaurantId: string | undefined, currentUser: User | null) => 
-        useQueryEndpoint<RestaurantMenuResponse>(
-            {
-                queryKey: ['getMenu', restaurantId],
-                queryFn: createGet({
-                    inputUrl: `restaurants/${restaurantId}`, 
-                    useAuth: false,
-                    currentUser: currentUser
-                }),
             }
         ),
     /**

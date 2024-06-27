@@ -7,6 +7,10 @@ type GetCourierActiveOrderResponse = {
     data: string[]
 }
 
+/**
+ * All API endpoints related to retrieving and updating delivery information 
+ * for a courier.
+ */
 export default {
     /**
      * Get the delivery that is currently being done by a courier

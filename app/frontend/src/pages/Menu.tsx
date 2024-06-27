@@ -12,6 +12,7 @@ import MenuCategoryDrawer from "../components/MenuCategoryDrawer";
 import NavBar from "../components/Navbar";
 import { useAuth } from "../AuthContext";
 import orderService from "../services/orderService";
+import restaurantService from "../services/restaurantService";
 
 type RestaurantMenuParams = {
     id: string
@@ -20,7 +21,7 @@ type RestaurantMenuParams = {
 const RestaurantMenu = () => {
     const { id } = useParams<RestaurantMenuParams>();
     const { currentUser } = useAuth();
-    const { data, isLoading, isError: isMenuError, error: menuError } = orderService.getMenu(id, currentUser).useQuery();
+    const { data, isLoading, isError: isMenuError, error: menuError } = restaurantService.getMenu(id, currentUser).useQuery();
     const [displayError, setDisplayError] = useState<string | null>(null);
     const [category, setCategory] = useState<MenuCategory | null>(null);
     const [item, setItem] = useState<MenuItem | null>(null);
