@@ -170,7 +170,7 @@ export default {
      * Get the order that is in-progress and has not been placed, which
      * belongs to the current user at the given restaurant
      * @param restaurantId The ID of the restaurant to check for in-progress orders.
-     * @returns 
+     * @returns Service endpoint to get the current non-placed order for the user.
      */
     getClientActiveOrder: (restaurantId: string | undefined) => 
         useGetEndpoint<GetClientActiveOrderResponse>(
