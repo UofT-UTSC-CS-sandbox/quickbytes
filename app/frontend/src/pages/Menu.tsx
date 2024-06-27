@@ -1,4 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import MenuItemCard from "../components/MenuItemCard";
 import { useEffect, useState } from "react";
@@ -12,35 +11,21 @@ import { Place } from "@mui/icons-material";
 import { apiUrl } from "../components/APIUrl";
 import MenuCategoryDrawer from "../components/MenuCategoryDrawer";
 import NavBar from "../components/Navbar";
+import { useAuth } from "../AuthContext";
+import orderService from "../services/orderService";
 
 type RestaurantMenuParams = {
     id: string
 }
 
-type RestaurantMenuResponse = {
-    data: {
-        name: string,
-        description: string
-        address: string,
-        categories: MenuCategory[]
-    }
-}
-
 const RestaurantMenu = () => {
     const { id } = useParams<RestaurantMenuParams>();
-    const { data, isLoading, isError } = useQuery<RestaurantMenuResponse>({
-        queryKey: ['menu', id],
-        queryFn: () => fetch(`${apiUrl}/restaurants/${id}`).then((res) => {
-            if (res.ok) {
-                return res.json();
-            } else {
-                Promise.reject(res);
-            }
-        }),
-    });
+    const { currentUser } = useAuth();
+    const { data, isLoading, isError, error } = orderService.getMenu(id, currentUser).useQuery();
     const [category, setCategory] = useState<MenuCategory | null>(null);
     const [item, setItem] = useState<MenuItem | null>(null);
     const [order, setOrder] = useState<OrderCart | null>(null);
+
     useEffect(() => {
         // On first load, check if the user has any existing order in-progress
         fetch(`${apiUrl}/restaurants/${id}/order`)
@@ -63,6 +48,9 @@ const RestaurantMenu = () => {
                     setOrder(null);
                 }
             })
+            .catch((error) => {
+                console.log(error)
+            })
     }, [])
 
     useEffect(() => {
@@ -81,18 +69,20 @@ const RestaurantMenu = () => {
     }
 
     if (isError || !data) {
+        console.log(error)
         return <div>
             <Typography>Sorry, we could not find the menu for this restaurant. Please try again later.</Typography>
         </div>
     }
 
+    
     const { data: { name, categories, description, address } } = data;
-
+    
     const handleChange = (event: React.SyntheticEvent, newCategory: string) => {
         const newCategoryObj = categories.find(data => data.name === newCategory);
         setCategory(newCategoryObj || (categories.length > 0 ? categories[0] : null));
     };
-
+    
     const onClickItem = (itemName: string) => {
         setItem(category?.options.find(data => data.name === itemName) || null);
     }

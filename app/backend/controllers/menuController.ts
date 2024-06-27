@@ -105,8 +105,6 @@ export async function createUserOrder(req: Request, res: Response) {
             addOnsSelected,
             quantity
         });
-
-        res.status(200).send({ data: "Order created successfully" });
     } catch (error) {
         console.error("Error creating order:", error);
         res.status(500).send("Internal server error");
