@@ -8,6 +8,7 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 import { auth } from './firebaseConfig';
+import { signOut} from 'firebase/auth';
 
 interface PrivateRouteProps {
   children: React.ReactNode;
@@ -30,7 +31,10 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
   
   auth.currentUser?.reload();
   if(!auth.currentUser?.emailVerified){
-    return <Navigate to="/verification-instructions" />;
+    signOut(auth);
+    alert('Please verify your email address before logging in.');
+    return <Navigate to="/login" />;
+    //return <Navigate to="/verification-instructions" />;
   }
 
   return <>{children}</>;
