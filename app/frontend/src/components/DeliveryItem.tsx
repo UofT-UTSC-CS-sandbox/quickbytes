@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import { ListItem, ListItemText } from '@mui/material';
+import { ListItem, ListItemText, Button } from '@mui/material';
 import ConfirmationPopup from './ConfirmationPopUp';
 
 interface Coordinate {
@@ -38,7 +38,6 @@ const DeliveryItem: React.FC<DeliveryItem> = ({ id, restaurant, location, pay, d
           justifyContent: 'space-between',
           padding: '8px 16px',
         }}
-        onClick={handleClick}
       >
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <ListItemText
@@ -50,7 +49,12 @@ const DeliveryItem: React.FC<DeliveryItem> = ({ id, restaurant, location, pay, d
         <div style={{ marginLeft: '16px', fontWeight: 'bold' }}>
           ${pay}
         </div>
+
+        <Button variant="contained" color="success" onClick={handleClick}>
+          Accept
+        </Button>
       </ListItem>
+
       <ConfirmationPopup
         open={popupOpen}
         onClose={handleClosePopup}

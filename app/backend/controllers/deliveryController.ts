@@ -1,6 +1,7 @@
 //import { Database, child, get, getDatabase, ref, limitToFirst, query } from "firebase/database"
 import { Request, Response } from 'express';
 import admin from '../firebase-config'
+import { OrderStatus } from '../schema/Order';
 // Get the only in-progress delivery for the courier
 export async function getActiveDelivery(req: Request, res: Response) {
     const database = admin.database();
@@ -26,7 +27,7 @@ export async function getAvailableDeliveries(req: Request, res: Response) {
     const ordersRef = database.ref('orders');
   
     try {
-      const snapshot = await ordersRef.orderByChild('tracking/status').equalTo('ORDERING').once('value');
+      const snapshot = await ordersRef.orderByChild('tracking/status').equalTo(OrderStatus.ORDERING).once('value');
   
       if (snapshot.exists()) {
         const orders = snapshot.val();
@@ -54,6 +55,11 @@ export async function acceptDelivery(req: Request, res: Response) {
     await userRef.update({ activeDelivery: orderId });
 
     await orderRef.update({ courierId: userId });
+
+    await orderRef.update({
+      courierId: userId,
+      'tracking/status': OrderStatus.ACCEPTED
+    });
 
     res.status(200).send({ message: `Active deliveries for user ${userId} updated successfully` });
   } catch (error) {
