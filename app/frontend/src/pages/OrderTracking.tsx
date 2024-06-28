@@ -1,11 +1,11 @@
-import DirectionsMap from '../components/DirectionsMap'
+import DirectionsMap2 from '../components/DirectionsMap2'
 import NavBar from '../components/Navbar';
 
-function OrderTracking() {
+function OrderTracking= ({ orderid }) =>{
     return (
         <div>
             <NavBar />
-            <DirectionsMap />
+            <DirectionsMap2 orderId={orderid}/>
         </div>
     );
 }
