@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 import App from './pages/App';
-import Firstpage from './pages/Firstpage';
+import HomePage from './pages/HomePage.tsx';
 import SignUp from './pages/SignUp';
 import Login from './pages/Login';
 import UserPage from './pages/UserPage';
@@ -52,8 +52,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <AuthProvider>
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Firstpage />}/>
-            <Route path="/user-page" element={<PrivateRoute><App /></PrivateRoute>} />
+            <Route path="/" element={<PrivateRoute> <HomePage /></PrivateRoute>}/>
+            <Route path="/user-page" element={<PrivateRoute><HomePage /></PrivateRoute>} />
             <Route path='/restaurant/:id' element={<PrivateRoute><Menu /></PrivateRoute>} />
             <Route path="/tracking" element={<PrivateRoute><OrderTracking /></PrivateRoute>} />
             <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
