@@ -4,9 +4,9 @@ import { Button, TextField, Typography } from "@mui/material";
 import styles from './SetDirectionsMap.module.css';
 import { apiUrl } from "./APIUrl";
 
-export default function SingleMarkerMap({ onConfirmPickupLocation, orderId, initialMarkerPosition }: { onConfirmPickupLocation: (position: { lat: number, lng: number }) => void, orderId: string, initialMarkerPosition: { lat: number, lng: number } | null }) {
+export default function SingleMarkerMap({ onConfirmPickupLocation, orderId, initialPosition }: { onConfirmPickupLocation: (position: { lat: number, lng: number }) => void, orderId: string, initialPosition: { lat: number, lng: number } }) {
     const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-    const [markerPosition, setMarkerPosition] = useState(initialMarkerPosition || { lat: 43.7845, lng: -79.1876 });
+    const [markerPosition, setMarkerPosition] = useState(initialPosition);
     const [additionalInfo, setAdditionalInfo] = useState("");
 
     const handleConfirmPosition = () => {
@@ -50,7 +50,7 @@ export default function SingleMarkerMap({ onConfirmPickupLocation, orderId, init
                 <div className={styles.map}>
                     <Map
                         defaultZoom={13}
-                        defaultCenter={{ lat: 43.7845, lng: -79.1876 }}
+                        defaultCenter={initialPosition}
                         onCameraChanged={(ev: MapCameraChangedEvent) =>
                             console.log('camera changed:', ev.detail.center, 'zoom:', ev.detail.zoom)
                         }
@@ -66,7 +66,7 @@ export default function SingleMarkerMap({ onConfirmPickupLocation, orderId, init
                                 strictBounds: true,
                             },
                         }}>
-                        <MarkerAtCenter setMarkerPosition={setMarkerPosition} initialPosition={initialMarkerPosition} />
+                        <MarkerAtCenter setMarkerPosition={setMarkerPosition} initialPosition={initialPosition} />
                     </Map>
                 </div>
             </div>
@@ -74,17 +74,14 @@ export default function SingleMarkerMap({ onConfirmPickupLocation, orderId, init
     );
 }
 
-/* Adds a marker at the center of the map */
 function MarkerAtCenter({ setMarkerPosition, initialPosition }) {
     const map = useMap();
 
     useEffect(() => {
         if (!map) return;
 
-        const center = initialPosition || { lat: 43.7845, lng: -79.1876 };
-
         const marker = new google.maps.Marker({
-            position: center,
+            position: initialPosition,
             map: map,
             title: 'Center Marker - This marker is draggable and can be moved to a different location.',
             draggable: true
@@ -107,7 +104,7 @@ function MarkerAtCenter({ setMarkerPosition, initialPosition }) {
         });
 
         return () => {
-            marker.setMap(null); // Remove the marker if the component is unmounted
+            marker.setMap(null);
         };
     }, [map]);
 

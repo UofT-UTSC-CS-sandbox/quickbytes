@@ -10,17 +10,29 @@ import OrderStatus from "../model/OrderStatus";
 import SingleMarkerMap from "./SetDirectionsMap";
 
 const CheckoutCart = ({ order, setOrder }: { order: OrderCart | null, setOrder: React.Dispatch<React.SetStateAction<OrderCart | null>> }) => {
-
     const [viewMap, setViewMap] = useState(false);
     const [pickupLocation, setPickupLocation] = useState<{ lat: number, lng: number } | null>(null);
+    const [pickupLocationSet, setPickupLocationSet] = useState(false);
 
-    // Load pickup location from localStorage on component mount
     useEffect(() => {
-        const storedLocation = localStorage.getItem('pickupLocation');
-        if (storedLocation) {
-            setPickupLocation(JSON.parse(storedLocation));
-        }
-    }, []);
+        const fetchPickupLocation = async () => {
+            if (!order) return;
+            try {
+                const response = await fetch(`${apiUrl}/restaurants/order/${order.id}/pickup-location`);
+                if (response.ok) {
+                    const location = await response.json();
+                    if (location && location.lat && location.lng) {
+                        setPickupLocation(location);
+                        setPickupLocationSet(true);
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching pickup location:", error);
+            }
+        };
+
+        fetchPickupLocation();
+    }, [order]);
 
     const deleteItemMutation = useMutation({
         mutationKey: ['deleteItem', order?.id],
@@ -53,8 +65,8 @@ const CheckoutCart = ({ order, setOrder }: { order: OrderCart | null, setOrder: 
         }
     });
 
-    const [mobileOpen, setMobileOpen] = React.useState(false);
-    const [showSuccess, setShowSuccess] = React.useState(false);
+    const [mobileOpen, setMobileOpen] = useState(false);
+    const [showSuccess, setShowSuccess] = useState(false);
 
     if (!order) {
         return null;
@@ -62,16 +74,17 @@ const CheckoutCart = ({ order, setOrder }: { order: OrderCart | null, setOrder: 
 
     const handleConfirmPickupLocation = (position: { lat: number, lng: number }) => {
         setViewMap(false);
-        setPickupLocation(position); // Set pickup location state
-        localStorage.setItem('pickupLocation', JSON.stringify(position)); // Store in local storage
-        // You might want to save this location and info to the order or other state
+        setPickupLocation(position);
+        setPickupLocationSet(true);
         console.log(`Pickup location set to: ${position.lat}, ${position.lng}`);
     };
+
+    const defaultLocation = { lat: 43.7845, lng: -79.1876 }; // Default location to be used if no pickup location is set
 
     const content = (
         <Stack spacing='20px' padding='10px'>
             <Typography variant='h4'>Your Order</Typography>
-            {Object.entries(order.items).map(([id, item]) =>
+            {Object.entries(order.items).map(([id, item]) => (
                 <CheckoutItem
                     key={id}
                     data={item}
@@ -79,7 +92,7 @@ const CheckoutCart = ({ order, setOrder }: { order: OrderCart | null, setOrder: 
                     id={id}
                     canDelete={order.status === OrderStatus.ORDERING}
                 />
-            )}
+            ))}
             <Divider />
             <Stack spacing='10px'>
                 <Stack direction="row" justifyContent="space-between">
@@ -103,11 +116,10 @@ const CheckoutCart = ({ order, setOrder }: { order: OrderCart | null, setOrder: 
             <Divider />
             <Stack spacing={2}>
                 <Typography>
-                    {pickupLocation ? (
-                        <span style={{ color: 'green' }}>&#10003; You have successfully set a pick-up location.</span>
-                    ) : (
+                    {pickupLocationSet ?
+                        <span style={{ color: 'green' }}>&#10003; You have successfully set a pick-up location.</span> :
                         "You have not set a pick-up location yet."
-                    )}
+                    }
                 </Typography>
                 {order.status === OrderStatus.ORDERING && (
                     <Button
@@ -116,14 +128,14 @@ const CheckoutCart = ({ order, setOrder }: { order: OrderCart | null, setOrder: 
                         color='secondary'
                         onClick={() => setViewMap(true)}
                     >
-                        Set Pick-up Location
+                        {pickupLocationSet ? "Change Pick-up Location" : "Set Pick-up Location"}
                     </Button>
                 )}
-                <Drawer anchor='bottom' open={viewMap}>
+                <Drawer anchor='bottom' open={viewMap} onClose={() => setViewMap(false)}>
                     <SingleMarkerMap
                         onConfirmPickupLocation={handleConfirmPickupLocation}
                         orderId={order.id}
-                        initialMarkerPosition={pickupLocation} // Pass the initial marker position
+                        initialPosition={pickupLocation || defaultLocation}
                     />
                     <Fab sx={{ position: 'absolute', top: 8, right: 8 }} color='secondary' onClick={() => setViewMap(false)}>
                         <Close />
@@ -141,21 +153,15 @@ const CheckoutCart = ({ order, setOrder }: { order: OrderCart | null, setOrder: 
                             startIcon={<ShoppingCartCheckout />}
                             color='success'
                             onClick={() => placeOrder()}
-                            disabled={!pickupLocation}
+                            disabled={!pickupLocationSet}
                         >
                             Checkout
                         </Button>
                     )}
-                    {isError && (
-                        <Alert severity="error" sx={{ display: isError ? 'flex' : 'none' }}>
-                            Something went wrong. Please try again.
-                        </Alert>
-                    )}
+                    {isError && <Alert severity="error" sx={{ display: isError ? 'flex' : 'none' }}>Something went wrong. Please try again.</Alert>}
                 </>
             )}
-            {(order.status !== OrderStatus.CANCELLED && order.status !== OrderStatus.ORDERING) && (
-                <Alert severity="success">Order successfully placed.</Alert>
-            )}
+            {order.status !== OrderStatus.CANCELLED && order.status !== OrderStatus.ORDERING && <Alert severity="success">Order successfully placed.</Alert>}
             {showSuccess && (
                 <Snackbar open={showSuccess} onClose={() => setShowSuccess(false)} autoHideDuration={3000}>
                     <Alert severity="success">Order successfully placed.</Alert>
@@ -201,7 +207,7 @@ const CheckoutCart = ({ order, setOrder }: { order: OrderCart | null, setOrder: 
                 </Fab>
             </Drawer>
         </>
-    );
+    )
 }
 
 export default CheckoutCart;
