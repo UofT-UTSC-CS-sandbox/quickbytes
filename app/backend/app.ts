@@ -11,6 +11,7 @@ import * as dotenv from 'dotenv';
 import menuRouter from "./routes/menuRoutes";
 import deliveryRouter from "./routes/deliveryRoutes";
 import admin from "./firebase-config";
+import staffRouter from "./routes/staffRouter";
 dotenv.config();
 
 
@@ -83,6 +84,8 @@ app.post('/order', (req, res) => {
 });
 
 app.use('/restaurants', menuRouter)
+
+app.use('/staff/', staffRouter)
 
 // Start the server
 app.listen(port, () => {

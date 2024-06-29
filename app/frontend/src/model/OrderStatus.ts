@@ -16,4 +16,25 @@ enum OrderStatus {
     CANCELLED = 'CANCELLED',
 }
 
+export function convertOrderStatusToString(orderStatus: OrderStatus) {
+    switch (orderStatus) {
+        case OrderStatus.ORDERING:
+            return 'Order not yet placed';
+        case OrderStatus.ORDERED:
+            return 'Order placed, awaiting courier acceptance';
+        case OrderStatus.ACCEPTED:
+            return 'Order placed and courier accepted';
+        case OrderStatus.AWAITING_PICK_UP:
+            return 'Awaiting courier pickup';
+        case OrderStatus.EN_ROUTE:
+            return 'En route to customer';
+        case OrderStatus.DELIVERED:
+            return 'Delivered to customer';
+        case OrderStatus.CANCELLED:
+            return 'Order cancelled';
+        default:
+            return orderStatus
+    }
+}
+
 export default OrderStatus;

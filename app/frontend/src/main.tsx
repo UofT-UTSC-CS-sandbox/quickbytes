@@ -2,8 +2,6 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
-import App from './pages/App';
-import HomePage from './pages/HomePage.tsx';
 import SignUp from './pages/SignUp';
 import Login from './pages/Login';
 import UserPage from './pages/UserPage';
@@ -20,6 +18,7 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import WelcomePage from './pages/WelcomePage.tsx';
 import Deliveries from './pages/Deliveries.tsx';
+import StaffOrders from './pages/StaffOrders.tsx';
 
 const queryClient = new QueryClient();
 const theme = createTheme({
@@ -45,6 +44,26 @@ const theme = createTheme({
       main: '#007FA3'
     }
   },
+  typography: {
+    h1: {
+      fontSize: '2.5rem'
+    },
+    h2: {
+      fontSize: '2rem'
+    },
+    h3: {
+      fontSize: '1.5rem'
+    },
+    h4: {
+      fontSize: '1.2rem'
+    },
+    h5: {
+      fontSize: '1rem'
+    },
+    h6: {
+      fontSize: '0.8rem'
+    }
+  }
 });
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -56,6 +75,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <Routes>
             <Route path="/" element={<PrivateRoute> <WelcomePage /> </PrivateRoute>}/>
             <Route path="/user-page" element={<PrivateRoute> <WelcomePage /> </PrivateRoute>} />
+            <Route path="/staff/:restaurantId" element={<PrivateRoute> <StaffOrders /> </PrivateRoute>} />
             <Route path="/deliveries" element={<PrivateRoute> <Deliveries /> </PrivateRoute>} />
             <Route path='/restaurant/:id' element={<PrivateRoute><Menu /></PrivateRoute>} />
             <Route path="/tracking" element={<PrivateRoute><OrderTracking /></PrivateRoute>} />
