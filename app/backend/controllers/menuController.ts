@@ -59,10 +59,22 @@ export async function createUserOrder(req: Request, res: Response) {
             return;
         }
 
+        const restaurantInfoRef = database.ref(`restaurants/${restaurantId}/information`);
+        const restaurantInfo = await restaurantInfoRef.get();
+        if (!restaurantInfo.exists()) {
+            res.status(500).send({ data: "Something went wrong" });
+        }
+        const restaurantInfoVal = restaurantInfo.val()
+
         // Construct the new order object
         let newOrderObject = {
             userId,
             restaurantId,
+            restaurant: {
+                restaurantId: restaurantId,
+                location: restaurantInfoVal.address,
+                restaurantName: restaurantInfoVal.name
+            },
             courierId: false,
             order: {
                 items: {
@@ -105,8 +117,6 @@ export async function createUserOrder(req: Request, res: Response) {
             addOnsSelected,
             quantity
         });
-
-        res.status(200).send({ data: "Order created successfully" });
     } catch (error) {
         console.error("Error creating order:", error);
         res.status(500).send("Internal server error");
