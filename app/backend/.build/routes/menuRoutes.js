@@ -1,0 +1,16 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const menuController_1 = require("../controllers/menuController");
+const menuRouter = (0, express_1.Router)();
+menuRouter.post('/order/:orderId/pickup-location', menuController_1.setPickupLocation);
+menuRouter.delete('/order/:orderId/items/:itemId', menuController_1.deleteItemFromOrder);
+menuRouter.post('/order/:orderId/place', menuController_1.placeOrder);
+menuRouter.post('/:id/order/:orderId', menuController_1.addToOrder);
+menuRouter.get('/:id/order/:orderId', menuController_1.getOrder);
+menuRouter.get('/order/:orderId/dropoff', menuController_1.getOrderDropOff);
+menuRouter.post('/:id/order', menuController_1.createUserOrder);
+menuRouter.get('/:id/order', menuController_1.getActiveOrder);
+menuRouter.get('/:id', menuController_1.getOneRestaurant);
+menuRouter.get('/', menuController_1.getAllRestaurants);
+exports.default = menuRouter;

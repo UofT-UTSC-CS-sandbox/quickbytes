@@ -4,10 +4,9 @@ import { Button, TextField, Typography } from "@mui/material";
 import styles from './SetDirectionsMap.module.css';
 import { apiUrl } from "./APIUrl";
 
-export default function SingleMarkerMap({ onConfirmPickupLocation, orderId }: { onConfirmPickupLocation: (position: { lat: number, lng: number }) => void, orderId: string }) {
+export default function SingleMarkerMap({ onConfirmPickupLocation, orderId, initialMarkerPosition }: { onConfirmPickupLocation: (position: { lat: number, lng: number }) => void, orderId: string, initialMarkerPosition: { lat: number, lng: number } | null }) {
     const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-    const [markerPosition, setMarkerPosition] = useState({ lat: 43.7845, lng: -79.1876 });
-    const [confirmedPosition, setConfirmedPosition] = useState(null);
+    const [markerPosition, setMarkerPosition] = useState(initialMarkerPosition || { lat: 43.7845, lng: -79.1876 });
     const [additionalInfo, setAdditionalInfo] = useState("");
 
     const handleConfirmPosition = () => {
@@ -25,7 +24,6 @@ export default function SingleMarkerMap({ onConfirmPickupLocation, orderId }: { 
                 onConfirmPickupLocation(markerPosition);
             });
     };
-
 
     return (
         <APIProvider apiKey={apiKey} onLoad={() => console.log('Maps API has loaded.')}>
@@ -68,7 +66,7 @@ export default function SingleMarkerMap({ onConfirmPickupLocation, orderId }: { 
                                 strictBounds: true,
                             },
                         }}>
-                        <MarkerAtCenter setMarkerPosition={setMarkerPosition} />
+                        <MarkerAtCenter setMarkerPosition={setMarkerPosition} initialPosition={initialMarkerPosition} />
                     </Map>
                 </div>
             </div>
@@ -77,13 +75,13 @@ export default function SingleMarkerMap({ onConfirmPickupLocation, orderId }: { 
 }
 
 /* Adds a marker at the center of the map */
-function MarkerAtCenter({ setMarkerPosition }) {
+function MarkerAtCenter({ setMarkerPosition, initialPosition }) {
     const map = useMap();
 
     useEffect(() => {
         if (!map) return;
 
-        const center = { lat: 43.7845, lng: -79.1876 };
+        const center = initialPosition || { lat: 43.7845, lng: -79.1876 };
 
         const marker = new google.maps.Marker({
             position: center,
