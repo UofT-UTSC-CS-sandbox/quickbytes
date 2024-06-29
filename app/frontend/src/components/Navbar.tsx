@@ -16,22 +16,33 @@ export default function NavBar() {
   return (
     <nav className="navbar">
       <div className="navbar-title">
-        <Link to="/" style={{ color: 'white' }}>QuickBytes</Link>
+        <Link to="/" style={{ color: 'white', textDecoration: 'none' }}>
+          QuickBytes
+        </Link>
       </div>
       <div className="navbar-options">
-        {currentUser ? ( // If currentUser exists ( signed in)
+        {currentUser ? (
           <>
-              <a href="#option1" className="navbar-option">Customer</a>
-              <a href="#option2" className="navbar-option">Courier</a>
-              <Link to="/settings" className="navbar-option">Settings</Link>
-              <button className="navbar-signout" onClick={handleSignOut}>Sign out</button>
+            <Link to="/customer" className="navbar-option">
+              Customer
+            </Link>
+            <Link to="/courier" className="navbar-option">
+              Courier
+            </Link>
+            <Link to="/settings" className="navbar-option">
+              Settings
+            </Link>
+            <button className="navbar-signout" onClick={handleSignOut}>
+              Sign out
+            </button>
           </>
-        ) : ( // If currentUser does not exist (not signed in)
-          <>
-            <Link to="/login" className="navbar-signout">Sign in</Link>
-          </>
+        ) : (
+          <Link to="/login" className="navbar-signin">
+            Sign in
+          </Link>
         )}
       </div>
     </nav>
   );
 }
+
