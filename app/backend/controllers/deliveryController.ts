@@ -27,13 +27,13 @@ export async function getAvailableDeliveries(req: Request, res: Response) {
     const ordersRef = database.ref('orders');
   
     try {
-      const snapshot = await ordersRef.orderByChild('tracking/status').equalTo(OrderStatus.ORDERING).once('value');
+      const snapshot = await ordersRef.orderByChild('tracking/status').equalTo(OrderStatus.ORDERED).once('value');
   
       if (snapshot.exists()) {
         const orders = snapshot.val();
         res.status(200).send({ data: orders });
       } else {
-        res.status(404).send({ data: "No orders found with status 'ORDERING'" });
+        res.status(404).send({ data: `No orders found with status ${OrderStatus.ORDERED}` });
       }
     } catch (error) {
       console.error("Error retrieving data:", error);
