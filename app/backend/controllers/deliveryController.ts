@@ -20,3 +20,22 @@ export async function getActiveDelivery(req: Request, res: Response) {
         res.status(500).send("Internal server error");
     }
 }
+
+// Get the active order for the courier
+export async function getActiveOrder(req: Request, res: Response) {
+    const database = admin.database();
+    const userId = req.query.customerID as string;
+    const userOrderRef = database.ref(`user/${userId}/activeOrder`);
+
+    try {
+        const snapshot = await userOrderRef.get();
+        if (snapshot.exists()) {
+            res.status(200).send({ data: snapshot.val() });
+        } else {
+            res.status(404).send({ data: "No active order found" });
+        }
+    } catch (error) {
+        console.error("Error retrieving data:", error);
+        res.status(500).send("Internal server error");
+    }
+}
