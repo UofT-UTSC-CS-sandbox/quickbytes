@@ -1,5 +1,5 @@
 import OrderStatus from "../model/OrderStatus";
-import { useGetEndpoint } from "./base";
+import { useGetEndpoint, usePostEndpoint } from "./base";
 
 /**
  * Response body for getCourierActiveOrder request
@@ -40,6 +40,14 @@ type GetDeliveriesResponse = {
 }
 
 /**
+ * Request body for the POST request to accept the delivery.
+ */
+type AcceptDeliveryRequest = {
+    userId: string,
+    orderId: string
+}
+
+/**
  * All API endpoints related to retrieving and updating delivery information 
  * for a courier.
  */
@@ -70,7 +78,22 @@ export default {
                 useAuth: false
             },
             {
-                queryKey: ['getDeliveries']
+                queryKey: ['getDeliveries'],
+            }
+        ),
+    /**
+     * Send the request by a user to accept a delivery for them to perform.
+     * @param onSuccess Callback on successful request.
+     * @returns Service endpoint for the current user to accept the given delivery
+     */
+    acceptDelivery: (onSuccess: () => void) => 
+        usePostEndpoint<undefined, Error, AcceptDeliveryRequest>(
+            {
+                inputUrl: 'deliveries/accept',
+                useAuth: false,
+            },
+            {
+                onSuccess
             }
         )
 }
