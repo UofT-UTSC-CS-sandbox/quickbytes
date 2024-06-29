@@ -1,3 +1,4 @@
+import OrderStatus from "../model/OrderStatus";
 import { useGetEndpoint } from "./base";
 
 /**
@@ -5,6 +6,37 @@ import { useGetEndpoint } from "./base";
  */
 type GetCourierActiveOrderResponse = {
     data: string[]
+}
+
+/**
+ * Response body for the getDeliveries request
+ */
+type GetDeliveriesResponse = {
+    data: Record<string, {
+        courierId: boolean | string | number,
+        courierSplit: number,
+        order: {
+            items: Record<string, any>
+            price: number
+        },
+        restaurant: {
+            location: string,
+            restaurantId: number,
+            restaurantName: string
+        },
+        tracking: {
+            courierAcceptedTime: false | number,
+            courierDropoffTime: false | number,
+            courierPickupTime: false | number,
+            dropOff: {
+                lat: number,
+                lng: number
+            },
+            orderPlacedTime: number
+            status: OrderStatus
+        },
+        userId: number | string
+    }>
 }
 
 /**
@@ -25,6 +57,20 @@ export default {
             },
             {
                 queryKey: ['courierActiveOrder', courierID],
+            }
+        ),
+    /**
+     * Get deliveries acceptable by the user as a courier
+     * @returns Service endpoint to get the response containing all acceptable deliveries
+     */
+    getDeliveries: () =>
+        useGetEndpoint<GetDeliveriesResponse, unknown>(
+            {
+                inputUrl: 'deliveries/ordering',
+                useAuth: false
+            },
+            {
+                queryKey: ['getDeliveries']
             }
         )
 }
