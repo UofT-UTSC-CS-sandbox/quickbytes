@@ -4,6 +4,7 @@ the log in and sign out functions.
 
 import { initializeApp } from "firebase/app";
 import { getAuth, setPersistence, browserSessionPersistence} from "firebase/auth";
+import { getDatabase, ref, onValue } from "firebase/database";
 
 console.log(import.meta.env.VITE_FIREBASE_API_KEY);
 
@@ -20,6 +21,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const database = getDatabase(app);
 try {
   await setPersistence(auth, browserSessionPersistence);
   console.log('Session persistence set successfully');
@@ -28,4 +30,4 @@ try {
 }
 
 
-export { app, auth }
+export { app, auth, database, ref, onValue}
