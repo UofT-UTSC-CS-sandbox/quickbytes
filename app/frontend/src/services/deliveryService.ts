@@ -9,6 +9,13 @@ type GetCourierActiveOrderResponse = {
 }
 
 /**
+ * Response body for getCourierActiveOrder request
+ */
+type GetCustomerActiveOrderResponse = {
+    data: string[]
+}
+
+/**
  * Response body for the getDeliveries request
  */
 type GetDeliveriesResponse = {
@@ -65,6 +72,21 @@ export default {
             },
             {
                 queryKey: ['courierActiveOrder', courierID],
+            }
+        ),
+    /**
+     * Get the order that is currently being delivered to the customer
+     * @param customerID ID of current user customer to query for.
+     * @returns Service endpoint to get the active order ID of the customer.
+     */
+    getCustomerActiveOrder: (customerID: string) =>
+        useGetEndpoint<GetCustomerActiveOrderResponse>(
+            {
+                inputUrl: `deliveries/activeOrder?customerID=${customerID}`,
+                useAuth: true
+            },
+            {
+                queryKey: ['customerActiveOrder', customerID],
             }
         ),
     /**
