@@ -1,6 +1,6 @@
 import { Alert, Badge, Button, Card, CircularProgress, Divider, Drawer, Fab, Snackbar, Stack, Typography } from "@mui/material";
 import { OrderCart } from "../model/OrderCart"
-import CheckoutItem, { ItemDeleteResponse } from "./CheckoutItem"
+import CheckoutItem from "./CheckoutItem"
 import { Close, Place, ShoppingCart, ShoppingCartCheckout } from "@mui/icons-material";
 import currencyFormatter from "./CurrencyFormatter";
 import React, { useState, useEffect } from "react";
@@ -8,6 +8,7 @@ import { useMutation } from "@tanstack/react-query";
 import { apiUrl } from "./APIUrl";
 import OrderStatus from "../model/OrderStatus";
 import SingleMarkerMap from "./SetDirectionsMap";
+import orderService from "../services/orderService";
 
 const CheckoutCart = ({ order, setOrder }: { order: OrderCart | null, setOrder: React.Dispatch<React.SetStateAction<OrderCart | null>> }) => {
     const [viewMap, setViewMap] = useState(false);
@@ -34,36 +35,17 @@ const CheckoutCart = ({ order, setOrder }: { order: OrderCart | null, setOrder: 
         fetchPickupLocation();
     }, [order]);
 
-    const deleteItemMutation = useMutation({
-        mutationKey: ['deleteItem', order?.id],
-        mutationFn: (id: string): Promise<ItemDeleteResponse> => {
-            if (!order) {
-                return Promise.reject();
-            }
-            return fetch(`${apiUrl}/restaurants/order/${order.id}/items/${id}`, {
-                method: 'DELETE',
-            }).then(res => res.json())
-        },
-        onSuccess: (data) => {
-            setOrder(data.data);
-        },
-    });
+    const deleteItemMutation = orderService.deleteItem(
+        order?.id.toString() || "",
+        (data) => setOrder(data.data)
+    ).useMutation();
 
-    const { isPending, mutate: placeOrder, isError } = useMutation({
-        mutationKey: ['placeOrder', order?.id],
-        mutationFn: (): Promise<ItemDeleteResponse> => {
-            if (!order) {
-                return Promise.reject();
-            }
-            return fetch(`${apiUrl}/restaurants/order/${order.id}/place`, {
-                method: 'POST',
-            }).then(res => res.json())
-        },
-        onSuccess: (data) => {
+    const { isPending, mutate: placeOrder, isError } = orderService.placeOrder(
+        order?.id.toString() || "", 
+        (data) => {
             setOrder(data.data);
             setShowSuccess(true);
-        }
-    });
+        }).useMutation();
 
     const [mobileOpen, setMobileOpen] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
@@ -88,25 +70,16 @@ const CheckoutCart = ({ order, setOrder }: { order: OrderCart | null, setOrder: 
                 <CheckoutItem
                     key={id}
                     data={item}
-                    mutation={deleteItemMutation}
+                    mutation={deleteItemMutation} 
                     id={id}
-                    canDelete={order.status === OrderStatus.ORDERING}
-                />
-            ))}
-            <Divider />
-            <Stack spacing='10px'>
-                <Stack direction="row" justifyContent="space-between">
-                    <Typography>Subtotal</Typography>
-                    <Typography>{currencyFormatter.format(order.price)}</Typography>
-                </Stack>
-                <Stack direction="row" justifyContent="space-between">
-                    <Typography>Discounts</Typography>
-                    <Typography>{currencyFormatter.format(0)}</Typography>
-                </Stack>
-                <Stack direction="row" justifyContent="space-between">
-                    <Typography>Delivery Fee</Typography>
-                    <Typography>{currencyFormatter.format(0)}</Typography>
-                </Stack>
+                    canDelete={order.status === OrderStatus.ORDERING} />
+            )
+        }
+        <Divider />
+        <Stack spacing='10px'>
+            <Stack direction="row" justifyContent="space-between">
+                <Typography>Subtotal</Typography>
+                <Typography>{currencyFormatter.format(order.price)}</Typography>
             </Stack>
             <Divider />
             <Stack direction="row" justifyContent="space-between">
