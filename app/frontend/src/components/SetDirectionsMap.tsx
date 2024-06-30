@@ -71,7 +71,12 @@ export default function SingleMarkerMap({ onConfirmPickupLocation, orderId, init
 
 
 /* Adds a marker at the center of the map */
-function MarkerAtCenter({ setMarkerPosition, initialPosition }) {
+type MarkerAtCenterProps = {
+    setMarkerPosition: React.Dispatch<React.SetStateAction<{ lat: number, lng: number }>>;
+    initialPosition: { lat: number, lng: number };
+};
+
+const MarkerAtCenter: React.FC<MarkerAtCenterProps> = ({ setMarkerPosition, initialPosition }) => {
     const map = useMap();
 
     useEffect(() => {
