@@ -1,4 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import MenuItemCard from "../components/MenuItemCard";
 import { useEffect, useState } from "react";
@@ -6,64 +5,41 @@ import styles from './Menu.module.css'
 import { MenuCategory, MenuItem } from "../model/Menu";
 import MenuAdd from "../components/MenuAdd";
 import { OrderCart } from "../model/OrderCart";
-import { ListItem, Dialog, Stack, Tab, Tabs, Typography, Divider, CircularProgress } from "@mui/material";
+import { ListItem, Dialog, Stack, Tab, Tabs, Typography, Divider, CircularProgress, Snackbar, Alert } from "@mui/material";
 import CheckoutCart from "../components/CheckoutCart";
 import { Place } from "@mui/icons-material";
-import { apiUrl } from "../components/APIUrl";
 import MenuCategoryDrawer from "../components/MenuCategoryDrawer";
 import NavBar from "../components/Navbar";
+import orderService from "../services/orderService";
+import restaurantService from "../services/restaurantService";
 
 type RestaurantMenuParams = {
     id: string
 }
 
-type RestaurantMenuResponse = {
-    data: {
-        name: string,
-        description: string
-        address: string,
-        categories: MenuCategory[]
-    }
-}
-
 const RestaurantMenu = () => {
     const { id } = useParams<RestaurantMenuParams>();
-    const { data, isLoading, isError } = useQuery<RestaurantMenuResponse>({
-        queryKey: ['menu', id],
-        queryFn: () => fetch(`${apiUrl}/restaurants/${id}`).then((res) => {
-            if (res.ok) {
-                return res.json();
-            } else {
-                Promise.reject(res);
-            }
-        }),
-    });
+    const { data, isLoading, isError: isMenuError, error: menuError } = restaurantService.getMenu(id).useQuery();
+    const [displayError, setDisplayError] = useState<string | null>(null);
     const [category, setCategory] = useState<MenuCategory | null>(null);
     const [item, setItem] = useState<MenuItem | null>(null);
     const [order, setOrder] = useState<OrderCart | null>(null);
+
+    // Fetch the any in-progress orders that the user has with the restaurant
+    // that haven't been placed yet.
+    const { data: activeOrder, isError: isActiveOrderError, error: activeOrderError } = orderService.getClientActiveOrder(id).useQuery();
     useEffect(() => {
-        // On first load, check if the user has any existing order in-progress
-        fetch(`${apiUrl}/restaurants/${id}/order`)
-            .then((res) => {
-                if (res.ok) {
-                    return res.json();
-                } else {
-                    Promise.reject(res);
-                }
-            })
-            .then((data) => {
-                if (data.data) {
-                    const order = {
-                        ...data.data,
-                        items: data.data.items ?? {},
-                        price: data.data.price ?? 0,
-                    };
-                    setOrder(order);
-                } else {
-                    setOrder(null);
-                }
-            })
-    }, [])
+        if (activeOrder?.data && !isActiveOrderError && id) {
+            setOrder({
+                ...activeOrder.data,
+                restaurantId: id,
+                items: activeOrder.data.items ?? {},
+                price: activeOrder.data.price ?? 0,
+            });
+        } else {
+            setOrder(null);
+        }
+    }, [activeOrder, isActiveOrderError])
 
     useEffect(() => {
         if (data && data.data.categories.length > 0) {
@@ -73,16 +49,30 @@ const RestaurantMenu = () => {
         }
     }, [data])
 
+    useEffect(() => {
+        if (isActiveOrderError) setDisplayError(activeOrderError.message);
+        else if (isMenuError) setDisplayError(menuError.message);
+        else setDisplayError(null);
+    }, [isActiveOrderError, isMenuError])
+
+    const renderRequestSnackbar = displayError ?
+        <Snackbar open={isActiveOrderError} onClose={() => setDisplayError(null)} autoHideDuration={3000}>
+            <Alert severity="error">{displayError}</Alert>
+        </Snackbar> : null;
+
     if (isLoading) {
         return <div>
             <NavBar />
             <CircularProgress/> <Typography>Loading ...</Typography>
+            {renderRequestSnackbar}
         </div>
     }
 
-    if (isError || !data) {
+    if (isMenuError || !data) {
         return <div>
+            <NavBar />
             <Typography>Sorry, we could not find the menu for this restaurant. Please try again later.</Typography>
+            {renderRequestSnackbar}
         </div>
     }
 
@@ -143,6 +133,7 @@ const RestaurantMenu = () => {
                     />
                 </Dialog>
             }
+            {renderRequestSnackbar}
         </div>
     )
 }

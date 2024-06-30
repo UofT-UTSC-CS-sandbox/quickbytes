@@ -1,45 +1,70 @@
 import React from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, CircularProgress, Alert } from '@mui/material';
 import { APIProvider, Map, Marker } from '@vis.gl/react-google-maps';
 import { useAuth } from '../AuthContext';
-import { acceptDelivery } from '../middleware';
+import deliveryService from '../services/deliveryService';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface Coordinate {
-    lng: number;
-    lat: number;
+  lng: number;
+  lat: number;
 }
 
-interface DeliveryItem  {
-    id: string;
-    restaurant: string;
-    pay: number;
-    location: string;
-    dropOff: Coordinate
+interface DeliveryItem {
+  id: string;
+  restaurant: string;
+  pay: number;
+  location: string;
+  dropOff: Coordinate
 }
 
 interface ConfirmationPopupProps {
-    open: boolean;
-    onClose: ()=>void;
-    item: DeliveryItem
+  open: boolean;
+  onClose: () => void;
+  item: DeliveryItem
 }
 
 
 
 const ConfirmationPopup: React.FC<ConfirmationPopupProps> = ({ open, onClose, item }) => {
-    const { currentUser } = useAuth();
-    const handleClose = () => {
-        onClose();
-    };
+  const queryClient = useQueryClient();
+  const { currentUser } = useAuth();
+  const handleClose = () => {
+    onClose();
+  };
 
-    const handleConfirm = () => {
-        console.log(item);
-        console.log(currentUser?.uid);
-        if (currentUser) acceptDelivery(currentUser.uid, item.id);
-        
-        onClose();
-    };
+  const { mutate: acceptDelivery, isPending, isError, isSuccess } = deliveryService.acceptDelivery(() => onSuccess()).useMutation();
+
+  const handleConfirm = () => {
+    if (currentUser) acceptDelivery({
+      userId: currentUser.uid,
+      orderId: item.id
+    });
+  };
+
+  const onSuccess = () => {
+    // Force the deliveries page to refresh to hide the accepted delivery
+    queryClient.invalidateQueries({
+      queryKey: deliveryService.getDeliveries().key
+    });
+    // Close the confirmation popup
+    onClose();
+  }
 
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string;
+
+  const renderConfirmButton = () => {
+    if (isSuccess) {
+      return <Alert severity="success">Accepted</Alert>
+    } else {
+      return <>
+        <Button onClick={handleConfirm} disabled={isPending} color="success" autoFocus startIcon={isPending ? <CircularProgress /> : undefined}>
+          {isPending ? "Confirming ..." : "Confirm"}
+        </Button>
+        {isError && <Alert severity='error'>Unexpected error. Please try again.</Alert>}
+      </>
+    }
+  }
 
   return (
     <Dialog open={open} onClose={handleClose}>
@@ -58,29 +83,27 @@ const ConfirmationPopup: React.FC<ConfirmationPopupProps> = ({ open, onClose, it
           <p>${item.pay}</p>
         </div>
         <div style={{ marginBottom: '16px' }}>
-            <p style={{ fontWeight: 'bold' }}>Drop-off:</p>
-            <APIProvider apiKey={apiKey} onLoad={() => console.log('Maps API has loaded.')}>
-                <div className='map-container'>
-                    <Map
-                    id={'map'}
-                    defaultZoom={17}
-                    style={{ width: '40%', height: '75%' }}
-                    defaultCenter={item.dropOff}>
-                        <Marker
-                            position={item.dropOff}>
-                        </Marker>
-                    </Map>
-                </div>
-                </APIProvider>
+          <p style={{ fontWeight: 'bold' }}>Drop-off:</p>
+          <APIProvider apiKey={apiKey} onLoad={() => console.log('Maps API has loaded.')}>
+            <div className='map-container'>
+              <Map
+                id={'map'}
+                defaultZoom={17}
+                style={{ width: '40%', height: '75%' }}
+                defaultCenter={item.dropOff}>
+                <Marker
+                  position={item.dropOff}>
+                </Marker>
+              </Map>
+            </div>
+          </APIProvider>
         </div>
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} color="error">
           Cancel
         </Button>
-        <Button onClick={handleConfirm} color="success" autoFocus>
-          Confirm
-        </Button>
+        {renderConfirmButton()}
       </DialogActions>
     </Dialog>
   );

@@ -1,49 +1,29 @@
 import { Alert, Badge, Button, Card, CircularProgress, Divider, Drawer, Fab, Snackbar, Stack, Typography } from "@mui/material";
 import { OrderCart } from "../model/OrderCart"
-import CheckoutItem, { ItemDeleteResponse } from "./CheckoutItem"
+import CheckoutItem from "./CheckoutItem"
 import { Close, Place, ShoppingCart, ShoppingCartCheckout } from "@mui/icons-material";
 import currencyFormatter from "./CurrencyFormatter";
 import React, { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
-import { apiUrl } from "./APIUrl";
 import OrderStatus from "../model/OrderStatus";
 import SingleMarkerMap from "./SetDirectionsMap";
+import orderService from "../services/orderService";
 
 const CheckoutCart = ({ order, setOrder }: { order: OrderCart | null, setOrder: React.Dispatch<React.SetStateAction<OrderCart | null>> }) => {
 
     const [viewMap, setViewMap] = useState(false);
     const [pickupLocationSet, setPickupLocationSet] = useState(false);
 
-    const deleteItemMutation = useMutation({
-        mutationKey: ['deleteItem', order?.id],
-        mutationFn: (id: string): Promise<ItemDeleteResponse> => {
-            if (!order) {
-                return Promise.reject();
-            }
-            return fetch(`${apiUrl}/restaurants/order/${order.id}/items/${id}`, {
-                method: 'DELETE',
-            }).then(res => res.json())
-        },
-        onSuccess: (data) => {
-            setOrder(data.data);
-        },
-    });
+    const deleteItemMutation = orderService.deleteItem(
+        order?.id.toString() || "",
+        (data) => setOrder(data.data)
+    ).useMutation();
 
-    const { isPending, mutate: placeOrder, isError } = useMutation({
-        mutationKey: ['placeOrder', order?.id],
-        mutationFn: (): Promise<ItemDeleteResponse> => {
-            if (!order) {
-                return Promise.reject();
-            }
-            return fetch(`${apiUrl}/restaurants/order/${order.id}/place`, {
-                method: 'POST',
-            }).then(res => res.json())
-        },
-        onSuccess: (data) => {
+    const { isPending, mutate: placeOrder, isError } = orderService.placeOrder(
+        order?.id.toString() || "", 
+        (data) => {
             setOrder(data.data);
             setShowSuccess(true);
-        }
-    });
+        }).useMutation();
 
     const [mobileOpen, setMobileOpen] = React.useState(false);
 
@@ -67,7 +47,8 @@ const CheckoutCart = ({ order, setOrder }: { order: OrderCart | null, setOrder: 
                 <CheckoutItem
                     key={id}
                     data={item}
-                    mutation={deleteItemMutation} id={id}
+                    mutation={deleteItemMutation} 
+                    id={id}
                     canDelete={order.status === OrderStatus.ORDERING} />
             )
         }
@@ -109,7 +90,7 @@ const CheckoutCart = ({ order, setOrder }: { order: OrderCart | null, setOrder: 
                 </Button>
             }
             <Drawer anchor='bottom' open={viewMap}>
-                <SingleMarkerMap onConfirmPickupLocation={handleConfirmPickupLocation} orderId={order.id} />
+                <SingleMarkerMap onConfirmPickupLocation={handleConfirmPickupLocation} orderId={order.id.toString()} />
                 <Fab sx={{ position: 'absolute', top: 8, right: 8 }} color='secondary' onClick={() => setViewMap(false)}><Close /></Fab>
             </Drawer>
 
