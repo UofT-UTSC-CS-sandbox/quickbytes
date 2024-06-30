@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { database, ref, onValue } from '../firebaseConfig';
@@ -6,38 +6,44 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import DirectionsMap from '../components/DirectionsMap';
 import NavBar from '../components/Navbar';
 import OrderStatus from '../model/OrderStatus';
-import { getCustomerActiveOrder } from '../middleware';
+import deliveryService from '../services/deliveryService';
 
 function OrderTracking() {
+    const [userId, setUserId] = useState('');
+
     useEffect(() => {
         const auth = getAuth();
 
-        // get current user uid and order id then listen for changes in order status
+        // get current user uid from firebase
         const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
             if (user) {
-                const userid = user.uid;
-                getCustomerActiveOrder(userid).then((response) => {
-                    response.json().then((data) => {
-                        const orderid = data.data;
-                        const dataRef = ref(database, `orders/${orderid}/tracking/status`);
-
-                        const unsubscribeData = onValue(dataRef, (snapshot) => {
-                            const data = snapshot.val();
-                            showNotification(data);
-                            console.log('Data from Firebase:', data);
-                        });
-
-                        return () => unsubscribeData();
-                    });
-                });
+                setUserId(user.uid);
             } else {
                 console.log('No user is signed in.');
             }
         });
-
         return () => unsubscribeAuth();
     }, []);
 
+    // get the active orderId of the customer
+    const { data: orderData, error } = deliveryService.getCustomerActiveOrder(userId).useQuery();
+
+    // listen to changes in the order status and show a notification
+    useEffect(() => {
+        if (orderData) {
+            const orderId = orderData.data;
+            const dataRef = ref(database, `orders/${orderId}/tracking/status`);
+
+            const unsubscribeData = onValue(dataRef, (snapshot) => {
+                const data = snapshot.val();
+                showNotification(data);
+                console.log('Data from Firebase:', data);
+            });
+
+            return () => unsubscribeData();
+        }
+    }, [orderData]);
+    
     const getNotificationMessage = (data: any) => {
         if (!data) return 'New update available';
 
