@@ -9,31 +9,24 @@ import { apiUrl } from "./APIUrl";
 import OrderStatus from "../model/OrderStatus";
 import SingleMarkerMap from "./SetDirectionsMap";
 import orderService from "../services/orderService";
+import trackingService from '../services/trackingService';
 
 const CheckoutCart = ({ order, setOrder }: { order: OrderCart | null, setOrder: React.Dispatch<React.SetStateAction<OrderCart | null>> }) => {
     const [viewMap, setViewMap] = useState(false);
     const [pickupLocation, setPickupLocation] = useState<{ lat: number, lng: number } | null>(null);
     const [pickupLocationSet, setPickupLocationSet] = useState(false);
 
-    useEffect(() => {
-        const fetchPickupLocation = async () => {
-            if (!order) return;
-            try {
-                const response = await fetch(`${apiUrl}/restaurants/order/${order.id}/pickup-location`);
-                if (response.ok) {
-                    const location = await response.json();
-                    if (location && location.lat && location.lng) {
-                        setPickupLocation(location);
-                        setPickupLocationSet(true);
-                    }
-                }
-            } catch (error) {
-                console.error("Error fetching pickup location:", error);
-            }
-        };
+    // Fetch the pickup location using trackingService
+    const { data: pickupData, error: pickupError, isError: isPickupError } = trackingService.getPickupLocation(order?.id).useQuery();
 
-        fetchPickupLocation();
-    }, [order]);
+    useEffect(() => {
+        if (pickupData && pickupData.lat && pickupData.lng) {
+            setPickupLocation({ lat: pickupData.lat, lng: pickupData.lng });
+            setPickupLocationSet(true);
+        } else if (isPickupError) {
+            console.error("Error fetching pickup location:", pickupError);
+        }
+    }, [pickupData, isPickupError, pickupError]);
 
     const deleteItemMutation = orderService.deleteItem(
         order?.id.toString() || "",
@@ -41,7 +34,7 @@ const CheckoutCart = ({ order, setOrder }: { order: OrderCart | null, setOrder: 
     ).useMutation();
 
     const { isPending, mutate: placeOrder, isError } = orderService.placeOrder(
-        order?.id.toString() || "", 
+        order?.id.toString() || "",
         (data) => {
             setOrder(data.data);
             setShowSuccess(true);
@@ -66,20 +59,30 @@ const CheckoutCart = ({ order, setOrder }: { order: OrderCart | null, setOrder: 
     const content = (
         <Stack spacing='20px' padding='10px'>
             <Typography variant='h4'>Your Order</Typography>
-            {Object.entries(order.items).map(([id, item]) => (
-                <CheckoutItem
-                    key={id}
-                    data={item}
-                    mutation={deleteItemMutation} 
-                    id={id}
-                    canDelete={order.status === OrderStatus.ORDERING} />
-            )
-        }
-        <Divider />
-        <Stack spacing='10px'>
-            <Stack direction="row" justifyContent="space-between">
-                <Typography>Subtotal</Typography>
-                <Typography>{currencyFormatter.format(order.price)}</Typography>
+            {
+                Object.entries(order.items).map(([id, item]) =>
+                    <CheckoutItem
+                        key={id}
+                        data={item}
+                        mutation={deleteItemMutation}
+                        id={id}
+                        canDelete={order.status === OrderStatus.ORDERING} />
+                )
+            }
+            <Divider />
+            <Stack spacing='10px'>
+                <Stack direction="row" justifyContent="space-between">
+                    <Typography>Subtotal</Typography>
+                    <Typography>{currencyFormatter.format(order.price)}</Typography>
+                </Stack>
+                <Stack direction="row" justifyContent="space-between">
+                    <Typography>Discounts</Typography>
+                    <Typography>{currencyFormatter.format(0)}</Typography>
+                </Stack>
+                <Stack direction="row" justifyContent="space-between">
+                    <Typography>Delivery Fee</Typography>
+                    <Typography>{currencyFormatter.format(0)}</Typography>
+                </Stack>
             </Stack>
             <Divider />
             <Stack direction="row" justifyContent="space-between">
