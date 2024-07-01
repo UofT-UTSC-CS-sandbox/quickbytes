@@ -44,3 +44,30 @@ export async function getOrder(orderID: string): Promise<Response> {
         throw error;
     }
 }
+
+
+export async function getCourierLocation(orderID: string): Promise<{ currentLocation: google.maps.LatLngLiteral, dropOffLocation: google.maps.LatLngLiteral }> {
+    const url = `${apiUrl}/deliveries/${orderID}`;
+
+    try {
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        return {
+            currentLocation: data.currentLocation,
+            dropOffLocation: data.tracking.dropOff
+        };
+    } catch (error) {
+        console.error('Error:', error);
+        throw error;
+    }
+}

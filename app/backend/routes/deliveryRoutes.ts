@@ -6,8 +6,9 @@ const deliveryRouter = Router();
 
 deliveryRouter.get('/active', getActiveDelivery);
 
-deliveryRouter.get('/:id', getDeliveryStatus);
 deliveryRouter.post('/update-location', updateDeliveryLocation);
+
+deliveryRouter.get('/:id', getDeliveryStatus);
 
 
 export default deliveryRouter;

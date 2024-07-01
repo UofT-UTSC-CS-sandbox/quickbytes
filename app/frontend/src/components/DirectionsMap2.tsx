@@ -8,28 +8,30 @@ const DirectionsMap2 = ({ orderId }) => {
   const [courierLocation, setCourierLocation] = useState(null);
 
   useEffect(() => {
+    // Function to fetch delivery status
     const fetchDeliveryStatus = async () => {
       try {
         const res = await fetch(`/deliveries/${orderId}`);
         const data = await res.json();
-        //might need to make api provide origin
-        setOrigin(data.origin); 
-        //might need to make api provide destination
-        setDestination(data.destination); 
-        setCourierLocation(data.currentLocation); 
+        if (data.tracking.dropOff && data.currentLocation) {
+          setOrigin(data.currentLocation);
+          setDestination(data.tracking.dropOff);
+          setCourierLocation(data.currentLocation);
+        } else {
+          console.error('Invalid delivery data');
+        }
       } catch (error) {
         console.error('Error fetching delivery status:', error);
       }
     };
 
-    //get delivery status initially
+    // Fetch delivery status initially
     fetchDeliveryStatus();
 
-    //get delivery status periodically
-    const intervalId = setInterval(fetchDeliveryStatus, 10000);
+    // Fetch delivery status periodically
+    const intervalId = setInterval(fetchDeliveryStatus, 10000); // Every 10 seconds
 
-    //clear interval on component unmount
-    return () => clearInterval(intervalId); 
+    return () => clearInterval(intervalId); // Clear interval on component unmount
   }, [orderId]);
 
   const directionsCallback = (response) => {
@@ -49,12 +51,16 @@ const DirectionsMap2 = ({ orderId }) => {
         id="direction-example"
         mapContainerStyle={{ height: "400px", width: "800px" }}
         zoom={14}
-        // this centers the map on the courier's location
-        center={courierLocation || { lat: 0, lng: 0 }} 
+        center={courierLocation || { lat: 0, lng: 0 }} // Center map on courier's location
       >
-        {origin !== '' && destination !== '' && (
+        {origin && destination && (
           <DirectionsService
-            options={{ destination: destination, origin: origin, travelMode: 'DRIVING' }}
+            options=
+            {{ 
+              destination: destination, 
+              origin: origin, 
+              travelMode: window.google.maps.TravelMode.DRIVING
+             }}
             callback={directionsCallback}
           />
         )}

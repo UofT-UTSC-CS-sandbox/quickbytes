@@ -55,7 +55,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <Route path="/" element={<Firstpage />}/>
             <Route path="/user-page" element={<PrivateRoute><App /></PrivateRoute>} />
             <Route path='/restaurant/:id' element={<PrivateRoute><Menu /></PrivateRoute>} />
-            <Route path="/tracking" element={<PrivateRoute><OrderTracking /></PrivateRoute>} />
+            <Route path="/tracking" element={<PrivateRoute><OrderTracking orderId={"-O-2iGfaXUMPoZxVi-eE"}/></PrivateRoute>} />
             <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
             <Route path="/sign-up" element={<SignUp />} />
             <Route path="/login" element={<Login />} />
