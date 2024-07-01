@@ -4,9 +4,9 @@ import { Button, TextField, Typography } from "@mui/material";
 import styles from './SetDirectionsMap.module.css';
 import orderService from '../services/orderService';
 
-export default function SingleMarkerMap({ onConfirmPickupLocation, orderId }: { onConfirmPickupLocation: (position: { lat: number, lng: number }) => void, orderId: string }) {
+export default function SingleMarkerMap({ onConfirmPickupLocation, orderId, initialPosition }: { onConfirmPickupLocation: (position: { lat: number, lng: number }) => void, orderId: string, initialPosition: { lat: number, lng: number } }) {
     const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-    const [markerPosition, setMarkerPosition] = useState({ lat: 43.7845, lng: -79.1876 });
+    const [markerPosition, setMarkerPosition] = useState(initialPosition);
     const [additionalInfo, setAdditionalInfo] = useState("");
 
     const { mutate: setPickupLocation } = orderService.setPickupLocation(
@@ -46,7 +46,7 @@ export default function SingleMarkerMap({ onConfirmPickupLocation, orderId }: { 
                 <div className={styles.map}>
                     <Map
                         defaultZoom={13}
-                        defaultCenter={{ lat: 43.7845, lng: -79.1876 }}
+                        defaultCenter={initialPosition}
                         onCameraChanged={(ev: MapCameraChangedEvent) =>
                             console.log('camera changed:', ev.detail.center, 'zoom:', ev.detail.zoom)
                         }
@@ -61,7 +61,7 @@ export default function SingleMarkerMap({ onConfirmPickupLocation, orderId }: { 
                             strictBounds: true,
                         }}
                         >
-                    <MarkerAtCenter setMarkerPosition={setMarkerPosition} />
+                    <MarkerAtCenter setMarkerPosition={setMarkerPosition} initialPosition={initialPosition} />
                 </Map>
             </div>
         </div>
@@ -69,21 +69,21 @@ export default function SingleMarkerMap({ onConfirmPickupLocation, orderId }: { 
     );
 }
 
-type MarkerAtCenterProps = {
-    setMarkerPosition: React.Dispatch<React.SetStateAction<{ lat: number, lng: number }>>;
-}
 
 /* Adds a marker at the center of the map */
-function MarkerAtCenter({ setMarkerPosition }: MarkerAtCenterProps) {
+type MarkerAtCenterProps = {
+    setMarkerPosition: React.Dispatch<React.SetStateAction<{ lat: number, lng: number }>>;
+    initialPosition: { lat: number, lng: number };
+};
+
+const MarkerAtCenter: React.FC<MarkerAtCenterProps> = ({ setMarkerPosition, initialPosition }) => {
     const map = useMap();
 
     useEffect(() => {
         if (!map) return;
 
-        const center = { lat: 43.7845, lng: -79.1876 };
-
         const marker = new google.maps.Marker({
-            position: center,
+            position: initialPosition,
             map: map,
             title: 'Center Marker - This marker is draggable and can be moved to a different location.',
             draggable: true
@@ -108,7 +108,7 @@ function MarkerAtCenter({ setMarkerPosition }: MarkerAtCenterProps) {
         });
 
         return () => {
-            marker.setMap(null); // Remove the marker if the component is unmounted
+            marker.setMap(null);
         };
     }, [map]);
 
