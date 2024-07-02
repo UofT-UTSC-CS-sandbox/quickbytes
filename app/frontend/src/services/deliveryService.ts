@@ -54,6 +54,19 @@ type AcceptDeliveryRequest = {
     orderId: string
 }
 
+type Coordinates = {
+    lat: string,
+    lng: string
+}
+
+/**
+ * Response body for the POST request to accept the delivery.
+ */
+type AcceptDeliveryResponse = {
+    pickupCoordinates: Coordinates
+    message: string
+}
+
 /**
  * All API endpoints related to retrieving and updating delivery information 
  * for a courier.
@@ -108,14 +121,14 @@ export default {
      * @param onSuccess Callback on successful request.
      * @returns Service endpoint for the current user to accept the given delivery
      */
-    acceptDelivery: (onSuccess: () => void) => 
-        usePostEndpoint<undefined, Error, AcceptDeliveryRequest>(
-            {
-                inputUrl: 'deliveries/accept',
-                useAuth: false,
-            },
-            {
-                onSuccess
-            }
+    acceptDelivery: (onSuccess: (data: AcceptDeliveryResponse) => void) =>
+        usePostEndpoint<AcceptDeliveryResponse, Error, AcceptDeliveryRequest>(
+          {
+            inputUrl: 'deliveries/accept',
+            useAuth: false,
+          },
+          {
+            onSuccess,
+          }
         )
 }
