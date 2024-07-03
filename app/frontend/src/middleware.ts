@@ -71,3 +71,29 @@ export async function getCourierLocation(orderID: string): Promise<{ currentLoca
         throw error;
     }
 }
+
+
+//Returns the array of orders corresponding to the particular user
+export async function getUserOrders(userId: string): Promise<string[]> {
+    const url = `${apiUrl}/user/${userId}/orders`;
+
+    try {
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        console.log(data.orders);
+        return data.orders; // The response contains the orders array
+    } catch (error) {
+        console.error('Error:', error);
+        throw error;
+    }
+}

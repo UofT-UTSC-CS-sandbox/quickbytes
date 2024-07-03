@@ -1,18 +1,21 @@
-import DirectionsMap2 from '../components/DirectionsMap2'
-import DirectionsMap3 from '../components/DirectionsMap3'
-import DirectionsMap from '../components/DirectionsMap'
+import DirectionsMap2 from '../components/Directions/DirectionsMap2'
+import DirectionsMap3 from '../components/Directions/DirectionsMap3'
+import DirectionsMap from '../components/Directions/DirectionsMap'
+import DirectionsMap5 from '../components/Directions/DirectionsMap5'
+//import DirectionsMap2 from '../components/Directions/DirectionsMap6'
+
 
 import NavBar from '../components/Navbar';
 
 interface OrderTrackingProps {
-    orderId: string;
+    userId: string;
   }
   
-const OrderTracking: React.FC<OrderTrackingProps> = ({ orderId }) =>{
+const OrderTracking: React.FC<OrderTrackingProps> = ({ userId }) =>{
     return (
         <div>
             <NavBar />
-            <DirectionsMap3 orderId={orderId}/>
+            <DirectionsMap2 userId={userId}/>
         </div>
     );
 }

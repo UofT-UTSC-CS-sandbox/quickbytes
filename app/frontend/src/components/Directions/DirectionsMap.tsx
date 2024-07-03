@@ -5,7 +5,7 @@ import Button from '@mui/material/Button';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import './DirectionsMap.css';
-import { getCourierActiveOrder, getOrder } from '../middleware';
+import { getCourierActiveOrder, getOrder } from '../../middleware';
 import CircularProgress from '@mui/material/CircularProgress';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
