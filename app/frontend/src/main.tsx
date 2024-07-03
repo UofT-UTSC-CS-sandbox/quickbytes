@@ -2,8 +2,6 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
-import App from './pages/App';
-import HomePage from './pages/HomePage.tsx';
 import SignUp from './pages/SignUp';
 import Login from './pages/Login';
 import UserPage from './pages/UserPage';
@@ -20,6 +18,7 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import WelcomePage from './pages/WelcomePage.tsx';
 import Deliveries from './pages/Deliveries.tsx';
+import DirectionsMap from './components/DirectionsMap.tsx';
 
 const queryClient = new QueryClient();
 const theme = createTheme({
@@ -59,6 +58,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <Route path="/deliveries" element={<PrivateRoute> <Deliveries /> </PrivateRoute>} />
             <Route path='/restaurant/:id' element={<PrivateRoute><Menu /></PrivateRoute>} />
             <Route path="/tracking" element={<PrivateRoute><OrderTracking /></PrivateRoute>} />
+            <Route path="/map/:coord" element={<PrivateRoute> <DirectionsMap /> </PrivateRoute>} />
             <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
             <Route path="/sign-up" element={<SignUp />} />
             <Route path="/login" element={<Login />} />

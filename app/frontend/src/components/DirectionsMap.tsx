@@ -1,4 +1,4 @@
-import { APIProvider, Map, MapCameraChangedEvent, useMap, useMapsLibrary } from '@vis.gl/react-google-maps';
+import { APIProvider, Map, useMap, useMapsLibrary } from '@vis.gl/react-google-maps';
 import { useState, useEffect } from 'react';
 import * as React from 'react';
 import Button from '@mui/material/Button';
@@ -8,8 +8,7 @@ import './DirectionsMap.css';
 import CircularProgress from '@mui/material/CircularProgress';
 import Typography from '@mui/material/Typography';
 import { Snackbar, Alert } from '@mui/material';
-import deliveryService from '../services/deliveryService';
-import trackingService from '../services/trackingService';
+import { useParams } from 'react-router-dom';
 
 interface DirectionsRoute {
   summary: string;
@@ -85,6 +84,13 @@ function Directions({ loadHandler }: DirectionProps) {
   const selected = routes[routeIndex];
   const leg = selected?.legs[0];
 
+  const { coord } = useParams();
+  console.log(coord);
+  const destination: google.maps.LatLngLiteral = {
+    lng: Number(coord?.split("_")[0]),
+    lat: Number(coord?.split("_")[1])
+  };
+
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -107,28 +113,6 @@ function Directions({ loadHandler }: DirectionProps) {
     }
   }, [setDisplayError, loadHandler, map]);
 
-  const locationSuccessful = !!originCoord;
-
-  const { data, error: activeOrderError, isError: isActiveOrderError } = deliveryService.getCourierActiveOrder(8).useQuery();
-  const activeOrderID: string | undefined = data ? data.data[0] : undefined;
-  useEffect(() => {
-    if (isActiveOrderError) {
-      setDisplayError(activeOrderError)
-    }
-  }, [isActiveOrderError, locationSuccessful])
-
-  // Get the current order ID that should be displayed by the map
-  const { data: dropOffData, error: dropoffError, isError: isDropoffError } = trackingService.getOrderDropoff(
-    activeOrderID,
-  ).useQuery();
-
-  // Get the dropoff location for the order that should be on the map
-  const dropOffCoord = dropOffData?.data || null;
-  useEffect(() => {
-    if (isDropoffError) {
-      setDisplayError(dropoffError)
-    }
-  }, [isDropoffError, locationSuccessful])
 
   useEffect(() => {
     if (!routesLibrary || !map) return;
@@ -137,20 +121,20 @@ function Directions({ loadHandler }: DirectionProps) {
   }, [routesLibrary, map]);
 
   useEffect(() => {
-    if (!directionsRenderer || !directionsService || !originCoord || !dropOffCoord) return;
+    if (!directionsRenderer || !directionsService || !originCoord) return;
     directionsService.route({
       origin: originCoord,
-      destination: dropOffCoord,
+      destination: destination,
       travelMode: google.maps.TravelMode.WALKING,
       provideRouteAlternatives: true
     }).then(result => {
       directionsRenderer.setDirections(result);
       setRoutes(result.routes);
     });
-  }, [directionsService, directionsRenderer, originCoord, dropOffCoord]);
+  }, [directionsService, directionsRenderer, originCoord]);
 
   useEffect(() => {
-    if (!directionsRenderer || !dropOffCoord || originCoord) return;
+    if (!directionsRenderer || originCoord) return;
     directionsRenderer.setRouteIndex(routeIndex);
   }, [routeIndex, directionsRenderer]);
 
@@ -208,10 +192,7 @@ export default function DirectionsMap() {
             <Map
               id={'map'}
               defaultZoom={13}
-              defaultCenter={{ lat: -33.860664, lng: 151.208138 }}
-              onCameraChanged={(ev: MapCameraChangedEvent) =>
-                console.log('camera changed:', ev.detail.center, 'zoom:', ev.detail.zoom)
-              }>
+              defaultCenter={{ lat: -33.860664, lng: 151.208138 }}>
             </Map>
           </div>
         </APIProvider>

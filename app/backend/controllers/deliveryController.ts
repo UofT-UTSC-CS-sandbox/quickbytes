@@ -44,8 +44,8 @@ export async function getAvailableDeliveries(req: Request, res: Response) {
 
 export async function acceptDelivery(req: Request, res: Response) {
   const { orderId, userId } = req.body; 
-  if (!userId || !orderId ) {
-    return res.status(400).send({ error: 'userId, orderId, and courierId are required fields' });
+  if (!userId || !orderId) {
+    return res.status(400).send({ error: 'userId and orderId are required fields' });
   }
 
   const database = admin.database();
@@ -62,7 +62,22 @@ export async function acceptDelivery(req: Request, res: Response) {
       'tracking/status': OrderStatus.ACCEPTED
     });
 
-    res.status(200).send({ message: `Active deliveries for user ${userId} updated successfully` });
+    const orderSnapshot = await orderRef.once('value');
+    const orderData = orderSnapshot.val();
+    const pickupCoordinates = orderData?.tracking?.dropOff;
+
+    if (!pickupCoordinates || typeof pickupCoordinates.lat == "undefined" 
+      || typeof pickupCoordinates.lng == "undefined") {
+      return res.status(404).send({ error: 'Pickup coordinates not found' });
+    }
+
+    res.status(200).send({
+      message: `Active deliveries for user ${userId} updated successfully`,
+      pickupCoordinates: {
+        lat: pickupCoordinates.lat,
+        lng: pickupCoordinates.lng
+      }
+    });
   } catch (error) {
     console.error('Error updating activeDeliveries:', error);
     res.status(500).send('Internal server error');
