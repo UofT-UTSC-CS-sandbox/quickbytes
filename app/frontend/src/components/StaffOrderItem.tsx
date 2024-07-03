@@ -1,30 +1,6 @@
 import { Divider, List, ListItem, Stack, Typography } from "@mui/material"
-import OrderStatus, { convertOrderStatusToString } from "../model/OrderStatus"
-
-type ItemsOrdered = Record<string, {
-    menuItemId: string,
-    optionSelected: string,
-    addOnsSelected?: Record<string, string>,
-    quantity: number
-}>
-
-export type ActiveOrderItem = {
-    courierId: string,
-    courierSplit: number,
-    order: {
-        items: ItemsOrdered,
-        price: number,
-    },
-    tracking: {
-        courierAcceptedTime: false | number,
-        courierDropoffTime: false | number,
-        courierPickupTime: false | number,
-        orderPlacedTime: number,
-        dropOff: { lat: number, lng: number }
-        status: OrderStatus
-    }
-    orderId: string
-}
+import { convertOrderStatusToString } from "../model/OrderStatus"
+import { ActiveOrderItem, ItemsOrdered } from "../services/restaurantService";
 
 interface StaffOrderItemProps {
     order: ActiveOrderItem
@@ -81,10 +57,9 @@ const StaffOrderItem = ({ order }: StaffOrderItemProps) => {
                     <Typography sx={{ fontSize: '1rem', textAlign: 'center' }}>{convertOrderStatusToString(order.tracking.status)}</Typography>
                     <Stack direction="row" justifyContent="space-between">
                         {trackingInfo.map(({ label, time }) => (
-                            <Stack>
-                                <Typography key={label} sx={{ fontSize: '1.2rem' }} color='primary' variant="h3">{label}</Typography>
+                            <Stack key={label + order.orderId}>
+                                <Typography sx={{ fontSize: '1.2rem' }} color='primary' variant="h3">{label}</Typography>
                                 <Typography
-                                    key={label}
                                     sx={{ fontSize: '1rem' }}
                                     variant="h3"
                                     color={time ? 'success.main' : 'error'}
