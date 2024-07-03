@@ -4,6 +4,7 @@ import { APIProvider, Map, Marker } from '@vis.gl/react-google-maps';
 import { useAuth } from '../AuthContext';
 import deliveryService from '../services/deliveryService';
 import { useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 
 interface Coordinate {
   lng: number;
@@ -24,16 +25,20 @@ interface ConfirmationPopupProps {
   item: DeliveryItem
 }
 
-
+type Coordinates = {
+  lat: string,
+  lng: string
+}
 
 const ConfirmationPopup: React.FC<ConfirmationPopupProps> = ({ open, onClose, item }) => {
   const queryClient = useQueryClient();
+  const nav = useNavigate();
   const { currentUser } = useAuth();
   const handleClose = () => {
     onClose();
   };
-
-  const { mutate: acceptDelivery, isPending, isError, isSuccess } = deliveryService.acceptDelivery(() => onSuccess()).useMutation();
+  
+  const { mutate: acceptDelivery, isPending, isError, isSuccess } = deliveryService.acceptDelivery((d) => onSuccess(d.pickupCoordinates)).useMutation();
 
   const handleConfirm = () => {
     if (currentUser) acceptDelivery({
@@ -42,13 +47,14 @@ const ConfirmationPopup: React.FC<ConfirmationPopupProps> = ({ open, onClose, it
     });
   };
 
-  const onSuccess = () => {
+  const onSuccess = (d: Coordinates) => {
     // Force the deliveries page to refresh to hide the accepted delivery
-    queryClient.invalidateQueries({
-      queryKey: deliveryService.getDeliveries().key
-    });
+      queryClient.invalidateQueries({
+        queryKey: deliveryService.getDeliveries().key
+      });
+
     // Close the confirmation popup
-    onClose();
+    nav('/map/' + String(d.lng) + "_" + String(d.lat));
   }
 
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string;
