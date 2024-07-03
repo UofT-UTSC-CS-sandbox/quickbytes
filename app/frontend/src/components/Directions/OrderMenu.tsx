@@ -13,6 +13,8 @@ interface OrderMenuProps {
 
 /* Generates and renders drop-down menu for orders */
 function OrderMenu({ userId, setOrderId, setLoading }: OrderMenuProps) {
+  //console.log("reloaded")
+
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const [orders, setOrders] = useState<string[]>([]);

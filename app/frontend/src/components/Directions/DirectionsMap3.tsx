@@ -30,8 +30,8 @@ export default function DirectionsMap2({ userId }: { userId: string }) {
             )}
             <Map
               id={'map'}
-              defaultZoom={13}
-              defaultCenter={{ lat: -33.860664, lng: 151.208138 }}
+              //defaultZoom={13}
+              //defaultCenter={{ lat: -33.860664, lng: 151.208138 }}
               onCameraChanged={(ev) => console.log('camera changed:', ev.detail.center, 'zoom:', ev.detail.zoom,'zoom2:', ev.map.getZoom())}
             >
             </Map>
