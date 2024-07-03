@@ -123,12 +123,12 @@ export default {
      */
     acceptDelivery: (onSuccess: (data: AcceptDeliveryResponse) => void) =>
         usePostEndpoint<AcceptDeliveryResponse, Error, AcceptDeliveryRequest>(
-          {
-            inputUrl: 'deliveries/accept',
-            useAuth: false,
-          },
-          {
-            onSuccess,
-          }
+            {
+                inputUrl: 'deliveries/accept',
+                useAuth: false,
+            },
+            {
+                onSuccess,
+            }
         )
 }
