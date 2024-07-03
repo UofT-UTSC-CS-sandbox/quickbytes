@@ -1,16 +1,18 @@
 import { Divider, List, ListItem, Stack, Typography } from "@mui/material"
 import OrderStatus, { convertOrderStatusToString } from "../model/OrderStatus"
 
+type ItemsOrdered = Record<string, {
+    menuItemId: string,
+    optionSelected: string,
+    addOnsSelected?: Record<string, string>,
+    quantity: number
+}>
+
 export type ActiveOrderItem = {
     courierId: string,
     courierSplit: number,
     order: {
-        items: Record<string, {
-            menuItemId: string,
-            optionSelected: string,
-            addOnsSelected?: Record<string, string>,
-            quantity: number
-        }>,
+        items: ItemsOrdered,
         price: number,
     },
     tracking: {
@@ -30,40 +32,71 @@ interface StaffOrderItemProps {
 
 const StaffOrderItem = ({ order }: StaffOrderItemProps) => {
 
-    const { order: { items } } = order;
+    const items: ItemsOrdered = order.order.items ?? {};
+    const entries = Object.entries(items);
+    const { tracking: { orderPlacedTime, courierAcceptedTime, courierDropoffTime, courierPickupTime } } = order;
+    const trackingInfo = [
+        { label: 'Order Placed', time: orderPlacedTime },
+        { label: 'Courier Accepted', time: courierAcceptedTime },
+        { label: 'Courier Dropoff', time: courierDropoffTime },
+        { label: 'Courier Pickup', time: courierPickupTime },
+    ]
 
     return (
         <>
-        <ListItem>
-            <Stack style={{width: '100%', textAlign: 'center'}} justifyContent='center'>
-                <Typography variant="h2">Order {order.orderId}</Typography>
-                <Typography variant="h3">Items</Typography>
+            <ListItem sx={{ padding: '40px' }}>
+                <Stack spacing={1} sx={{ width: '100%', textAlign: 'left' }} justifyContent='center'>
+                    <Typography sx={{ fontSize: '2rem' }} variant="h2">Order {order.orderId}</Typography>
+                    <Typography sx={{ fontSize: '1.5rem', textAlign: 'center' }} variant="h3">Items</Typography>
 
-                <List style={{margin: 'auto'}}>
-                    {
-                        Object.entries(items).map(([key, item]) => {
+                    <List style={{ margin: 'auto' }}>
+                        {
+                            entries ?
+                                entries.map(([key, item]) => {
 
-                            const { menuItemId, optionSelected, addOnsSelected, quantity } = item;
+                                    const { menuItemId, optionSelected, addOnsSelected, quantity } = item;
 
-                            return <><ListItem key={key}>
-                                <Stack justifyContent='center' style={{textAlign: 'left'}}>
-                                    <Typography variant="h4" color="primary" fontWeight='bold'>{menuItemId} x {quantity}</Typography>
-                                    <Typography variant='h5'>Option</Typography>
-                                    <p style={{ margin: 0 }}>{optionSelected}</p>
-                                    <Typography variant='h5'>Addons</Typography>
-                                    <p style={{ margin: 0 }}>{addOnsSelected ? Object.entries(addOnsSelected).map(([key, value]) => `${key}: ${value}`).join(', ') : "None"}</p>
-                                </Stack>
-                                </ListItem>
-                            </>
+                                    return <ListItem key={key}>
+                                        <Stack spacing={1}>
+                                            <Typography sx={{ fontSize: '1.2rem' }} variant="h4" color="primary" fontWeight='bold'>{menuItemId} x {quantity}</Typography>
+                                            <Stack direction="row" justifyContent="space-between">
+                                                <Stack justifyContent='center' style={{ textAlign: 'left' }}>
+                                                    <Typography sx={{ fontSize: '1rem', fontWeight: 'bold' }} variant='h5'>Option</Typography>
+                                                    <p style={{ margin: 0, fontSize: '1rem' }}>{optionSelected}</p>
+                                                </Stack>
+                                                <Stack justifyContent='center' style={{ textAlign: 'left' }}>
+                                                    <Typography sx={{ fontSize: '1rem', fontWeight: 'bold' }} variant='h5'>Addons</Typography>
+                                                    <p style={{ margin: 0, fontSize: '1rem' }}>{addOnsSelected ? Object.entries(addOnsSelected).map(([key, value]) => `${key}: ${value}`).join(', ') : "None"}</p>
+                                                </Stack>
+                                            </Stack>
+                                        </Stack>
+                                    </ListItem>
+                                })
+                                :
+                                <Typography>Error retrieving items.</Typography>
                         }
-                        )
-                    }
-                </List>
-                <Typography variant="h3">Status</Typography>
-                <Typography>{convertOrderStatusToString(order.tracking.status)}</Typography>
-            </Stack>
-        </ListItem>
-        <Divider/>
+                    </List>
+
+                    <Typography sx={{ fontSize: '1.5rem', textAlign: 'center' }} variant="h3">Tracking</Typography>
+                    <Typography sx={{ fontSize: '1rem', textAlign: 'center' }}>{convertOrderStatusToString(order.tracking.status)}</Typography>
+                    <Stack direction="row" justifyContent="space-between">
+                        {trackingInfo.map(({ label, time }) => (
+                            <Stack>
+                                <Typography key={label} sx={{ fontSize: '1.2rem' }} color='primary' variant="h3">{label}</Typography>
+                                <Typography
+                                    key={label}
+                                    sx={{ fontSize: '1rem' }}
+                                    variant="h3"
+                                    color={time ? 'success.main' : 'error'}
+                                >
+                                    {time ? new Date(time).toLocaleString() : 'N/A'}
+                                </Typography>
+                            </Stack>
+                        ))}
+                    </Stack>
+                </Stack>
+            </ListItem>
+            <Divider />
         </>
     )
 }

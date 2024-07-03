@@ -21,11 +21,11 @@ export function convertOrderStatusToString(orderStatus: OrderStatus) {
         case OrderStatus.ORDERING:
             return 'Order not yet placed';
         case OrderStatus.ORDERED:
-            return 'Order placed, awaiting courier acceptance';
+            return 'Order placed and awaiting courier match';
         case OrderStatus.ACCEPTED:
-            return 'Order placed and courier accepted';
+            return 'Order placed and courier en-route';
         case OrderStatus.AWAITING_PICK_UP:
-            return 'Awaiting courier pickup';
+            return 'Waiting for courier pickup';
         case OrderStatus.EN_ROUTE:
             return 'En route to customer';
         case OrderStatus.DELIVERED:

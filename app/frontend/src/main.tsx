@@ -43,26 +43,6 @@ const theme = createTheme({
       // blue
       main: '#007FA3'
     }
-  },
-  typography: {
-    h1: {
-      fontSize: '2.5rem'
-    },
-    h2: {
-      fontSize: '2rem'
-    },
-    h3: {
-      fontSize: '1.5rem'
-    },
-    h4: {
-      fontSize: '1.2rem'
-    },
-    h5: {
-      fontSize: '1rem'
-    },
-    h6: {
-      fontSize: '0.8rem'
-    }
   }
 });
 

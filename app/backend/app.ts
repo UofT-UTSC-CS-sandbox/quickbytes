@@ -10,8 +10,9 @@ import bodyParser from 'body-parser';
 import * as dotenv from 'dotenv';
 import menuRouter from "./routes/menuRoutes";
 import deliveryRouter from "./routes/deliveryRoutes";
-import admin from "./firebase-config";
 import staffRouter from "./routes/staffRouter";
+
+import admin from "./firebase-config";
 dotenv.config();
 
 
