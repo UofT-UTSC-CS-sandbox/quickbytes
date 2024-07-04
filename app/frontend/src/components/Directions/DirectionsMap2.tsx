@@ -30,7 +30,7 @@ export default function DirectionsMap2({ id, getOrders }: DirectionsMap3Props) {
       .then(data => {
         setOrderIds(data);
         // For now, it defaults to selecting the order at index 1
-        setOrderId(data[0]);
+        setOrderId(data[1]);
         setLoading(false);
       })
       .catch(err => {

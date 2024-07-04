@@ -22,7 +22,7 @@ function OrderMenu({ orderIds, setOrderId, setLoading }: OrderMenuProps) {
     try {
       setOrders(orderIds);
       // For now, it defaults to selecting the order at index 1
-      setOrderId(orderIds[0]);
+      setOrderId(orderIds[1]);
       setLoading(false);
     } catch (err) {
       setError("Failed to load orders");
