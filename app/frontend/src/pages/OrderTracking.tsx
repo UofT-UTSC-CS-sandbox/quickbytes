@@ -3,23 +3,24 @@ import DirectionsMap3 from '../components/Directions/DirectionsMap3'
 import DirectionsMap from '../components/Directions/DirectionsMap'
 //import DirectionsMap2 from '../components/Directions/DirectionsMap4'
 //import DirectionsMap2 from '../components/Directions/DirectionsMap6'
+import { getUserOrders } from '../middleware';
+import { getRestaurantOrders } from '../middleware';
 
 
 import NavBar from '../components/Navbar';
 
 interface OrderTrackingProps {
-    userId: string;
+    id: string;
+    getOrders: (userId: string) => Promise<string[]>;
   }
   
-const OrderTracking: React.FC<OrderTrackingProps> = ({ userId }) =>{
+const OrderTracking: React.FC<OrderTrackingProps> = ({ id, getOrders}) =>{
     return (
         <div>
             <NavBar />
-            <DirectionsMap2 userId={userId}/>
+            <DirectionsMap2 id={id} getOrders={getOrders}/>
         </div>
     );
 }
-
-//<DirectionsMap2 orderId={orderid}/>
 
 export default OrderTracking;

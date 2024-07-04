@@ -1,5 +1,5 @@
 import { APIProvider, Map } from '@vis.gl/react-google-maps';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Directions from './Directions';
 import CircularProgress from '@mui/material/CircularProgress';
 import Typography from '@mui/material/Typography';
@@ -7,7 +7,12 @@ import { Snackbar, Alert } from '@mui/material';
 import OrderMenu from './OrderMenu'; // Import the new OrderMenu component
 import uberMapStyle from './mapStyles.json';
 
-export default function DirectionsMap2({ userId }: { userId: string }) {
+interface DirectionsMap3Props {
+  id: string;
+  getOrders: (userId: string) => Promise<string[]>;
+}
+
+export default function DirectionsMap2({ id, getOrders }: DirectionsMap3Props) {
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string;
   const [displayError, setDisplayError] = useState<Error | null>(null);
   const errorHandler = (err: Error) => {
@@ -17,7 +22,24 @@ export default function DirectionsMap2({ userId }: { userId: string }) {
   const [loading, setLoading] = useState(true);
   const loadHandler = (loadVal: boolean) => setLoading(loadVal);
   const [orderId, setOrderId] = useState<string | null>(null);
-  const orderMenu = <OrderMenu userId={userId} setOrderId={setOrderId} setLoading={setLoading} />;
+  const [orderIds, setOrderIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    setLoading(true);
+    getOrders(id)
+      .then(data => {
+        setOrderIds(data);
+        // For now, it defaults to selecting the order at index 1
+        setOrderId(data[0]);
+        setLoading(false);
+      })
+      .catch(err => {
+        setDisplayError(err);
+        setLoading(false);
+      });
+  }, [id, getOrders]);
+
+  const orderMenu = <OrderMenu orderIds={orderIds} setOrderId={setOrderId} setLoading={setLoading} />;
 
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: "100%", height: "100vh" }}>

@@ -427,3 +427,26 @@ export async function setPickupLocation(req: Request, res: Response) {
 }
 
 
+export const getActiveRestaurantorders= async (req: Request, res: Response) => {
+    console.log("thisenters")
+    const { restaurantId } = req.params;
+    const db = admin.database();
+    try {
+      const ref = db.ref(`restaurants/${restaurantId}/activeOrders`);
+      const snapshot = await ref.once('value');
+  
+      if (!snapshot.exists()) {
+        return res.status(404).json({ error: 'Restaurant not found or no active orders' });
+      }
+  
+      const activeOrders = snapshot.val();
+      const orderIds = Object.keys(activeOrders);
+  
+      res.status(200).json({ orderIds });
+    } catch (error) {
+      console.error('Error getting active orders:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+
+

@@ -102,52 +102,27 @@ export async function getUserOrders(userId: string): Promise<string[]> {
     }
 }
 
-export async function getOrderStatus(orderId: string): Promise<OrderStatus> {
-    const url = `${apiUrl}/deliveries/${orderId}/order-status`;
-
+export async function getRestaurantOrders(restaurantId: string): Promise<string[]> {
+    const url = `${apiUrl}/restaurants/${restaurantId}/orders`;
+  
     try {
-        const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error(`Error: ${response.status} ${response.statusText}`);
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
         }
-
-        const data = await response.json();
-        console.log(data.status);
-        return data.status; // The response contains the status
+      });
+  
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status} ${response.statusText}`);
+      }
+  
+      const data = await response.json();
+      console.log(data.orderIds);
+      return data.orderIds; // The response contains the orderIds array
     } catch (error) {
-        console.error('Error:', error);
-        throw error;
+      console.error('Error:', error);
+      throw error;
     }
-}
-
-
-
-export async function getPickupLocation(orderId: string): Promise<{ lat: number, lng: number }> {
-    const url = `${apiUrl}/deliveries/${orderId}/restaurant-location`;
-
-    try {
-        const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error(`Error: ${response.status} ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        return data.restaurant.location; // The response contains the restaurant location
-    } catch (error) {
-        console.error('Error fetching pickup location:', error);
-        throw error;
-    }
-}
-
+  }
+  

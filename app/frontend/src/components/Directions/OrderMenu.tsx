@@ -3,18 +3,15 @@ import * as React from 'react';
 import Button from '@mui/material/Button';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
-import { getUserOrders } from '../../middleware';
 
 interface OrderMenuProps {
-  userId: string;
+  orderIds: string[];
   setOrderId: React.Dispatch<React.SetStateAction<string>>;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 /* Generates and renders drop-down menu for orders */
-function OrderMenu({ userId, setOrderId, setLoading }: OrderMenuProps) {
-  //console.log("reloaded")
-
+function OrderMenu({ orderIds, setOrderId, setLoading }: OrderMenuProps) {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const [orders, setOrders] = useState<string[]>([]);
@@ -22,18 +19,16 @@ function OrderMenu({ userId, setOrderId, setLoading }: OrderMenuProps) {
 
   useEffect(() => {
     setLoading(true);
-    getUserOrders(userId)
-      .then(data => {
-        setOrders(data);
-        //For now it defaults to selecting the order at index 1
-        setOrderId(data[1]);
-        setLoading(false);
-      })
-      .catch(err => {
-        setError(err.message);
-        setLoading(false);
-      });
-  }, [userId, setLoading]);
+    try {
+      setOrders(orderIds);
+      // For now, it defaults to selecting the order at index 1
+      setOrderId(orderIds[0]);
+      setLoading(false);
+    } catch (err) {
+      setError("Failed to load orders");
+      setLoading(false);
+    }
+  }, [orderIds, setLoading, setOrderId]);
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
