@@ -18,6 +18,8 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import WelcomePage from './pages/WelcomePage.tsx';
 import Deliveries from './pages/Deliveries.tsx';
+import StaffOrders from './pages/StaffOrders.tsx';
+import DirectionsMap from './components/DirectionsMap.tsx';
 
 const queryClient = new QueryClient();
 const theme = createTheme({
@@ -42,7 +44,7 @@ const theme = createTheme({
       // blue
       main: '#007FA3'
     }
-  },
+  }
 });
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -54,6 +56,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <Routes>
             <Route path="/" element={<PrivateRoute> <WelcomePage /> </PrivateRoute>}/>
             <Route path="/user-page" element={<PrivateRoute> <WelcomePage /> </PrivateRoute>} />
+            <Route path="/staff/:restaurantId" element={<PrivateRoute> <StaffOrders /> </PrivateRoute>} />
             <Route path="/deliveries" element={<PrivateRoute> <Deliveries /> </PrivateRoute>} />
             <Route path='/restaurant/:id' element={<PrivateRoute><Menu /></PrivateRoute>} />
             <Route path="/tracking/:coord" element={<PrivateRoute><OrderTracking /></PrivateRoute>} />
