@@ -54,7 +54,7 @@ const ConfirmationPopup: React.FC<ConfirmationPopupProps> = ({ open, onClose, it
       });
 
     // Close the confirmation popup
-    nav('/map/' + String(d.lng) + "_" + String(d.lat));
+    nav('/tracking/' + String(d.lng) + "_" + String(d.lat));
   }
 
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string;

@@ -3,6 +3,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { database, ref, onValue } from '../firebaseConfig';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { useParams } from 'react-router-dom';
 import DirectionsMap from '../components/DirectionsMap';
 import NavBar from '../components/Navbar';
 import OrderStatus from '../model/OrderStatus';
@@ -10,6 +11,7 @@ import deliveryService from '../services/deliveryService';
 
 function OrderTracking() {
     const [userId, setUserId] = useState('');
+    const { coord } = useParams();
 
     useEffect(() => {
         const auth = getAuth();
@@ -36,6 +38,8 @@ function OrderTracking() {
 
             const unsubscribeData = onValue(dataRef, (snapshot) => {
                 const data = snapshot.val();
+                // can only have either one active delivery or order at one time, if no active order then don't show any notifications
+                if (!data || data==OrderStatus.ORDERING ) return;
                 showNotification(data);
                 console.log('Data from Firebase:', data);
             });
@@ -45,13 +49,9 @@ function OrderTracking() {
     }, [orderData]);
     
     const getNotificationMessage = (data: any) => {
-        if (!data) return 'New update available';
-
         switch (data) {
-            case OrderStatus.ORDERING:
-                return 'You are currently ordering. Add or remove items from your cart.';
             case OrderStatus.ORDERED:
-                return 'Your order has been placed!';
+                return 'Waiting for a courier to accept your order.';
             case OrderStatus.ACCEPTED:
                 return 'A courier has accepted your order!';
             case OrderStatus.AWAITING_PICK_UP:
@@ -83,7 +83,7 @@ function OrderTracking() {
     return (
         <div>
             <NavBar />
-            <DirectionsMap />
+            <DirectionsMap coord={coord}/>
             <ToastContainer />
         </div>
     );
