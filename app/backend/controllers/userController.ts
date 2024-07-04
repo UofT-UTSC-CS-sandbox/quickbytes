@@ -6,6 +6,7 @@ const database = admin.database();
 // Endpoint to get user's active orders
 export const getUserActiveOrders = async (req: Request, res: Response) => {
   const userId = req.params.userId;
+  console.log("entered")
 
   try {
     // Reference to the user's active orders
@@ -29,6 +30,9 @@ export const getUserActiveOrders = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+
+
 
 
 

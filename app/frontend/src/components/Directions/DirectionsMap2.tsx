@@ -5,11 +5,11 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Typography from '@mui/material/Typography';
 import { Snackbar, Alert } from '@mui/material';
 import OrderMenu from './OrderMenu'; // Import the new OrderMenu component
+import uberMapStyle from './mapStyles.json';
 
 export default function DirectionsMap2({ userId }: { userId: string }) {
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string;
   const [displayError, setDisplayError] = useState<Error | null>(null);
-  //console.log("reloaded")
   const errorHandler = (err: Error) => {
     console.error(err);
     setDisplayError(err);
@@ -17,22 +17,22 @@ export default function DirectionsMap2({ userId }: { userId: string }) {
   const [loading, setLoading] = useState(true);
   const loadHandler = (loadVal: boolean) => setLoading(loadVal);
   const [orderId, setOrderId] = useState<string | null>(null);
+  const orderMenu = <OrderMenu userId={userId} setOrderId={setOrderId} setLoading={setLoading} />;
 
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: "100%", height: "100vh" }}>
       <div style={{ width: "100%", height: "100vh" }}>
         <APIProvider apiKey={apiKey} onLoad={() => console.log('Maps API has loaded.')}>
           <div className='map-container'>
-            {orderId ? (
-              <Directions orderId={orderId} loadHandler={loadHandler} errorHandler={errorHandler} setOrderId={setOrderId} setLoading = {setLoading} userId={userId}/>
-            ) : (
-              <OrderMenu userId={userId} setOrderId={setOrderId} setLoading={setLoading}/>
-            )}
+            <Directions orderId={orderId} loadHandler={loadHandler} errorHandler={errorHandler} setLoading={setLoading} orderMenu={orderMenu} />
             <Map
               id={'map'}
+              options={{
+                styles: uberMapStyle,
+              }}
               defaultZoom={13}
               defaultCenter={{ lat: -33.860664, lng: 151.208138 }}
-              onCameraChanged={(ev) => console.log('camera changed:', ev.detail.center, 'zoom:', ev.detail.zoom,'zoom2:', ev.map.getZoom())}
+              onCameraChanged={(ev) => console.log('camera changed:', ev.detail.center, 'zoom:', ev.detail.zoom, 'zoom2:', ev.map.getZoom())}
             >
             </Map>
           </div>

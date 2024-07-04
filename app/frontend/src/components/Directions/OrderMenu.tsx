@@ -25,6 +25,8 @@ function OrderMenu({ userId, setOrderId, setLoading }: OrderMenuProps) {
     getUserOrders(userId)
       .then(data => {
         setOrders(data);
+        //For now it defaults to selecting the order at index 1
+        setOrderId(data[1]);
         setLoading(false);
       })
       .catch(err => {
