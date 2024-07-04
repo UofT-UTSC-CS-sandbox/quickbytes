@@ -8,7 +8,10 @@ import './DirectionsMap.css';
 import CircularProgress from '@mui/material/CircularProgress';
 import Typography from '@mui/material/Typography';
 import { Snackbar, Alert } from '@mui/material';
-import { useParams } from 'react-router-dom';
+import deliveryService from '../services/deliveryService';
+import OrderStatus from '../model/OrderStatus';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { useNavigate } from 'react-router-dom';
 
 interface DirectionsRoute {
   summary: string;
@@ -69,10 +72,11 @@ function BasicMenu({ routes, setRouteIndex }: BasicMenuProps) {
 
 interface DirectionProps {
   loadHandler: (loadVal: boolean) => void;
+  coord: string | undefined;
 }
 
 /* Generates and renders directions */
-function Directions({ loadHandler }: DirectionProps) {
+function Directions({ loadHandler, coord }: DirectionProps) {
   const map = useMap("map");
   const routesLibrary = useMapsLibrary("routes");
   const [directionsService, setDirectionsService] = useState<google.maps.DirectionsService>();
@@ -84,7 +88,6 @@ function Directions({ loadHandler }: DirectionProps) {
   const selected = routes[routeIndex];
   const leg = selected?.legs[0];
 
-  const { coord } = useParams();
   console.log(coord);
   const destination: google.maps.LatLngLiteral = {
     lng: Number(coord?.split("_")[0]),
@@ -144,6 +147,49 @@ function Directions({ loadHandler }: DirectionProps) {
     }
   }, [leg, loadHandler]);
 
+  const [userId, setUserId] = useState('');
+
+  // get the active orderId of the customer
+  useEffect(() => {
+      const auth = getAuth();
+
+      onAuthStateChanged(auth, (user) => {
+          if (user) {
+              setUserId(user.uid);
+          } else {
+              console.log('No user is signed in.');
+          }
+      });
+      
+  }, []);
+
+  const {mutate: updateOrderStatus} = deliveryService.updateOrderStatus((d)=> console.log(d.message)).useMutation();
+  const {data: orderData} = deliveryService.getCourierActiveOrder(userId).useQuery();
+  const nav = useNavigate();
+
+  const handleUpdateStatus = () => {
+    console.log(userId)
+    console.log(orderData)
+    if (orderData) {
+      console.log(orderData.data)
+      const orderId = orderData.data; 
+      const newStatus = OrderStatus.EN_ROUTE; // change later to change status depending on where in the workflow
+      updateOrderStatus({ orderId: orderId, status: newStatus });
+    }
+  };
+
+  const handleCancelOrder = () => {
+    console.log(userId)
+    console.log(orderData)
+    if (orderData) {
+      console.log(orderData.data)
+      const orderId = orderData.data; 
+      const newStatus = OrderStatus.CANCELLED; 
+      updateOrderStatus({ orderId: orderId, status: newStatus });
+    }
+    nav('/deliveries');
+  }
+  
   return (
     <>
       <Snackbar open={displayError != null} autoHideDuration={6000} onClose={() => setDisplayError(null)}>
@@ -168,8 +214,8 @@ function Directions({ loadHandler }: DirectionProps) {
             <p>Estimated arrival in <b>{leg.duration?.text} or {leg.distance?.text}</b></p>
           </div>
           <div className='buttons'>
-            <Button variant="contained" sx={{ backgroundColor: 'rgba(163, 0, 0, 1)', color: 'white' }} size="large">one</Button>
-            <Button variant="contained" sx={{ backgroundColor: 'rgba(0, 127, 163, 1)', color: 'white' }} size="large">two</Button>
+            <Button variant="contained" sx={{ backgroundColor: 'rgba(163, 0, 0, 1)', color: 'white' }} size="large" onClick={handleCancelOrder}>Cancel Order</Button>
+            <Button variant="contained" sx={{ backgroundColor: 'rgba(0, 127, 163, 1)', color: 'white' }} size="large" onClick={handleUpdateStatus}>Notify</Button>
           </div>
         </div>
       }
@@ -178,7 +224,7 @@ function Directions({ loadHandler }: DirectionProps) {
 }
 
 
-export default function DirectionsMap() {
+export default function DirectionsMap({coord}: {coord:string | undefined}) {
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string;
   const [loading, setLoading] = useState(true);
 
@@ -188,7 +234,7 @@ export default function DirectionsMap() {
       <div style={{ width: "100%", height: "100vh" }}>
         <APIProvider apiKey={apiKey} onLoad={() => console.log('Maps API has loaded.')}>
           <div className='map-container'>
-            <Directions loadHandler={loadHandler} />
+            <Directions loadHandler={loadHandler} coord={coord}/>
             <Map
               id={'map'}
               defaultZoom={13}

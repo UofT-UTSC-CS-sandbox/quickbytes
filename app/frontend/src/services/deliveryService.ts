@@ -5,14 +5,14 @@ import { useGetEndpoint, usePostEndpoint } from "./base";
  * Response body for getCourierActiveOrder request
  */
 type GetCourierActiveOrderResponse = {
-    data: string[]
+    data: string
 }
 
 /**
  * Response body for getCourierActiveOrder request
  */
 type GetCustomerActiveOrderResponse = {
-    data: string[]
+    data: string
 }
 
 /**
@@ -54,6 +54,11 @@ type AcceptDeliveryRequest = {
     orderId: string
 }
 
+type UpdateOrderStatusRequest = {
+    orderId: string,
+    status: OrderStatus
+}
+
 type Coordinates = {
     lat: string,
     lng: string
@@ -68,6 +73,13 @@ type AcceptDeliveryResponse = {
 }
 
 /**
+ * Response body for the POST request to accept the delivery.
+ */
+type UpdateOrderStatusResponse = {
+    message: string
+}
+
+/**
  * All API endpoints related to retrieving and updating delivery information 
  * for a courier.
  */
@@ -77,7 +89,7 @@ export default {
      * @param courierID ID of courier to query for.
      * @returns Service endpoint to get the active delivery ID of the courier.
      */
-    getCourierActiveOrder: (courierID: number) =>
+    getCourierActiveOrder: (courierID: string) =>
         useGetEndpoint<GetCourierActiveOrderResponse>(
             {
                 inputUrl: `deliveries/active?courierID=${courierID}`,
@@ -123,12 +135,27 @@ export default {
      */
     acceptDelivery: (onSuccess: (data: AcceptDeliveryResponse) => void) =>
         usePostEndpoint<AcceptDeliveryResponse, Error, AcceptDeliveryRequest>(
-            {
-                inputUrl: 'deliveries/accept',
-                useAuth: false,
-            },
-            {
-                onSuccess,
-            }
+          {
+            inputUrl: 'deliveries/accept',
+            useAuth: false,
+          },
+          {
+            onSuccess,
+          }
+        ),
+    /**
+     * Send the request by a user to update an order status.
+     * @param onSuccess Callback on successful request.
+     * @returns Success message of orderId and status updated to
+     */
+    updateOrderStatus: (onSuccess: (data: UpdateOrderStatusResponse) => void) =>
+        usePostEndpoint<UpdateOrderStatusResponse, Error, UpdateOrderStatusRequest>(
+          {
+            inputUrl: 'deliveries/updateOrderStatus',
+            useAuth: false,
+          },
+          {
+            onSuccess,
+          }
         )
 }

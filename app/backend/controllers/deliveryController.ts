@@ -5,22 +5,21 @@ import { OrderStatus } from '../schema/Order';
 
 // Get the only in-progress delivery for the courier
 export async function getActiveDelivery(req: Request, res: Response) {
-    const database = admin.database();
-    const userId = req.query.courierID as string;
-    const userOrdersRef = database.ref(`user/${userId}/activeDeliveries`);
-    const pendingOrderQuery = userOrdersRef.limitToFirst(1);
+  const database = admin.database();
+  const userId = req.query.courierID as string;
+  const userOrderRef = database.ref(`user/${userId}/activeDelivery`);
 
-    try {
-        const snapshot = await pendingOrderQuery.get();
-        if (snapshot.exists()) {
-            res.status(200).send({ data: snapshot.val() });
-        } else {
-            res.status(404).send({ data: "Something went wrong" });
-        }
-    } catch (error) {
-        console.error("Error retrieving data:", error);
-        res.status(500).send("Internal server error");
-    }
+  try {
+      const snapshot = await userOrderRef.get();
+      if (snapshot.exists()) {
+          res.status(200).send({ data: snapshot.val() });
+      } else {
+          res.status(404).send({ data: "No active order found" });
+      }
+  } catch (error) {
+      console.error("Error retrieving data:", error);
+      res.status(500).send("Internal server error");
+  }
 }
 
 export async function getAvailableDeliveries(req: Request, res: Response) {
@@ -101,4 +100,49 @@ export async function getActiveOrder(req: Request, res: Response) {
         console.error("Error retrieving data:", error);
         res.status(500).send("Internal server error");
     }
+}
+
+export async function updateOrderStatus(req: Request, res: Response) {
+  const { orderId, status } = req.body; 
+  const isValidOrderStatus = (status: any): status is OrderStatus => {
+    return Object.values(OrderStatus).includes(status);
+  };
+  
+  if (!orderId || !status) {
+    return res.status(400).send({ error: 'orderId and status are required fields' });
+  }
+  else if (!isValidOrderStatus(status)) {
+    return res.status(400).send({ error: 'Invalid order status' });
+  }
+
+  const database = admin.database();
+  const orderRef = database.ref(`orders/${orderId}`);
+
+  // TODO: if order cancelled, remove from courier's activeDelivery and customers activeOrder
+
+  try {
+    if (status === OrderStatus.CANCELLED) {
+      // set order status to cancelled so customer gets a notification
+      await orderRef.update({
+        'tracking/status': status
+      }).then(
+        // set order back to ordered so courier can accept it in deliveries
+        await orderRef.update({
+          'tracking/status': OrderStatus.ORDERED
+        }))
+      res.status(200).send({
+        message: `Order ${orderId} cancelled successfully`
+      });
+    } else {
+      await orderRef.update({
+        'tracking/status': status
+      });
+      res.status(200).send({
+        message: `Active order status for order ${orderId} updated to ${status} successfully`
+      });
+    }
+  } catch (error) {
+    console.error('Error updating order status:', error);
+    res.status(500).send('Internal server error');
+  }
 }

@@ -6,6 +6,7 @@ import currencyFormatter from "./CurrencyFormatter";
 import React, { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { apiUrl } from "./APIUrl";
+import { useNavigate } from 'react-router-dom';
 import OrderStatus from "../model/OrderStatus";
 import SingleMarkerMap from "./SetDirectionsMap";
 import orderService from "../services/orderService";
@@ -15,7 +16,8 @@ const CheckoutCart = ({ order, setOrder }: { order: OrderCart | null, setOrder: 
     const [viewMap, setViewMap] = useState(false);
     const [pickupLocation, setPickupLocation] = useState<{ lat: number, lng: number } | null>(null);
     const [pickupLocationSet, setPickupLocationSet] = useState(false);
-
+    const nav = useNavigate();
+    
     // Fetch the pickup location using trackingService
     const { data: pickupData, error: pickupError, isError: isPickupError } = trackingService.getPickupLocation(order?.id).useQuery();
 
@@ -38,6 +40,9 @@ const CheckoutCart = ({ order, setOrder }: { order: OrderCart | null, setOrder: 
         (data) => {
             setOrder(data.data);
             setShowSuccess(true);
+            if(pickupLocation) {
+                nav(`/tracking/${pickupLocation.lng}_${pickupLocation.lat}`);
+            }
         }).useMutation();
 
     const [mobileOpen, setMobileOpen] = useState(false);
