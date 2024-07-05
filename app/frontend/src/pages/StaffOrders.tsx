@@ -23,7 +23,7 @@ const StaffOrders = () => {
 
     const renderEntries = (orders: ActiveOrderItem[]) => {
         return <List>
-            {orders.map((order: ActiveOrderItem) => <StaffOrderItem key={order.orderId} order={order} />)}
+            {orders.map((order: ActiveOrderItem) => <StaffOrderItem key={order.orderId} order={order} restaurantId={restaurantId} />)}
         </List>
     }
 
