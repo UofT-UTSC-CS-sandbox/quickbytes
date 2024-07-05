@@ -96,3 +96,44 @@ app.use('/staff/', staffRouter)
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
+
+
+
+/*
+const updateCourierLocation = (location:any) => {
+  const db = admin.database();
+  db.ref(`user/7gPDsXFo8WaI9awl87qlbcJsJBx2/currentLocation`).set(location)
+    .then(() => {
+      console.log(`Courier location updated to: ${location.lat}, ${location.lng}`);
+    })
+    .catch((error:any) => {
+      console.error('Error updating location:', error);
+    });
+};
+
+const simulateCourierMovement = ( duration:any) => {
+  const steps = duration / 1000;
+  const latStep = 0.001;
+  const lngStep = 0.001
+  let currentLocation = { lat:43.79, lng:-79.18742833862305 };
+  let currentStep = 0;
+
+  const intervalId = setInterval(() => {
+    if (currentStep >= steps) {
+      clearInterval(intervalId);
+      console.log('Simulation completed');
+    } else {
+      currentLocation.lat -= latStep;
+      currentLocation.lng -= lngStep;
+      updateCourierLocation(currentLocation);
+      currentStep++;
+    }
+  }, 1000);
+};
+
+const duration = 60000; // Duration in milliseconds (e.g., 60000ms = 60 seconds)
+
+simulateCourierMovement(duration);
+
+
+*/

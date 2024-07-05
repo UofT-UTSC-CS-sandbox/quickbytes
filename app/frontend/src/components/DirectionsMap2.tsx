@@ -26,20 +26,11 @@ export default function DirectionsMap2({ id, getOrders }: DirectionsMapProps) {
   const [orderId, setOrderId] = useState<string | null>(null);
   const [orderIds, setOrderIds] = useState<string[]>([]);
 
- // console.log(getOrders)
- // console.log(id)
-  //console.log(getOrders("3").useQuery().data);
-
-  const {  data, isLoading, isError } = getOrders(id).useQuery();
+  const {  data, isLoading, isError} = getOrders(id).useQuery();
 
   if (isLoading) {
     console.log("stillloading")
 }
-
-  
-
-  //console.log(data)
-
 
   useEffect(() => {
     console.log("isloadingggg")

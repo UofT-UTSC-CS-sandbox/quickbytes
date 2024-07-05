@@ -20,8 +20,12 @@ type GetPickupLocationResponse = {
 
 
 interface GetCurrentLocationResponse {
-    lat: number;
-    lng: number;
+    data: {
+        location :{
+            lat: number,
+            lng: number
+        }
+    }
 }
 
 /**
@@ -75,11 +79,11 @@ export default {
         useGetEndpoint<GetCurrentLocationResponse>(
         {
             inputUrl: `user/${userId}/current-location`,
-            useAuth: false, // Set to false if no authentication is needed
+            useAuth: false, 
         },
         {
             queryKey: ['getCurrentLocation', userId],
-            enabled: !!userId, // Enable or disable based on userId presence
+            enabled: !!userId,
         })
 
 

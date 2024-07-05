@@ -440,17 +440,19 @@ export async function getPickupLocation(req: Request, res: Response) {
     const { orderId } = req.params;
 
     const database = admin.database();
-    const dropOffLocation = `orders/${orderId}/tracking/dropOff`;
+    const orderref = `orders/${orderId}`;
 
     try {
-        const snapshot = await database.ref(dropOffLocation).once("value");
-        const location = snapshot.val();
+        const snapshot = await database.ref(orderref).once("value");
+        const orderdata = snapshot.val();
 
+        const restaurantId = orderdata.restaurant.restaurantId;
+        console.log(restaurantId, "restaurant id")
+
+        const restaurantSnapshot = await database.ref(`restaurants/${restaurantId}/information/location`).once('value');
+        const location = restaurantSnapshot.val();
         if (location) {
-            res.status(200).json({
-                lat: location.lat,
-                lng: location.lng,
-            });
+            res.status(200).json(location);
         } else {
             res.status(404).json({ error: 'Pickup location not set' });
         }

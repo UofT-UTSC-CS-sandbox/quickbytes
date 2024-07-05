@@ -34,5 +34,6 @@ export type Restaurant = {
         coordinateX: number;
         coordinateY: number;
         categories: Category[];
+        location: any;
     };
 }
