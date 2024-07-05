@@ -50,8 +50,10 @@ Since both of our issues this sprint stemmed from improper planning, we wish to 
     - Artifact: The various data fetching services, for instance, the [tracking service](../../app/frontend/src/services/trackingService.ts)
 6. Customer notifications
     - Artifact: Again, the [order tracking page](../../app/frontend/src/pages/OrderTracking.tsx)
-7. Restaurant worker views orders
+7. Confirm courier via pin
     - Artifact: The [staff orders page](../../app/frontend/src/pages/StaffOrders.tsx)
+9. Restaurant worker views orders
+    - Artifact: Also in the [staff orders page](../../app/frontend/src/pages/StaffOrders.tsx)
 
 #### Goals and/or tasks that were planned but not met/completed:
 
