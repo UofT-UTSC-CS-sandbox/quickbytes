@@ -1,12 +1,4 @@
-import DirectionsMap2 from '../components/Directions/DirectionsMap2'
-import DirectionsMap3 from '../components/Directions/DirectionsMap3'
-import DirectionsMap from '../components/Directions/DirectionsMap'
-//import DirectionsMap2 from '../components/Directions/DirectionsMap4'
-//import DirectionsMap2 from '../components/Directions/DirectionsMap6'
-import { getUserOrders } from '../middleware';
-import { getRestaurantOrders } from '../middleware';
-
-
+import DirectionsMap2 from '../components/DirectionsMap2'
 import NavBar from '../components/Navbar';
 
 interface OrderTrackingProps {
