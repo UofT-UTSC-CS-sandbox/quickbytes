@@ -54,6 +54,8 @@ Since both of our issues this sprint stemmed from improper planning, we wish to 
     - Artifact: The [staff orders page](../../app/frontend/src/pages/StaffOrders.tsx)
 9. Restaurant worker views orders
     - Artifact: Also in the [staff orders page](../../app/frontend/src/pages/StaffOrders.tsx)
+10. Restaurant worker/customer tracks orders
+    - Artifact: Uses [DirectionsMap2 component](../../app/frontend/src/components/DirectionsMap2.tsx)
 
 #### Goals and/or tasks that were planned but not met/completed:
 
