@@ -19,9 +19,19 @@ export const getUserActiveOrders = async (req: Request, res: Response) => {
       const activeOrders = snapshot.val();
 
       // Extract the order IDs (keys)
-      const orderIds = Object.keys(activeOrders);
+      const inProgressOrderIDs = Object.keys(activeOrders);
 
-      res.status(200).json({ orders: orderIds });
+      // Fetch all orders by ID in parallel
+      const loadOrders = await Promise.all(
+          inProgressOrderIDs.map((orderId) => {
+              const orderRef = database.ref(`orders/${orderId}`);
+              return orderRef.get()
+                  .then((snapshot: any) => snapshot.exists() ? { orderId, ...snapshot.val() } : null)
+                  .catch((error: Error) => null);
+          })
+      );
+
+      res.send({ data: loadOrders.filter(x => x !== null) });
     } else {
       res.status(404).json({ message: 'No active orders found' });
     }
@@ -30,6 +40,34 @@ export const getUserActiveOrders = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+
+export const getUserCurrentLocation = async (req: Request, res: Response) => {
+    const userId = req.params.userId;
+    console.log("entered getCurrentLocation")
+
+    try {
+        // Fetch user data from Firebase Realtime Database
+        const snapshot = await admin.database().ref(`user/${userId}/currentLocation`).once('value');
+        const location = snapshot.val();
+
+        if (location) {
+            res.status(200).json({ location} );
+        } else {
+            res.status(404).json({ error: 'Location not found for this user' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch location' });
+    }
+};
+
+
+
+
+
+
+
+
 
 
 

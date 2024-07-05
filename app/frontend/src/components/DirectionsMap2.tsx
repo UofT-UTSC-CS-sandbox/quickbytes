@@ -6,10 +6,12 @@ import Typography from '@mui/material/Typography';
 import { Snackbar, Alert } from '@mui/material';
 import OrderMenu from './OrderMenu'; // Import the new OrderMenu component
 import uberMapStyle from './mapStyles.json';
+import orderService from "../services/orderService"
+import restaurantService from '../services/restaurantService';
 
 interface DirectionsMapProps {
   id: string;
-  getOrders: (userId: string) => Promise<string[]>;
+  getOrders: (userId: string) => any;
 }
 
 export default function DirectionsMap2({ id, getOrders }: DirectionsMapProps) {
@@ -24,8 +26,39 @@ export default function DirectionsMap2({ id, getOrders }: DirectionsMapProps) {
   const [orderId, setOrderId] = useState<string | null>(null);
   const [orderIds, setOrderIds] = useState<string[]>([]);
 
+ // console.log(getOrders)
+ // console.log(id)
+  //console.log(getOrders("3").useQuery().data);
+
+  const {  data, isLoading, isError } = getOrders(id).useQuery();
+
+  if (isLoading) {
+    console.log("stillloading")
+}
+
+  
+
+  //console.log(data)
+
+
   useEffect(() => {
-    setLoading(true);
+    console.log("isloadingggg")
+    if (!isLoading && data) {
+      console.log(data.data)
+      try {
+        console.log(data.data.map(orderItem => orderItem.orderId), "id lists ")
+          setOrderIds(data.data.map(orderItem => orderItem.orderId));
+          setOrderId(data.data.map(orderItem => orderItem.orderId)[0]); // Safely access the second item
+          setLoading(false);
+      } catch (err) {
+          //setDisplayError(err);
+          console.log("broken")
+          setLoading(false);
+      }
+  }
+
+    /*
+
     getOrders(id)
       .then(data => {
         setOrderIds(data);
@@ -37,7 +70,18 @@ export default function DirectionsMap2({ id, getOrders }: DirectionsMapProps) {
         setDisplayError(err);
         setLoading(false);
       });
-  }, [id, getOrders]);
+      
+*/
+
+  }, [isLoading, id, getOrders, data]);
+
+  console.log(isLoading)
+  if (isLoading) {
+    return <div>Loading...</div>;
+}
+
+
+ 
 
   const orderMenu = <OrderMenu orderIds={orderIds} setOrderId={setOrderId} setLoading={setLoading} />;
 
