@@ -54,7 +54,6 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Firstpage />}/>
-            <Route path="/user-page" element={<PrivateRoute><App /></PrivateRoute>} />
             <Route path='/restaurant/:id' element={<PrivateRoute><Menu /></PrivateRoute>} />
             <Route path="/tracking" element={<PrivateRoute><OrderTracking id={"1"} getOrders={getUserOrders}/></PrivateRoute>} />
             <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
