@@ -33,8 +33,8 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
     const {data: currLoc, isLoading :currLoading, refetch }=trackingService.getCurrentLocation("7gPDsXFo8WaI9awl87qlbcJsJBx2").useQuery();
 
     console.log(currLoc)
-    const {data: pickupLoc, isLoading: pickUpLoading } = trackingService.getPickupLocation("-O-2iGfaXUMPoZxVi-eE").useQuery();
-    const {data: dropOffLoc, isLoading: dropOffLocLoading } = trackingService.getOrderDropoff("-O-2iGfaXUMPoZxVi-eE").useQuery();
+    const {data: pickupLoc, isLoading: pickUpLoading } = trackingService.getPickupLocation(orderId).useQuery();
+    const {data: dropOffLoc, isLoading: dropOffLocLoading } = trackingService.getOrderDropoff(orderId).useQuery();
 
     useEffect(() => {
         if (!orderId) return;
