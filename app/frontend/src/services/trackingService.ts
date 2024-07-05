@@ -18,6 +18,16 @@ type GetPickupLocationResponse = {
     lng: number
 }
 
+
+interface GetCurrentLocationResponse {
+    data: {
+        location :{
+            lat: number,
+            lng: number
+        }
+    }
+}
+
 /**
  * All API functions related to retrieving and updating map tracking information
  * such as map coordinates, wayfinding and estimated time of arrival.
@@ -57,7 +67,28 @@ export default {
                 queryKey: ['getPickupLocation', orderID],
                 enabled: !!orderID,
             }
-        )
+        ),
+
+    /**
+     * Function to fetch the current location of a user.
+     * 
+     * @param userId The ID of the user whose location is to be fetched.
+     * @returns An object containing a function to trigger the query and its result.
+     */
+    getCurrentLocation: (userId: string | undefined) =>
+        useGetEndpoint<GetCurrentLocationResponse>(
+        {
+            inputUrl: `user/${userId}/current-location`,
+            useAuth: false, 
+        },
+        {
+            queryKey: ['getCurrentLocation', userId],
+            enabled: !!userId,
+        })
+
+
+    
+    
 
 
 

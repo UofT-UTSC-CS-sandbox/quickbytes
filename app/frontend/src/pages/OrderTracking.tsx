@@ -9,9 +9,16 @@ import NavBar from '../components/Navbar';
 import OrderStatus from '../model/OrderStatus';
 import deliveryService from '../services/deliveryService';
 
-function OrderTracking() {
+
+import restaurantService from '../services/restaurantService';
+import orderService from '../services/orderService';
+
+function OrderTracking({ directionsMapComponent }) {
     const [userId, setUserId] = useState('');
     const { coord } = useParams();
+
+
+
 
     useEffect(() => {
         const auth = getAuth();
@@ -83,7 +90,7 @@ function OrderTracking() {
     return (
         <div>
             <NavBar />
-            <DirectionsMap coord={coord}/>
+            {directionsMapComponent}
             <ToastContainer />
         </div>
     );

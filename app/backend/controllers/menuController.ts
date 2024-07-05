@@ -440,17 +440,19 @@ export async function getPickupLocation(req: Request, res: Response) {
     const { orderId } = req.params;
 
     const database = admin.database();
-    const dropOffLocation = `orders/${orderId}/tracking/dropOff`;
+    const orderref = `orders/${orderId}`;
 
     try {
-        const snapshot = await database.ref(dropOffLocation).once("value");
-        const location = snapshot.val();
+        const snapshot = await database.ref(orderref).once("value");
+        const orderdata = snapshot.val();
 
+        const restaurantId = orderdata.restaurant.restaurantId;
+        console.log(restaurantId, "restaurant id")
+
+        const restaurantSnapshot = await database.ref(`restaurants/${restaurantId}/information/location`).once('value');
+        const location = restaurantSnapshot.val();
         if (location) {
-            res.status(200).json({
-                lat: location.lat,
-                lng: location.lng,
-            });
+            res.status(200).json(location);
         } else {
             res.status(404).json({ error: 'Pickup location not set' });
         }
@@ -459,3 +461,26 @@ export async function getPickupLocation(req: Request, res: Response) {
         res.status(500).send("Internal server error");
     }
 }
+
+export const getActiveRestaurantorders= async (req: Request, res: Response) => {
+    const { restaurantId } = req.params;
+    const db = admin.database();
+    try {
+      const ref = db.ref(`restaurants/${restaurantId}/activeOrders`);
+      const snapshot = await ref.once('value');
+  
+      if (!snapshot.exists()) {
+        return res.status(404).json({ error: 'Restaurant not found or no active orders' });
+      }
+  
+      const activeOrders = snapshot.val();
+      const orderIds = Object.keys(activeOrders);
+  
+      res.status(200).json({ orderIds });
+    } catch (error) {
+      console.error('Error getting active orders:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+
+

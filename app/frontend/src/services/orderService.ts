@@ -71,6 +71,45 @@ type GetClientActiveOrderResponse = {
 }
 
 /**
+ * The response body for getUserActiveOrders
+ */
+export type ActiveOrderResponse = { 
+    data: ActiveOrderItem[]
+}
+
+/**
+ * Represents a menu item in an order returned in the 
+ * getUserActiveOrders response body.
+ */
+export type ItemsOrdered = Record<string, {
+    menuItemId: string,
+    optionSelected: string,
+    addOnsSelected?: Record<string, string>,
+    quantity: number
+}>
+
+/**
+ * Represents an active order returned in the getUserActiveOrders
+ */
+export type ActiveOrderItem = {
+    courierId: string,
+    courierSplit: number,
+    order: {
+        items: ItemsOrdered,
+        price: number,
+    },
+    tracking: {
+        courierAcceptedTime: false | number,
+        courierDropoffTime: false | number,
+        courierPickupTime: false | number,
+        orderPlacedTime: number,
+        dropOff: { lat: number, lng: number }
+        status: OrderStatus
+    }
+    orderId: string
+}
+
+/**
  * All API endpoints related to creating and modifying a customer's menu
  * order with a restaurant.
  */
@@ -181,6 +220,24 @@ export default {
             {
                 queryKey: ['getClientActiveOrder', restaurantId],
                 enabled: !!restaurantId,
+            }
+        ),
+    
+     /**
+     * Get the array of active orders corresponding to the particular user.
+     * @param userId The ID of the user to get orders for.
+     * @returns Service endpoint to get the orders for the user.
+     */
+
+    getClientActiveOrders: (userId: string) => 
+        useGetEndpoint<ActiveOrderResponse>(
+            {
+                inputUrl: `user/${userId}/orders`,
+                useAuth: false,
+            },
+            {
+                queryKey: ['getUserOrders', userId],
+                enabled: !!userId,
             }
         )
 }
