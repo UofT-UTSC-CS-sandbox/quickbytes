@@ -3,8 +3,11 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import Button from '@mui/material/Button';
 import './DirectionsMap.css';
 import { getCourierLocation } from '../middleware';
-import OrderMenu from './OrderMenu';
-import { OrderStatus } from '../../../shared/Order'; // Import OrderStatus
+import OrderStatus from '../model/OrderStatus'; // Import OrderStatus
+
+import restaurantService from '../services/restaurantService';
+import orderService from '../services/orderService';
+import trackingService from '../services/trackingService';
 
 interface DirectionProps {
     errorHandler: (error: Error) => void;
@@ -21,24 +24,29 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
     const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer>();
     const [courierMarker, setCourierMarker] = useState<google.maps.Marker | null>(null);
     const [destinationMarker, setDestinationMarker] = useState<google.maps.Marker | null>(null);
+    const [routeInfo, setRouteInfo] = useState<{ distance: string, duration: string } | null>(null);
+
+
     const [dropOffCoord, setDropOffCoord] = useState<google.maps.LatLngLiteral | null>(null);
-    const [pickUpCoord, setPickUpCoord] = useState<google.maps.LatLngLiteral | null>(null);
-    const [orderStatus, setOrderStatus] = useState<OrderStatus | null>(null);
+    const [restaurantName, setRestaurantName] = useState<string | null>(null);
     const initialOrderIdRef = useRef<string | null>(null);
+    const {data: currLoc, isLoading :currLoading, refetch }=trackingService.getCurrentLocation("7gPDsXFo8WaI9awl87qlbcJsJBx2").useQuery();
+
+    console.log(currLoc)
+    const {data: pickupLoc, isLoading: pickUpLoading } = trackingService.getPickupLocation("-O-2iGfaXUMPoZxVi-eE").useQuery();
+    const {data: dropOffLoc, isLoading: dropOffLocLoading } = trackingService.getOrderDropoff("-O-2iGfaXUMPoZxVi-eE").useQuery();
 
     useEffect(() => {
         if (!orderId) return;
         getCourierLocation(orderId).then(data => {
             setDropOffCoord(data.dropOffLocation);
-            setPickUpCoord(data.pickUpLocation);
-            setOrderStatus(data.status);
+            setRestaurantName(data.name);
         }).catch(errorHandler);
     }, [orderId, errorHandler]);
 
     useEffect(() => {
         if (!routesLibrary || !map) return;
         setDirectionsService(new routesLibrary.DirectionsService());
-        //setDirectionsRenderer(new routesLibrary.DirectionsRenderer({ map }));
         setDirectionsRenderer(new routesLibrary.DirectionsRenderer({ map, suppressMarkers: true }));
         setCourierMarker(new google.maps.Marker({ map, title: "Courier" }));
         setDestinationMarker(new google.maps.Marker({ map, title: "Destination" }));
@@ -47,6 +55,8 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
 
     useEffect(() => {
         if (!courierMarker || !directionsService || !dropOffCoord) return;
+
+        
 
         const interpolatePosition = (start: google.maps.LatLngLiteral, end: google.maps.LatLngLiteral, fraction: number) => {
             return {
@@ -75,33 +85,36 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
 
         const fetchLocations = async () => {
             try {
-                console.log(courierMarker.getPosition()?.toJSON() as google.maps.LatLngLiteral)
-        
-                const data = await getCourierLocation(orderId!);
+                if(currLoading || pickUpLoading || dropOffLocLoading){
+                    return (<p>Loading information...</p>);
+                }
+                
 
-                console.log(data.currentLocation, "hello")
                 const mapOptions = {
                     center: map.getCenter(),
                     zoom: map.getZoom(),
                 };
 
-                let destination = data.pickUpLocation;
+                let destination = pickupLoc;
+                console.log(currLoc)
+                /*
                 if (data.status === OrderStatus.EN_ROUTE) {
-                    destination = data.dropOffLocation;
+                    destination = dropOffLoc;
                 } else if (data.status === OrderStatus.AWAITING_PICK_UP) {
-                    destination = data.pickUpLocation;
+                    destination = pickupLoc;
                 }
+                    */
                 destinationMarker?.setPosition(new google.maps.LatLng(destination));
 
                 directionsService.route({
-                    origin: data.currentLocation,
+                    origin: currLoc.location,
                     destination: destination,
                     travelMode: google.maps.TravelMode.WALKING,
                     provideRouteAlternatives: false
                 }).then(result => {
                     directionsRenderer.setDirections(result);
-                    const previousLocation = courierMarker.getPosition()?.toJSON() as google.maps.LatLngLiteral || data.currentLocation;
-                    animateCourier(previousLocation, data.currentLocation, 1000);
+                    const previousLocation = courierMarker.getPosition()?.toJSON() as google.maps.LatLngLiteral || currLoc.location;
+                    animateCourier(previousLocation, currLoc.location, 1000);
 
                     if (initialOrderIdRef.current === orderId) {
                         setTimeout(() => {
@@ -112,27 +125,40 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
                         initialOrderIdRef.current = orderId;
                     }
 
-                    loadHandler(false); // Stop loading once the route is set
+                    const routeLeg = result.routes[0].legs[0];
+                    setRouteInfo({
+                        distance: routeLeg.distance.text,
+                        duration: routeLeg.duration.text
+                    });
+
+                    loadHandler(false);
                 });
             } catch (error) {
                 errorHandler(error);
             }
+            refetch();
         };
 
         fetchLocations();
-        const intervalId = setInterval(fetchLocations, 1000); // Update every 1 second
+        const intervalId = setInterval(fetchLocations, 1000);
 
         return () => clearInterval(intervalId);
-    }, [courierMarker, directionsService, directionsRenderer, dropOffCoord, orderId, errorHandler]);
+    }, [courierMarker, directionsService, directionsRenderer, dropOffCoord, orderId, errorHandler, currLoc]);
 
     return (
         <div className='sidebar-container'>
             <div className='header'>
-                <h3>Dropoff Location</h3>
+                <h3>{restaurantName}</h3>
                 {orderMenu}
             </div>
             <div className='status'>
                 <h2>Placeholder status text...</h2>
+
+                {routeInfo ? (
+                    <p>Estimated arrival in <b>{routeInfo.duration} or {routeInfo.distance}</b></p>
+                ) : (
+                    <p>Loading route information...</p>
+                )}
             </div>
             <div className='buttons'>
                 <Button variant="contained" sx={{ backgroundColor: 'rgba(163, 0, 0, 1)', color: 'white' }} size="large">one</Button>

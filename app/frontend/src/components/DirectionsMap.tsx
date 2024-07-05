@@ -13,6 +13,10 @@ import OrderStatus from '../model/OrderStatus';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 
+import restaurantService from '../services/restaurantService';
+
+import orderService from '../services/orderService';
+
 interface DirectionsRoute {
   summary: string;
   legs: google.maps.DirectionsLeg[];
@@ -87,6 +91,8 @@ function Directions({ loadHandler, coord }: DirectionProps) {
   const [displayError, setDisplayError] = useState<Error | null>(null);
   const selected = routes[routeIndex];
   const leg = selected?.legs[0];
+
+
 
   console.log(coord);
   const destination: google.maps.LatLngLiteral = {
