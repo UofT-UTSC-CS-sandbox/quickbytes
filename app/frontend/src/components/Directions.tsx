@@ -2,7 +2,6 @@ import { useMap, useMapsLibrary } from '@vis.gl/react-google-maps';
 import { useState, useEffect, useMemo, useRef } from 'react';
 import Button from '@mui/material/Button';
 import './DirectionsMap.css';
-import { getCourierLocation } from '../middleware';
 import OrderStatus from '../model/OrderStatus'; // Import OrderStatus
 
 import restaurantService from '../services/restaurantService';
@@ -27,8 +26,8 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
     const [routeInfo, setRouteInfo] = useState<{ distance: string, duration: string } | null>(null);
 
 
-    const [dropOffCoord, setDropOffCoord] = useState<google.maps.LatLngLiteral | null>(null);
-    const [restaurantName, setRestaurantName] = useState<string | null>(null);
+    //const [dropOffCoord, setDropOffCoord] = useState<google.maps.LatLngLiteral | null>(null);
+    //const [restaurantName, setRestaurantName] = useState<string | null>(null);
     const initialOrderIdRef = useRef<string | null>(null);
     const {data: currLoc, isLoading :currLoading, refetch }=trackingService.getCurrentLocation("7gPDsXFo8WaI9awl87qlbcJsJBx2").useQuery();
 
@@ -38,10 +37,10 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
 
     useEffect(() => {
         if (!orderId) return;
-        getCourierLocation(orderId).then(data => {
-            setDropOffCoord(data.dropOffLocation);
-            setRestaurantName(data.name);
-        }).catch(errorHandler);
+        //getCourierLocation(orderId).then(data => {
+            //setDropOffCoord(data.dropOffLocation);
+            //setRestaurantName(data.name);
+        //}).catch(errorHandler);
     }, [orderId, errorHandler]);
 
     useEffect(() => {
@@ -54,7 +53,7 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
     }, [routesLibrary, map]);
 
     useEffect(() => {
-        if (!courierMarker || !directionsService || !dropOffCoord) return;
+        if (!courierMarker || !directionsService) return;
 
         
 
@@ -143,12 +142,12 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
         const intervalId = setInterval(fetchLocations, 1000);
 
         return () => clearInterval(intervalId);
-    }, [courierMarker, directionsService, directionsRenderer, dropOffCoord, orderId, errorHandler, currLoc]);
+    }, [courierMarker, directionsService, directionsRenderer, orderId, errorHandler, currLoc]);
 
     return (
         <div className='sidebar-container'>
             <div className='header'>
-                <h3>{restaurantName}</h3>
+                <h3>"placeholder"</h3>
                 {orderMenu}
             </div>
             <div className='status'>
