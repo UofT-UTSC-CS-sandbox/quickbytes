@@ -18,6 +18,7 @@ import PrivateRoute from './privateRoute';
 import './index.css'
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import  DirectionsMap2 from './components/DirectionsMap2.tsx'
 import { getRestaurantOrders, getUserOrders} from './middleware';
 
 const queryClient = new QueryClient();
@@ -55,7 +56,10 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <Routes>
             <Route path="/" element={<Firstpage />}/>
             <Route path='/restaurant/:id' element={<PrivateRoute><Menu /></PrivateRoute>} />
-            <Route path="/tracking" element={<PrivateRoute><OrderTracking id={"1"} getOrders={getUserOrders}/></PrivateRoute>} />
+
+            <Route path="restaurant/tracking" element={<PrivateRoute><DirectionsMap2 id={"1"} getOrders={getUserOrders}/></PrivateRoute>} />
+            <Route path="user/tracking" element={<PrivateRoute><DirectionsMap2 id={"3"} getOrders={getRestaurantOrders}/></PrivateRoute>} />
+            
             <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
             <Route path="/sign-up" element={<SignUp />} />
             <Route path="/login" element={<Login />} />

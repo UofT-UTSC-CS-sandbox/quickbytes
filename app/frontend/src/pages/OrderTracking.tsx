@@ -1,4 +1,4 @@
-import DirectionsMap2 from '../components/DirectionsMap'
+import DirectionsMap2 from '../components/DirectionsMap2'
 import NavBar from '../components/Navbar';
 
 interface OrderTrackingProps {
@@ -10,7 +10,7 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({ id, getOrders}) =>{
     return (
         <div>
             <NavBar />
-            <DirectionsMap id={id} getOrders={getOrders}/>
+            <DirectionsMap2 id={id} getOrders={getOrders}/>
         </div>
     );
 }

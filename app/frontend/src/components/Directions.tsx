@@ -2,9 +2,9 @@ import { useMap, useMapsLibrary } from '@vis.gl/react-google-maps';
 import { useState, useEffect, useMemo, useRef } from 'react';
 import Button from '@mui/material/Button';
 import './DirectionsMap.css';
-import { getCourierLocation, getOrderStatus } from '../../middleware';
+import { getCourierLocation } from '../middleware';
 import OrderMenu from './OrderMenu';
-import { OrderStatus } from '../../../../shared/Order'; // Import OrderStatus
+import { OrderStatus } from '../../../shared/Order'; // Import OrderStatus
 
 interface DirectionProps {
     errorHandler: (error: Error) => void;

@@ -7,12 +7,12 @@ import { Snackbar, Alert } from '@mui/material';
 import OrderMenu from './OrderMenu'; // Import the new OrderMenu component
 import uberMapStyle from './mapStyles.json';
 
-interface DirectionsMap3Props {
+interface DirectionsMapProps {
   id: string;
   getOrders: (userId: string) => Promise<string[]>;
 }
 
-export default function DirectionsMap({ id, getOrders }: DirectionsMap3Props) {
+export default function DirectionsMap2({ id, getOrders }: DirectionsMapProps) {
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string;
   const [displayError, setDisplayError] = useState<Error | null>(null);
   const errorHandler = (err: Error) => {
