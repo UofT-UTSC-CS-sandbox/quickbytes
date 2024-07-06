@@ -59,14 +59,6 @@ Since both of our issues this sprint stemmed from improper planning, we wish to 
 10. Restaurant worker/customer tracks orders
     - Artifact: Uses [DirectionsMap2 component](../../app/frontend/src/components/DirectionsMap2.tsx)
 
-#### Goals and/or tasks that were planned but not met/completed:
-
-TODO
-
- * From most to least important.
- * For each goal/task, explain why it was not met/completed.      
-   e.g. Did you change your mind, or did you just not get to it yet?
-
 ## Meeting Highlights
 
 1. Invest more time in our planning stages and get more acquainted with each of the stories and how they relate and depend on each other. Leverage our experience from these past two sprints to produce more comprehensive and accurate priorities, dependencies, and acceptance criteria for our various tasks. Adhere to the prioritization set out in the tickets and ensure and blocking tickets are closed first. 
