@@ -15,7 +15,7 @@ export type CartItem = {
 
 export type OrderCart = {
     // The identifier of the order within the database
-    id: number,
+    id: string,
     // The restaurant ID that the order is for
     restaurantId: string,
     // Items in the order, each indexed by their unique key in the database
