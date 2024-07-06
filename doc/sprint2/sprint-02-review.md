@@ -52,6 +52,8 @@ Since both of our issues this sprint stemmed from improper planning, we wish to 
     - Artifact: Again, the [order tracking page](../../app/frontend/src/pages/OrderTracking.tsx)
 7. Confirm courier via pin
     - Artifact: The [staff orders page](../../app/frontend/src/pages/StaffOrders.tsx)
+8. Confirm customer via pin
+    - Artifact: The [Directions component](../../app/frontend/src/components/Directions.tsx)
 9. Restaurant worker views orders
     - Artifact: Also in the [staff orders page](../../app/frontend/src/pages/StaffOrders.tsx)
 10. Restaurant worker/customer tracks orders
