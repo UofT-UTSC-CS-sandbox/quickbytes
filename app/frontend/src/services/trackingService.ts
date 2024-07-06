@@ -21,11 +21,18 @@ type GetPickupLocationResponse = {
 
 interface GetCurrentLocationResponse {
     data: {
-        location :{
+        location: {
             lat: number,
             lng: number
         }
     }
+}
+
+/**
+ * Response body for the getPickupLocation request.
+ */
+type GetCustomerConfirmationPinResponse = {
+    customerConfirmationPin: string
 }
 
 /**
@@ -77,19 +84,29 @@ export default {
      */
     getCurrentLocation: (userId: string | undefined) =>
         useGetEndpoint<GetCurrentLocationResponse>(
-        {
-            inputUrl: `user/${userId}/current-location`,
-            useAuth: false, 
-        },
-        {
-            queryKey: ['getCurrentLocation', userId],
-            enabled: !!userId,
-        })
+            {
+                inputUrl: `user/${userId}/current-location`,
+                useAuth: false,
+            },
+            {
+                queryKey: ['getCurrentLocation', userId],
+                enabled: !!userId,
+            }),
 
-
-    
-    
-
-
-
+    /**
+     * Function to fetch the customer confirmation pin from the courier.
+     * 
+     * @param userId The ID of the courier.
+     * @returns An object containing a function to trigger the query and its result.
+     */
+    getCustomerConfirmationPin: (userId: string | undefined) =>
+        useGetEndpoint<GetCustomerConfirmationPinResponse>(
+            {
+                inputUrl: `user/${userId}/get-confirm-pin`,
+                useAuth: false,
+            },
+            {
+                queryKey: ['getCustomerConfirmationPin', userId],
+                enabled: !!userId,
+            }),
 }
