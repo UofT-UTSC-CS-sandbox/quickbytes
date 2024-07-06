@@ -1,6 +1,6 @@
 import { useMap, useMapsLibrary } from '@vis.gl/react-google-maps';
 import { useState, useEffect, useMemo, useRef } from 'react';
-import Button from '@mui/material/Button';
+import { Button, Stack } from "@mui/material";
 import './DirectionsMap.css';
 import OrderStatus from '../model/OrderStatus'; // Import OrderStatus
 
@@ -24,22 +24,29 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
     const [courierMarker, setCourierMarker] = useState<google.maps.Marker | null>(null);
     const [destinationMarker, setDestinationMarker] = useState<google.maps.Marker | null>(null);
     const [routeInfo, setRouteInfo] = useState<{ distance: string, duration: string } | null>(null);
-
+    const [confirmationPin, setConfirmationPin] = useState<string | null>(null);
 
     //const [dropOffCoord, setDropOffCoord] = useState<google.maps.LatLngLiteral | null>(null);
     //const [restaurantName, setRestaurantName] = useState<string | null>(null);
     const initialOrderIdRef = useRef<string | null>(null);
-    const {data: currLoc, isLoading :currLoading, refetch }=trackingService.getCurrentLocation("7gPDsXFo8WaI9awl87qlbcJsJBx2").useQuery();
+    const { data: currLoc, isLoading: currLoading, refetch } = trackingService.getCurrentLocation("7gPDsXFo8WaI9awl87qlbcJsJBx2").useQuery();
 
     console.log(currLoc)
-    const {data: pickupLoc, isLoading: pickUpLoading } = trackingService.getPickupLocation(orderId).useQuery();
-    const {data: dropOffLoc, isLoading: dropOffLocLoading } = trackingService.getOrderDropoff(orderId).useQuery();
+    const { data: pickupLoc, isLoading: pickUpLoading } = trackingService.getPickupLocation(orderId).useQuery();
+    const { data: dropOffLoc, isLoading: dropOffLocLoading } = trackingService.getOrderDropoff(orderId).useQuery();
+    const { data: confirmationPinData, isLoading: confirmationPinLoading } = trackingService.getCustomerConfirmationPin("7gPDsXFo8WaI9awl87qlbcJsJBx2").useQuery();
+
+    useEffect(() => {
+        if (confirmationPinData) {
+            setConfirmationPin(confirmationPinData.customerConfirmationPin);
+        }
+    }, [confirmationPinData]);
 
     useEffect(() => {
         if (!orderId) return;
         //getCourierLocation(orderId).then(data => {
-            //setDropOffCoord(data.dropOffLocation);
-            //setRestaurantName(data.name);
+        //setDropOffCoord(data.dropOffLocation);
+        //setRestaurantName(data.name);
         //}).catch(errorHandler);
     }, [orderId, errorHandler]);
 
@@ -55,7 +62,7 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
     useEffect(() => {
         if (!courierMarker || !directionsService) return;
 
-        
+
 
         const interpolatePosition = (start: google.maps.LatLngLiteral, end: google.maps.LatLngLiteral, fraction: number) => {
             return {
@@ -84,10 +91,10 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
 
         const fetchLocations = async () => {
             try {
-                if(currLoading || pickUpLoading || dropOffLocLoading){
+                if (currLoading || pickUpLoading || dropOffLocLoading) {
                     return (<p>Loading information...</p>);
                 }
-                
+
 
                 const mapOptions = {
                     center: map.getCenter(),
@@ -144,6 +151,11 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
         return () => clearInterval(intervalId);
     }, [courierMarker, directionsService, directionsRenderer, orderId, errorHandler, currLoc]);
 
+    const handleConfirmationPinClick = () => {
+        // Show the customer confirmation pin in the alert message
+        alert(`This is your 4 digit confirmation pin: ${confirmationPin}`);
+    };
+
     return (
         <div className='sidebar-container'>
             <div className='header'>
@@ -159,6 +171,9 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
                     <p>Loading route information...</p>
                 )}
             </div>
+            <Stack direction="row" justifyContent="center">
+                <Button variant="contained" color="primary" size="large" onClick={handleConfirmationPinClick}>Confirmation Pin</Button>
+            </Stack>
             <div className='buttons'>
                 <Button variant="contained" sx={{ backgroundColor: 'rgba(163, 0, 0, 1)', color: 'white' }} size="large">one</Button>
                 <Button variant="contained" sx={{ backgroundColor: 'rgba(0, 127, 163, 1)', color: 'white' }} size="large">two</Button>
