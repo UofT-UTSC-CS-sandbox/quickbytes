@@ -20,7 +20,6 @@ const SignUp: React.FC = () => {
       
       await sendEmailVerification(userCredential.user); //Send email verification
       await signOut(auth);
-      
       alert('Account created successfully. Please verify your email.');
       navigate('/login'); // Redirect to login page
     } catch (error: any) {

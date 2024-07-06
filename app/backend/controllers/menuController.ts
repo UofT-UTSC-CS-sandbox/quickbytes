@@ -281,7 +281,6 @@ export async function getActiveOrder(req: Request, res: Response) {
     const userId = 1; // Replace with actual user ID retrieval logic
     const restaurantId = req.params.id;
     const userOrderLocation = database.ref(`user/${userId}/ordering/${restaurantId}`);
-
     try {
         const userOrdersSnapshot = await userOrderLocation.get();
         if (!userOrdersSnapshot.exists()) {
@@ -369,7 +368,6 @@ export async function deleteItemFromOrder(req: Request, res: Response) {
 export async function placeOrder(req: Request, res: Response) {
     const database = admin.database();
     const { orderId } = req.params;
-
     try {
         // Find the restaurant id of the order
         const userId = 1;
@@ -381,7 +379,7 @@ export async function placeOrder(req: Request, res: Response) {
         }
 
         const restaurantId = restaurantIdSnapshot.val();
-
+      
         // Remove this order from the list of in-progress (not yet placed) orders under the user and the restaurant.
         const orderingLocation = database.ref(`user/${userId}/ordering/${restaurantId}`);
         await orderingLocation.remove();
@@ -482,5 +480,3 @@ export const getActiveRestaurantorders= async (req: Request, res: Response) => {
       res.status(500).json({ error: 'Internal server error' });
     }
   }
-
-

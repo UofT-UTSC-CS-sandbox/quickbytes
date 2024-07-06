@@ -3,7 +3,6 @@ import { addToOrder, createUserOrder, deleteItemFromOrder, getActiveOrder, getAl
 
 const menuRouter = Router();
 
-
 menuRouter.get('/order/:orderId/dropoff', getOrderDropOff);
 menuRouter.post('/order/:orderId/pickup-location', setPickupLocation);
 menuRouter.get('/order/:orderId/pickup-location', getPickupLocation);

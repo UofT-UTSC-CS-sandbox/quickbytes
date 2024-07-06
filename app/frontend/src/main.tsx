@@ -1,7 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter, Routes, Route, useParams } from 'react-router-dom';
-
 import SignUp from './pages/SignUp';
 import Login from './pages/Login';
 import UserPage from './pages/UserPage';

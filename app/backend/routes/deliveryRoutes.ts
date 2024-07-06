@@ -9,15 +9,9 @@ deliveryRouter.get('/ordering', getAvailableDeliveries);
 deliveryRouter.post('/accept', acceptDelivery);
 deliveryRouter.get('/activeOrder', getActiveOrder);
 deliveryRouter.post('/updateOrderStatus', updateOrderStatus);
-
 deliveryRouter.post('/update-location', updateDeliveryLocation);
-
 deliveryRouter.get('/:orderId/restaurant-location', getOrderRestaurantLocation);
-
 deliveryRouter.get('/:orderId/order-status', getOrderStatus);
-
 deliveryRouter.get('/:id', getDeliveryStatus);
-
-
 
 export default deliveryRouter;

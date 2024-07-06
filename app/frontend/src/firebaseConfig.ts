@@ -29,5 +29,4 @@ try {
   console.error('Error setting session persistence:', error);
 }
 
-
 export { app, auth, database, ref, onValue}

@@ -108,7 +108,7 @@ const MarkerAtCenter: React.FC<MarkerAtCenterProps> = ({ setMarkerPosition, init
         });
 
         return () => {
-            marker.setMap(null);
+            marker.setMap(null); // Remove the marker if the component is unmounted
         };
     }, [map]);
 

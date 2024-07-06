@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import admin from '../firebase-config';
-
 import { OrderStatus } from '../schema/Order';
 
 // Get the only in-progress delivery for the courier
@@ -255,5 +254,3 @@ export function getOrderStatus(req: Request, res: Response) {
           res.status(500).send("Internal server error");
       });
 }
-
-
