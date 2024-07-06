@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { auth } from '../firebaseConfig';
 import { useNavigate } from 'react-router-dom';
-import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
+import { createUserWithEmailAndPassword, sendEmailVerification, signOut} from 'firebase/auth';
 import './SignUp.css';
 
 const SignUp: React.FC = () => {
@@ -19,6 +19,8 @@ const SignUp: React.FC = () => {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       
       await sendEmailVerification(userCredential.user); //Send email verification
+      await signOut(auth);
+      
       alert('Account created successfully. Please verify your email.');
       navigate('/login'); // Redirect to login page
     } catch (error: any) {

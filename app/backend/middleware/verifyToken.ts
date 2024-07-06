@@ -19,7 +19,7 @@ const response = await axios.get('http://localhost:3000/protected', {
 });
 */
 
-const verifyToken = async (req: Request, res: Response, next: NextFunction) => {
+const verifyToken = async (req: any, res: Response, next: NextFunction) => {
   const idToken = req.headers.authorization?.split('Bearer ')[1];
   if (!idToken) {
     return res.status(401).send('Unauthorized');

@@ -59,7 +59,7 @@ app.get('/protected', verifyToken, (req, res) => {
 });
 
 app.get('/confidential', verifyToken, (req, res) => {
-  if (req.user) {
+  if ((req as any).user) {
     res.send({ secret: 'This is confidential data' });
   } else {
     res.status(401).send('Unauthorized');
