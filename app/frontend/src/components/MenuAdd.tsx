@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { MenuItem } from "../model/Menu";
-import { useMutation } from "@tanstack/react-query";
 import { OrderCart } from "../model/OrderCart";
 import { Alert, Button, CircularProgress, DialogContent, DialogTitle, Divider, FormControl, FormControlLabel, FormLabel, List, ListItem, Radio, RadioGroup, Stack, TextField, Typography } from "@mui/material";
 import currencyFormatter from "./CurrencyFormatter";
 import { Add } from "@mui/icons-material";
+import orderService from "../services/orderService";
 
 type MenuAddProps = {
     data: MenuItem,
@@ -17,19 +17,6 @@ type MenuAddProps = {
 type AddOnState = {
     addOnName: string,
     selectedName: string,
-}
-
-type CreateOrderRequest = {
-    menuItemId: string,
-    optionSelected: string,
-    addOnsSelected: Record<string, string>,
-    quantity: number,
-}
-
-type UserOrderResponse = {
-    data: OrderCart;
-    orderKey: string;
-    itemKey: string;
 }
 
 // A popup modal for adding a new menu item and specify options 
@@ -86,40 +73,22 @@ const MenuAdd = ({ data, close, setOrder, order, restaurantId }: MenuAddProps) =
         )
     }
 
-    // Create order
-    const { mutate: createOrder, isError: isCreateOrderError } = useMutation({
-        mutationKey: ['order', restaurantId],
-        mutationFn: (newOrderData: CreateOrderRequest): Promise<UserOrderResponse> => {
-            return fetch(`http://localhost:3000/restaurants/${restaurantId}/order`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(newOrderData)
-            }).then(res => res.json());
-        },
-        onSuccess: (data) => {
+    const { mutate: createOrder, isError: isCreateOrderError } = orderService.useCreateOrder(
+        restaurantId, 
+        (data) => {
             setOrder(data.data);
             close();
         }
-    });
+    ).useMutation();
 
-    const { isPending: isAddItemPending, isError: isAddItemError, mutate: addItem } = useMutation({
-        mutationKey: ['order', order?.id, restaurantId],
-        mutationFn: (newOrderData: CreateOrderRequest): Promise<UserOrderResponse> => {
-            return fetch(`http://localhost:3000/restaurants/${restaurantId}/order/${order!.id}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(newOrderData)
-            }).then(res => res.json());
-        },
-        onSuccess: (data) => {
+    const { isPending: isAddItemPending, isError: isAddItemError, mutate: addItem } = orderService.useAddItem(
+        restaurantId,
+        order?.id || undefined,
+        (data) => {
             setOrder(data.data);
             close();
         }
-    });
+    ).useMutation();
 
     const onAddSubmit = () => {
         const addOnsObject: Record<string, string> = selectedAddOns.reduce((agg, val) => {
@@ -162,7 +131,7 @@ const MenuAdd = ({ data, close, setOrder, order, restaurantId }: MenuAddProps) =
     return (
         <>
             <DialogTitle>
-                <Typography variant='h4'>{data?.name}</Typography>
+                <Typography style={{fontSize: '24px'}}>{data?.name}</Typography>
             </DialogTitle>
 
             <DialogContent>

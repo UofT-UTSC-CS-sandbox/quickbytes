@@ -1,16 +1,21 @@
-import { APIProvider, Map, MapCameraChangedEvent, useMap, useMapsLibrary } from '@vis.gl/react-google-maps';
+import { APIProvider, Map, useMap, useMapsLibrary } from '@vis.gl/react-google-maps';
 import { useState, useEffect } from 'react';
 import * as React from 'react';
 import Button from '@mui/material/Button';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import './DirectionsMap.css';
-import { getCourierActiveOrder, getOrder } from '../middleware';
 import CircularProgress from '@mui/material/CircularProgress';
-import AppBar from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import { Snackbar, Alert } from '@mui/material';
+import deliveryService from '../services/deliveryService';
+import OrderStatus from '../model/OrderStatus';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { useNavigate } from 'react-router-dom';
+
+import restaurantService from '../services/restaurantService';
+
+import orderService from '../services/orderService';
 
 interface DirectionsRoute {
   summary: string;
@@ -69,15 +74,13 @@ function BasicMenu({ routes, setRouteIndex }: BasicMenuProps) {
   );
 }
 
-const responseHandler = (response: Response) => response.json();
-
 interface DirectionProps {
-  errorHandler: (error: Error) => void;
-  loadHandler: (loadVal:boolean) => void;
+  loadHandler: (loadVal: boolean) => void;
+  coord: string | undefined;
 }
 
 /* Generates and renders directions */
-function Directions({ errorHandler, loadHandler }: DirectionProps) {
+function Directions({ loadHandler, coord }: DirectionProps) {
   const map = useMap("map");
   const routesLibrary = useMapsLibrary("routes");
   const [directionsService, setDirectionsService] = useState<google.maps.DirectionsService>();
@@ -85,10 +88,17 @@ function Directions({ errorHandler, loadHandler }: DirectionProps) {
   const [routes, setRoutes] = useState<google.maps.DirectionsRoute[]>([]);
   const [routeIndex, setRouteIndex] = useState(0);
   const [originCoord, setOriginCoord] = useState<google.maps.LatLngLiteral | null>(null);
-  const [dropOffCoord, setDropOffCoord] = useState<google.maps.LatLngLiteral | null>(null);
-
+  const [displayError, setDisplayError] = useState<Error | null>(null);
   const selected = routes[routeIndex];
   const leg = selected?.legs[0];
+
+
+
+  console.log(coord);
+  const destination: google.maps.LatLngLiteral = {
+    lng: Number(coord?.split("_")[0]),
+    lat: Number(coord?.split("_")[1])
+  };
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -102,25 +112,16 @@ function Directions({ errorHandler, loadHandler }: DirectionProps) {
           setOriginCoord(pos);
         },
         () => {
-          errorHandler(new Error("Could not find your location, please try again later"));
+          setDisplayError(new Error("Could not find your location, please try again later"))
           loadHandler(false);
         }
       );
     } else {
-      errorHandler(new Error("Browser doesn't support Geolocation"));
+      setDisplayError(new Error("Browser doesn't support Geolocation"));
       loadHandler(false);
     }
+  }, [setDisplayError, loadHandler, map]);
 
-    getCourierActiveOrder(8).then(responseHandler)
-      .then(data => {
-        getOrder(data.data[0]).then(responseHandler)
-          .then(locationData => {
-            setDropOffCoord(locationData.data);
-          })
-          .catch(errorHandler);
-      })
-      .catch(errorHandler);
-  }, [errorHandler, loadHandler, map]);
 
   useEffect(() => {
     if (!routesLibrary || !map) return;
@@ -129,20 +130,20 @@ function Directions({ errorHandler, loadHandler }: DirectionProps) {
   }, [routesLibrary, map]);
 
   useEffect(() => {
-    if (!directionsRenderer || !directionsService || !originCoord || !dropOffCoord) return;
+    if (!directionsRenderer || !directionsService || !originCoord) return;
     directionsService.route({
       origin: originCoord,
-      destination: dropOffCoord,
+      destination: destination,
       travelMode: google.maps.TravelMode.WALKING,
       provideRouteAlternatives: true
     }).then(result => {
       directionsRenderer.setDirections(result);
       setRoutes(result.routes);
     });
-  }, [directionsService, directionsRenderer, originCoord, dropOffCoord]);
+  }, [directionsService, directionsRenderer, originCoord]);
 
   useEffect(() => {
-    if (!directionsRenderer || !dropOffCoord || originCoord) return;
+    if (!directionsRenderer || originCoord) return;
     directionsRenderer.setRouteIndex(routeIndex);
   }, [routeIndex, directionsRenderer]);
 
@@ -152,71 +153,110 @@ function Directions({ errorHandler, loadHandler }: DirectionProps) {
     }
   }, [leg, loadHandler]);
 
-  if (!leg) return null;
+  const [userId, setUserId] = useState('');
 
+  // get the active orderId of the customer
+  useEffect(() => {
+      const auth = getAuth();
+
+      onAuthStateChanged(auth, (user) => {
+          if (user) {
+              setUserId(user.uid);
+          } else {
+              console.log('No user is signed in.');
+          }
+      });
+      
+  }, []);
+
+  const {mutate: updateOrderStatus} = deliveryService.updateOrderStatus((d)=> console.log(d.message)).useMutation();
+  const {data: orderData} = deliveryService.getCourierActiveOrder(userId).useQuery();
+  const nav = useNavigate();
+
+  const handleUpdateStatus = () => {
+    console.log(userId)
+    console.log(orderData)
+    if (orderData) {
+      console.log(orderData.data)
+      const orderId = orderData.data; 
+      const newStatus = OrderStatus.EN_ROUTE; // change later to change status depending on where in the workflow
+      updateOrderStatus({ orderId: orderId, status: newStatus });
+    }
+  };
+
+  const handleCancelOrder = () => {
+    console.log(userId)
+    console.log(orderData)
+    if (orderData) {
+      console.log(orderData.data)
+      const orderId = orderData.data; 
+      const newStatus = OrderStatus.CANCELLED; 
+      updateOrderStatus({ orderId: orderId, status: newStatus });
+    }
+    nav('/deliveries');
+  }
+  
   return (
-    <div className='sidebar-container'>
-      <div className='header'>
-        <h3>{leg.end_address.split(',')[0]}</h3>
-        <BasicMenu routes={routes} setRouteIndex={setRouteIndex} />
-      </div>
-      <div className='status'>
-        <h2>Placeholder status text...</h2>
-        <p>Estimated arrival in <b>{leg.duration?.text} or {leg.distance?.text}</b></p>
-      </div>
-      <div className='buttons'>
-        <Button variant="contained" sx={{ backgroundColor: 'rgba(163, 0, 0, 1)', color: 'white' }} size="large">one</Button>
-        <Button variant="contained" sx={{ backgroundColor: 'rgba(0, 127, 163, 1)', color: 'white' }} size="large">two</Button>
-      </div>
-    </div>
+    <>
+      <Snackbar open={displayError != null} autoHideDuration={6000} onClose={() => setDisplayError(null)}>
+        <Alert
+          onClose={() => setDisplayError(null)}
+          severity="error"
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {displayError?.message}
+        </Alert>
+      </Snackbar>
+      {
+        leg &&
+        <div className='sidebar-container'>
+          <div className='header'>
+            <h3>{leg.end_address.split(',')[0]}</h3>
+            <BasicMenu routes={routes} setRouteIndex={setRouteIndex} />
+          </div>
+          <div className='status'>
+            <h2>Placeholder status text...</h2>
+            <p>Estimated arrival in <b>{leg.duration?.text} or {leg.distance?.text}</b></p>
+          </div>
+          <div className='buttons'>
+            <Button variant="contained" sx={{ backgroundColor: 'rgba(163, 0, 0, 1)', color: 'white' }} size="large" onClick={handleCancelOrder}>Cancel Order</Button>
+            <Button variant="contained" sx={{ backgroundColor: 'rgba(0, 127, 163, 1)', color: 'white' }} size="large" onClick={handleUpdateStatus}>Notify</Button>
+          </div>
+        </div>
+      }
+    </>
   );
 }
 
 
-export default function DirectionsMap() {
+export default function DirectionsMap({coord}: {coord:string | undefined}) {
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string;
-  const [displayError, setDisplayError] = useState<Error | null>(null);
-  const errorHandler = (err:Error) => {
-    console.error(err);
-    setDisplayError(err);
-  }
   const [loading, setLoading] = useState(true);
-  const loadHandler = (loadVal:boolean) => setLoading(loadVal);
+
+  const loadHandler = (loadVal: boolean) => setLoading(loadVal);
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: "100%", height: "100vh" }}>
-          <div style={{width: "100%", height: "100vh"}}>
-            <APIProvider apiKey={apiKey} onLoad={() => console.log('Maps API has loaded.')}>
-              <div className='map-container'>
-                <Directions loadHandler={loadHandler} errorHandler={errorHandler} />
-                <Map
-                  id={'map'}
-                  defaultZoom={13}
-                  defaultCenter={{ lat: -33.860664, lng: 151.208138 }}
-                  onCameraChanged={(ev: MapCameraChangedEvent) =>
-                    console.log('camera changed:', ev.detail.center, 'zoom:', ev.detail.zoom)
-                  }>
-                </Map>
-              </div>
-            </APIProvider>
-            <Snackbar open={displayError != null} autoHideDuration={6000} onClose={() => setDisplayError(null)}>
-              <Alert
-                onClose={() => setDisplayError(null)}
-                severity="error"
-                variant="filled"
-                sx={{ width: '100%' }}
-              >
-                {displayError?.message}
-              </Alert>
-            </Snackbar>
-            {loading?
-             <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <Typography variant="h6">Loading...</Typography>
-                <CircularProgress />
-              </div>
-            </div> : null}
+      <div style={{ width: "100%", height: "100vh" }}>
+        <APIProvider apiKey={apiKey} onLoad={() => console.log('Maps API has loaded.')}>
+          <div className='map-container'>
+            <Directions loadHandler={loadHandler} coord={coord}/>
+            <Map
+              id={'map'}
+              defaultZoom={13}
+              defaultCenter={{ lat: -33.860664, lng: 151.208138 }}>
+            </Map>
+          </div>
+        </APIProvider>
+        {loading ?
+          <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <Typography variant="h6">Loading...</Typography>
+              <CircularProgress />
+            </div>
+          </div> : null}
 
-          </div> 
+      </div>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import reactLogo from '../assets/react.svg'
 import viteLogo from '/vite.svg'
-import DirectionsMap from '../components/DirectionsMap'
+import DirectionsMap from '../components/DirectionsMap2'
 
 
 function App() {
@@ -28,7 +28,7 @@ function App() {
       <button onClick={() => setViewMap(!viewMap)}>toggle view</button>
     {viewMap ? 
       <div style={{width: "100%", height: "100vh"}}>
-        <DirectionsMap />
+
       </div>
         : 
       <>

@@ -2,12 +2,12 @@ import { Request, Response } from 'express';
 import { OrderStatus } from "../schema/Order";
 import { MenuItem } from "../schema/Restaurant";
 import admin from "../firebase-config";
-import { DataSnapshot, Database} from 'firebase-admin/database';
+import { DataSnapshot, Database } from 'firebase-admin/database';
 
 export function getAllRestaurants(req: Request, res: Response) {
     const database = admin.database();
     const restaurantsRef = database.ref('restaurants');
-    
+
     restaurantsRef.once('value')
         .then((snapshot: DataSnapshot) => {
             if (snapshot.exists()) {
@@ -59,10 +59,22 @@ export async function createUserOrder(req: Request, res: Response) {
             return;
         }
 
+        const restaurantInfoRef = database.ref(`restaurants/${restaurantId}/information`);
+        const restaurantInfo = await restaurantInfoRef.get();
+        if (!restaurantInfo.exists()) {
+            res.status(500).send({ data: "Something went wrong" });
+        }
+        const restaurantInfoVal = restaurantInfo.val()
+
         // Construct the new order object
         let newOrderObject = {
             userId,
             restaurantId,
+            restaurant: {
+                restaurantId: restaurantId,
+                location: restaurantInfoVal.address,
+                restaurantName: restaurantInfoVal.name
+            },
             courierId: false,
             order: {
                 items: {
@@ -105,8 +117,6 @@ export async function createUserOrder(req: Request, res: Response) {
             addOnsSelected,
             quantity
         });
-
-        res.status(200).send({ data: "Order created successfully" });
     } catch (error) {
         console.error("Error creating order:", error);
         res.status(500).send("Internal server error");
@@ -115,14 +125,14 @@ export async function createUserOrder(req: Request, res: Response) {
 
 export async function addToOrder(req: Request, res: Response) {
     const database = admin.database();
-    const { id:restaurantId, orderId } = req.params;
+    const { id: restaurantId, orderId } = req.params;
     const { menuItemId, optionSelected, addOnsSelected, quantity } = req.body;
 
     try {
         // Prevent adding to order if order already placed
         const trackingRef = database.ref(`orders/${orderId}/tracking`);
         const snapshot = await trackingRef.get();
-        
+
         if (snapshot.exists()) {
             if (snapshot.val().status !== OrderStatus.ORDERING) {
                 res.status(400).send({ data: "Cannot add items to an order that has already been placed" });
@@ -153,7 +163,7 @@ export async function addItemToOrder(req: Request, res: Response, database: Data
         // Calculate the final price information
         const menuRef = `restaurants/${restaurantId}/information/categories`;
         const snapshot = await admin.database().ref(menuRef).get();
-        
+
         if (!snapshot.exists()) {
             res.status(404).send({ data: "Something went wrong", error: "Invalid restaurant selected" });
             return;
@@ -205,7 +215,7 @@ export async function addItemToOrder(req: Request, res: Response, database: Data
         await orderPriceRef.get().then((snapshot: DataSnapshot) => {
             const oldPrice = snapshot.exists() ? snapshot.val().price : 0;
             const newPrice = oldPrice + price;
-            return orderPriceRef.update({price:newPrice});
+            return orderPriceRef.update({ price: newPrice });
         });
 
         // Return order object in response
@@ -271,25 +281,24 @@ export async function getActiveOrder(req: Request, res: Response) {
     const userId = 1; // Replace with actual user ID retrieval logic
     const restaurantId = req.params.id;
     const userOrderLocation = database.ref(`user/${userId}/ordering/${restaurantId}`);
-    
     try {
         const userOrdersSnapshot = await userOrderLocation.get();
         if (!userOrdersSnapshot.exists()) {
             res.send({ data: null });
             return;
         }
-    
+
         const orderId = userOrdersSnapshot.val();
         const orderLocation = database.ref(`orders/${orderId}`);
         const orderSnapshot = await orderLocation.get();
-    
+
         if (!orderSnapshot.exists()) {
             res.send({ data: null });
             return;
         } else {
             const value = orderSnapshot.val();
             const items = value.order.items ?? {};
-            res.send({ data: {...value.order, items, id: orderId, status: value.tracking.status } });
+            res.send({ data: { ...value.order, items, id: orderId, status: value.tracking.status } });
             return;
         }
     } catch (error) {
@@ -343,9 +352,9 @@ export async function deleteItemFromOrder(req: Request, res: Response) {
 
         if (orderSnapshotAfterDelete.exists()) {
             const items = orderSnapshotAfterDelete.val().order.items ?? {};
-            res.send({ 
-                data: {...orderSnapshotAfterDelete.val().order, items, id: orderId, status: orderSnapshotAfterDelete.val().tracking.status }, 
-                orderKey: orderId 
+            res.send({
+                data: { ...orderSnapshotAfterDelete.val().order, items, id: orderId, status: orderSnapshotAfterDelete.val().tracking.status },
+                orderKey: orderId
             });
         } else {
             res.status(500).send("Internal server error");
@@ -359,7 +368,6 @@ export async function deleteItemFromOrder(req: Request, res: Response) {
 export async function placeOrder(req: Request, res: Response) {
     const database = admin.database();
     const { orderId } = req.params;
-    
     try {
         // Find the restaurant id of the order
         const userId = 1;
@@ -371,7 +379,7 @@ export async function placeOrder(req: Request, res: Response) {
         }
 
         const restaurantId = restaurantIdSnapshot.val();
-        
+      
         // Remove this order from the list of in-progress (not yet placed) orders under the user and the restaurant.
         const orderingLocation = database.ref(`user/${userId}/ordering/${restaurantId}`);
         await orderingLocation.remove();
@@ -392,9 +400,9 @@ export async function placeOrder(req: Request, res: Response) {
 
         if (orderSnapshot.exists()) {
             const items = orderSnapshot.val().order.items ?? {};
-            res.send({ 
-                data: {...orderSnapshot.val().order, items, id: orderId, status: orderSnapshot.val().tracking.status }, 
-                orderKey: orderId 
+            res.send({
+                data: { ...orderSnapshot.val().order, items, id: orderId, status: orderSnapshot.val().tracking.status },
+                orderKey: orderId
             });
         } else {
             res.status(500).send("Internal server error");
@@ -425,3 +433,50 @@ export async function setPickupLocation(req: Request, res: Response) {
         res.status(500).send("Internal server error");
     }
 }
+
+export async function getPickupLocation(req: Request, res: Response) {
+    const { orderId } = req.params;
+
+    const database = admin.database();
+    const orderref = `orders/${orderId}`;
+
+    try {
+        const snapshot = await database.ref(orderref).once("value");
+        const orderdata = snapshot.val();
+
+        const restaurantId = orderdata.restaurant.restaurantId;
+        console.log(restaurantId, "restaurant id")
+
+        const restaurantSnapshot = await database.ref(`restaurants/${restaurantId}/information/location`).once('value');
+        const location = restaurantSnapshot.val();
+        if (location) {
+            res.status(200).json(location);
+        } else {
+            res.status(404).json({ error: 'Pickup location not set' });
+        }
+    } catch (error) {
+        console.error("Error fetching pickup location:", error);
+        res.status(500).send("Internal server error");
+    }
+}
+
+export const getActiveRestaurantorders= async (req: Request, res: Response) => {
+    const { restaurantId } = req.params;
+    const db = admin.database();
+    try {
+      const ref = db.ref(`restaurants/${restaurantId}/activeOrders`);
+      const snapshot = await ref.once('value');
+  
+      if (!snapshot.exists()) {
+        return res.status(404).json({ error: 'Restaurant not found or no active orders' });
+      }
+  
+      const activeOrders = snapshot.val();
+      const orderIds = Object.keys(activeOrders);
+  
+      res.status(200).json({ orderIds });
+    } catch (error) {
+      console.error('Error getting active orders:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
