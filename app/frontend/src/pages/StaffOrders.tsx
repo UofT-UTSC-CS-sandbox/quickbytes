@@ -2,18 +2,69 @@
  * Screen for staff workers to view all activeOrders
  */
 
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Accordion, AccordionDetails, AccordionSummary, Alert, CircularProgress, Container, Divider, List, Typography } from "@mui/material";
+import { database, ref, onValue } from '../firebaseConfig';
+import { Accordion, AccordionDetails, AccordionSummary, Alert, CircularProgress, Container, Divider, List, Typography, Snackbar } from "@mui/material";
 import StaffOrderItem from "../components/StaffOrderItem";
 import NavBar from "../components/Navbar";
 import OrderStatus, { convertOrderStatusToString } from "../model/OrderStatus";
 import { ArrowDropDown } from "@mui/icons-material";
 import restaurantService, { ActiveOrderItem } from "../services/restaurantService";
+import { Unsubscribe } from "firebase/database";
 
 const StaffOrders = () => {
 
     const { restaurantId } = useParams();
     const { data, isLoading, isError, isSuccess } = restaurantService.getRestaurantActiveOrders(restaurantId).useQuery();
+    const [notifications, setNotifications] = useState<string[]>([]);
+    const [orders, setOrders] = useState([] as string[]);
+
+    useEffect(() => {
+        if (data) {
+            const ids = data.data.map(order => order.orderId);
+            setOrders(ids);
+        }
+    }, [data]);
+
+    useEffect(() => {
+        const unsubscribeFunctions: Unsubscribe[] = [];
+        if (orders.length > 0) {
+            orders.forEach(orderId => {
+                const dataRef = ref(database, `orders/${orderId}/tracking/status`);
+
+                const unsubscribeData = onValue(dataRef, (snapshot) => {
+                    const data = snapshot.val();
+                    if (!data || data != OrderStatus.ARRIVED) return;
+                    showNotification(orderId);
+                    console.log('Data from Firebase:', data);
+                });
+
+                unsubscribeFunctions.push(unsubscribeData);
+            });
+        }
+
+        return () => {
+            unsubscribeFunctions.forEach(unsubscribe => unsubscribe());
+        };
+    }, [orders]);
+
+    const getNotificationMessage = (orderId: string) => {
+        return `Courier for Order ${orderId} has arrived`;
+    };
+
+    const showNotification = (orderId: string) => {
+        const message = getNotificationMessage(orderId);
+        setNotifications((prev) => [...prev, message]);
+    };
+
+    const handleClose = (index: number) => (event: React.SyntheticEvent | Event, reason?: string) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+
+        setNotifications((prev) => prev.filter((_, i) => i !== index));
+    };
 
     const ordersByStatus: Record<string, ActiveOrderItem[]> = data?.data.reduce((acc: Record<string, ActiveOrderItem[]>, order: ActiveOrderItem) => {
         acc[order.tracking.status] = acc[order.tracking.status] || [];
@@ -62,6 +113,20 @@ const StaffOrders = () => {
                 {renderList(ordersByStatus)}
             </Container>
         </div>
+        {notifications.map((message, index) => (
+            <Snackbar
+                key={index}
+                open={true}
+                autoHideDuration={5000}
+                onClose={handleClose(index)}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                sx={{ top: `${index * 100}px` }} 
+            >
+                <Alert onClose={handleClose(index)} severity="info" sx={{ width: '100%' }}>
+                    {message}
+                </Alert>
+            </Snackbar>
+        ))}
     </>
 }
 
