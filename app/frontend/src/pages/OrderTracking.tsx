@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
 import { database, ref, onValue } from '../firebaseConfig';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { useParams } from 'react-router-dom';
@@ -16,9 +16,8 @@ import orderService from '../services/orderService';
 function OrderTracking({ directionsMapComponent }) {
     const [userId, setUserId] = useState('');
     const { coord } = useParams();
-
-
-
+    const [open, setOpen] = useState(false);
+    const [notificationMessage, setNotificationMessage] = useState('');
 
     useEffect(() => {
         const auth = getAuth();
@@ -76,22 +75,32 @@ function OrderTracking({ directionsMapComponent }) {
 
     const showNotification = (data: any) => {
         const message = getNotificationMessage(data);
-        toast.info(message, {
-            position: "top-center",
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-        });
+        setNotificationMessage (message);
+        setOpen(true);
     };
+
+    const handleClose = (event: React.SyntheticEvent | Event, reason?: string) => {
+        if (reason === 'clickaway') {
+          return;
+        }
+    
+        setOpen(false);
+      };
 
     return (
         <div>
             <NavBar />
             {directionsMapComponent}
-            <ToastContainer />
+            <Snackbar 
+                open={open} 
+                autoHideDuration={5000} 
+                onClose={handleClose}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            >
+                <Alert onClose={handleClose} severity="info" sx={{ width: '100%' }}>
+                    {notificationMessage}
+                </Alert>
+            </Snackbar>
         </div>
     );
 }
