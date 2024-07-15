@@ -39,15 +39,15 @@ type GetDeliveriesResponse = {
                 lat: number,
                 lng: number
             },
-            estimates?: {
-                distanceMeters: number
-                distance: string,
-                time: string,
-                timeSeconds: number
-            },
             dropOffName: string,
             orderPlacedTime: number
             status: OrderStatus
+        },
+        estimates?: {
+            distanceMeters: number
+            distance: string,
+            time: string,
+            timeSeconds: number
         },
     }>
 }

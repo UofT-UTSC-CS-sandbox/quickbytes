@@ -3,7 +3,7 @@ import { OrderStatus } from "../schema/Order";
 import { MenuItem } from "../schema/Restaurant";
 import admin from "../firebase-config";
 import { DataSnapshot, Database } from 'firebase-admin/database';
-import { lookupBuilding } from '../utils/lookupBuilding';
+import { lookupBuilding } from '../utils/lookupBuilding'; 
 
 export function getAllRestaurants(req: Request, res: Response) {
     const database = admin.database();
@@ -402,9 +402,10 @@ export async function placeOrder(req: Request, res: Response) {
             // Save a distance and time estimate from the restaurant to pick up
             const restaurantLocation = database.ref(`restaurants/${restaurantId}/information`);
             const restaurantSnapshot = await restaurantLocation.get();
+            const restaurantValues = restaurantSnapshot.val();
             const queryParams = new URLSearchParams({
-                origin: `${restaurantSnapshot.coordinateX},${restaurantSnapshot.coordinateY}`,
-                destination: `${orderInfo.tracking.dropOff.lat},${orderInfo.tracking.dropOff.lng}`,
+                origins: `${restaurantValues.coordinateX},${restaurantValues.coordinateY}`,
+                destinations: `${orderInfo.tracking.dropOff.lat},${orderInfo.tracking.dropOff.lng}`,
                 mode: 'walking',
                 key: process.env.GOOGLE_MAPS_API_KEY as string
             });

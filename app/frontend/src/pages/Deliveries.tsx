@@ -21,8 +21,8 @@ const Deliveries: React.FC = () => {
         dropOff: item.tracking.dropOff,
         dropOffName: item.tracking.dropOffName,
         itemCount: Object.entries(item.order.items).length,
-        distanceText: item.tracking.estimates?.distance ?? 'Distance unknown',
-        timeText: item.tracking.estimates?.time ?? 'No time estimate',
+        distanceText: item.estimates?.distance ?? 'Distance unknown',
+        timeText: item.estimates?.time ?? 'No time estimate',
         id: d
       }
     })
