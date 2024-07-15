@@ -54,6 +54,8 @@ export default function SingleMarkerMap({ sendSetPickupLocation, rejectLocationC
                             },
                             strictBounds: true,
                         }}
+                        mapTypeControl={false}
+                        streetViewControl={false}
                     >
                         <MarkerAtCenter setMarkerPosition={setMarkerPosition} initialPosition={initialPosition} />
                     </Map>
@@ -68,12 +70,12 @@ export default function SingleMarkerMap({ sendSetPickupLocation, rejectLocationC
                     <DialogTitle>{"Discard changes?"}</DialogTitle>
                     <DialogContent>
                         <DialogContentText id="alert-dialog-description">
-                            Your new pickup location isn't saved! Are you sure you want to cancel your changes?
+                            Your new pickup location is not saved. Are you sure you want to cancel your changes?
                         </DialogContentText>
                     </DialogContent>
                     <DialogActions>
-                        <Button onClick={() => rejectLocationChange()}>Discard</Button>
-                        <Button onClick={() => setShowConfirmCloseMap(false)} autoFocus>No</Button>
+                        <Button onClick={() => rejectLocationChange()} color="error">Discard</Button>
+                        <Button onClick={() => setShowConfirmCloseMap(false)} autoFocus color="primary">Keep Editing</Button>
                     </DialogActions>
                 </Dialog>
             </div>

@@ -70,8 +70,8 @@ const ConfirmationPopup: React.FC<ConfirmationPopupProps> = ({ open, onClose, it
           <p>{item.restaurant} ({item.location})</p>
         </div>
         <div style={{ marginBottom: '16px' }}>
-          <p style={{ fontWeight: 'bold' }}>Items:</p>
-          <p>{item.itemCount}</p>
+          <p style={{ fontWeight: 'bold' }}>Size of Order:</p>
+          <p>{item.itemCount} {item.itemCount === 1 ? 'item' : 'items'}</p>
         </div>
         <div style={{ marginBottom: '16px' }}>
           <p style={{ fontWeight: 'bold' }}>Pay:</p>
@@ -79,14 +79,17 @@ const ConfirmationPopup: React.FC<ConfirmationPopupProps> = ({ open, onClose, it
         </div>
         <div style={{ marginBottom: '16px' }}>
           <p style={{ fontWeight: 'bold' }}>Drop-off:</p>
-          {item.dropOffName ?? "On Campus"}
+          <p>{item.dropOffName ?? "On Campus"}</p>
+          <p>{(item.distanceText && item.timeText) && `Approx. ${item.distanceText} (${item.timeText}) from restaurant`}</p>
           <APIProvider apiKey={apiKey} onLoad={() => console.log('Maps API has loaded.')}>
             <div className='map-container'>
               <Map
                 id={'map'}
                 defaultZoom={17}
                 style={{ width: '40%', height: '75%' }}
-                defaultCenter={item.dropOff}>
+                defaultCenter={item.dropOff}
+                mapTypeControl={false}
+                streetViewControl={false}>
                 <Marker
                   position={item.dropOff}>
                 </Marker>
