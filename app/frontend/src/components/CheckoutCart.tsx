@@ -41,7 +41,7 @@ const CheckoutCart = ({ order, setOrder }: { order: OrderCart | null, setOrder: 
             setOrder(data.data);
             setShowSuccess(true);
             if(pickupLocation) {
-                nav(`/tracking/${pickupLocation.lng}_${pickupLocation.lat}`);
+                nav(`/tracking/${pickupLocation.lng}_${pickupLocation.lat}?courier=false`);
             }
         }).useMutation();
 
