@@ -173,7 +173,11 @@ function Directions({ loadHandler, coord }: DirectionProps) {
       
   }, []);
 
-  const {mutate: updateOrderStatus} = deliveryService.updateOrderStatus((d)=> console.log(d.message)).useMutation();
+  const {mutate: updateOrderStatus} = deliveryService.updateOrderStatus((d) => {
+    console.log(d.message)
+    // Courier returns to delivery page upon cancellation, customer to home page
+    nav(courier ? '/deliveries' : "/");
+  }).useMutation();
   const {data: orderData} = courier ? deliveryService.getCourierActiveOrder(userId).useQuery() : 
                                             deliveryService.getCustomerActiveOrder(userId).useQuery();
   
@@ -232,8 +236,6 @@ function Directions({ loadHandler, coord }: DirectionProps) {
         const newStatus = OrderStatus.CANCELLED;
         /* TODO: ensure order has not been picked up. */
         updateOrderStatus({ orderId: orderId, status: newStatus });
-        // Courier returns to delivery page upon cancellation, customer to home page
-        nav(courier ? '/deliveries' : "/");
       }
     }
   };

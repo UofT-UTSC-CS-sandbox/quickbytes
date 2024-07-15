@@ -126,7 +126,7 @@ export async function updateOrderStatus(req: Request, res: Response) {
       }).then(
         // set order back to ordered so courier can accept it in deliveries
         await orderRef.update({
-          'tracking/status': OrderStatus.ORDERED
+          'tracking/status': OrderStatus.CANCELLED /* TODO set back to ORDERED if cancellation invoked by courier */
         }))
       /* Remove from active delivery/order */
       const orderSnapshot = await orderRef.once('value');
@@ -149,6 +149,17 @@ export async function updateOrderStatus(req: Request, res: Response) {
         const courierRef = database.ref(`user/${courierId}/activeDelivery`);
         await courierRef.remove();
       }
+
+      /* Remove order from orders */
+      await orderRef.remove();
+
+      /* Remove order from order list of restaurant */
+      const restaurantId = orderData.restaurant.restaurantId;
+      if (restaurantId) {
+        const restaurantOrderRef = database.ref(`restaurant/${restaurantId}/activeOrder/${orderId}`);
+        await restaurantOrderRef.remove();
+      }
+
       res.status(200).send({
         message: `Order ${orderId} cancelled successfully`
       });
