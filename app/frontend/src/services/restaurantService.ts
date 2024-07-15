@@ -2,6 +2,17 @@ import { MenuCategory } from "../model/Menu"
 import OrderStatus from "../model/OrderStatus"
 import { useGetEndpoint, usePostEndpoint } from "./base"
 
+type AllRestaurantsResponse = {
+    data: {
+        name: string,
+        description: string
+        address: string,
+        coordinateX: number,
+        coordinateY: number,
+        id: string
+    }[]
+}
+
 /**
  * Response body for getMenu request
  */
@@ -103,6 +114,17 @@ type GetCourierConfirmationStatusResponse = {
  * to restaurants and their menus.
  */
 export default {
+    getAllRestaurants: () =>
+        useGetEndpoint<AllRestaurantsResponse>(
+            {
+                inputUrl: 'restaurants',
+                useAuth: false,
+            },
+            {
+                queryKey: ['getAllRestaurants'],
+            }
+        ),
+
     /**
      * Get the basic details of a restaurant including the entire menu.
      * @param restaurantId The ID of the restaurant to get the menu for.

@@ -11,7 +11,19 @@ export function getAllRestaurants(req: Request, res: Response) {
     restaurantsRef.once('value')
         .then((snapshot: DataSnapshot) => {
             if (snapshot.exists()) {
-                res.send({ data: snapshot.val() });
+                const restaurants = snapshot.val();
+                console.log(restaurants)
+                const data = restaurants
+                // The restaurants list is actually an array, so need to add ID and filter out null indices
+                .map((restaurant: any, index: number) => ({...restaurant, id: index }))
+                .filter((restaurant: any) => typeof restaurant.information !== 'undefined')
+                // Only return the general information, not menu info
+                .map((restaurant: any) => {
+                    const { categories, ...rest } = restaurant.information;
+                    const id = typeof restaurant.id === 'string' ? restaurant.id : restaurant.id.toString();
+                    return { ...rest, id }
+                });
+                res.send({ data });
             } else {
                 res.status(404).send({ data: "Something went wrong" });
             }
