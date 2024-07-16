@@ -206,7 +206,7 @@ function Directions({ loadHandler, coord }: DirectionProps) {
           const unsubscribeData = onValue(dataRef, (snapshot) => {
               const data = snapshot.val();
               // We only care for order cancellations for now
-              if (!data || data!=OrderStatus.CANCELLED ) return;
+              if (!data || data!=OrderStatus.CANCELLED || data != OrderStatus.ORDERED) return;
               console.log("order cancelled");
               showNotification(data);
           });
@@ -224,7 +224,7 @@ function Directions({ loadHandler, coord }: DirectionProps) {
       console.log(orderData.data)
       const orderId = orderData.data; 
       const newStatus = OrderStatus.EN_ROUTE; // change later to change status depending on where in the workflow
-      updateOrderStatus({ orderId: orderId, status: newStatus });
+      updateOrderStatus({ orderId: orderId, status: newStatus, courier: courier });
     }
   };
 
@@ -235,7 +235,7 @@ function Directions({ loadHandler, coord }: DirectionProps) {
         const orderId = orderData.data;
         const newStatus = OrderStatus.CANCELLED;
         /* TODO: ensure order has not been picked up. */
-        updateOrderStatus({ orderId: orderId, status: newStatus });
+        updateOrderStatus({ orderId: orderId, status: newStatus, courier: courier });
       }
     }
   };

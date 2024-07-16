@@ -62,7 +62,8 @@ type AcceptDeliveryRequest = {
 
 type UpdateOrderStatusRequest = {
     orderId: string,
-    status: OrderStatus
+    status: OrderStatus,
+    courier: boolean
 }
 
 type Coordinates = {
