@@ -49,7 +49,10 @@ type SetPickupLocationRequest = { lat: number, lng: number }
 /**
  * Response body for the setPickupLocation request.
  */
-type SetPickUpLocationResponse = {}
+type SetPickUpLocationResponse = {
+    dropOff: { lat: number, lng: number },
+    dropOffName: string,
+}
 
 /**
  * Response body for the getClientActiveOrder request.
@@ -185,7 +188,7 @@ export default {
             },
             {
                 mutationKey: ['setPickupLocation', orderId],
-                onSuccess
+                onSuccess,
             }
         ),
     /**
