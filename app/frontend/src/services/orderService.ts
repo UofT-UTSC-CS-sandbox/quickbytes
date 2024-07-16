@@ -54,6 +54,13 @@ type SetPickUpLocationResponse = {
     dropOffName: string,
 }
 
+/* The restaurant object, used when obtaining an active order */
+type Restaurant = {
+    location: string;
+    restaurantName: string;
+    restaurantId: number
+}
+
 /**
  * Response body for the getClientActiveOrder request.
  */
@@ -77,7 +84,7 @@ type GetClientActiveOrderResponse = {
  * The response body for getUserActiveOrders
  */
 export type ActiveOrderResponse = { 
-    data: ActiveOrderItem[]
+    data: ActiveOrderItem
 }
 
 /**
@@ -108,7 +115,8 @@ export type ActiveOrderItem = {
         orderPlacedTime: number,
         dropOff: { lat: number, lng: number }
         status: OrderStatus
-    }
+    },
+    restaurant: Restaurant,
     orderId: string
 }
 

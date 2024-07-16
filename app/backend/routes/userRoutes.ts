@@ -1,12 +1,12 @@
 import express from 'express';
-import { getUserActiveOrders, getUserCurrentLocation, getCustomerConfirmationPin } from '../controllers/userController';
+import { getUserActiveOrder, getUserCurrentLocation, getCustomerConfirmationPin } from '../controllers/userController';
 
 const router = express.Router();
 
 router.get('/:userId/current-location', getUserCurrentLocation);
 
 
-router.get('/:userId/orders', getUserActiveOrders);
+router.get('/:userId/orders', getUserActiveOrder);
 router.get('/:userId/get-confirm-pin', getCustomerConfirmationPin);
 
 

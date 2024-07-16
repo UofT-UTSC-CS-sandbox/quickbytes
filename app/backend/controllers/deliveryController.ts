@@ -102,7 +102,7 @@ export async function getActiveOrder(req: Request, res: Response) {
 }
 
 export async function updateOrderStatus(req: Request, res: Response) {
-  const { orderId, status } = req.body; 
+  const { orderId, status, courierRequest } = req.body; 
   const isValidOrderStatus = (status: any): status is OrderStatus => {
     return Object.values(OrderStatus).includes(status);
   };
@@ -120,18 +120,22 @@ export async function updateOrderStatus(req: Request, res: Response) {
 
   try {
     if (status === OrderStatus.CANCELLED) {
+      const orderSnapshot = await orderRef.once('value');
+      const orderData = orderSnapshot.val();
+      if (orderData.tracking.status === OrderStatus.EN_ROUTE) {
+        return res.status(400).send({ error: 'Cannot cancel order that has been picked up' });
+      }
       // set order status to cancelled so customer gets a notification
       await orderRef.update({
         'tracking/status': status
       }).then(
         // set order back to ordered so courier can accept it in deliveries
         await orderRef.update({
-          'tracking/status': OrderStatus.CANCELLED /* TODO set back to ORDERED if cancellation invoked by courier */
+          /* An order is only truly cancelled at the customer's request */
+          'tracking/status': courierRequest ? OrderStatus.ORDERED : OrderStatus.CANCELLED,
+          'courierId': null
         }))
       /* Remove from active delivery/order */
-      const orderSnapshot = await orderRef.once('value');
-      const orderData = orderSnapshot.val();
-
       if (!orderData) {
         return res.status(404).send({ error: `Order ${orderId} not found` });
       }
@@ -139,25 +143,16 @@ export async function updateOrderStatus(req: Request, res: Response) {
       const customerId = orderData.tracking.userId;
       const courierId = orderData.courierId;
 
-      /* TODO handle differently based on whether courier or customer cancelled */
-      if (customerId) {
+      /* A courier cancellation should not remove the order from the customer */
+      if (!courierRequest && customerId) {
         const customerRef = database.ref(`user/${customerId}/activeOrder`);
         await customerRef.remove();
       }
 
+      /* Any cancellation should yield the same result for the courier */
       if (courierId) {
         const courierRef = database.ref(`user/${courierId}/activeDelivery`);
         await courierRef.remove();
-      }
-
-      /* Remove order from orders */
-      await orderRef.remove();
-
-      /* Remove order from order list of restaurant */
-      const restaurantId = orderData.restaurant.restaurantId;
-      if (restaurantId) {
-        const restaurantOrderRef = database.ref(`restaurant/${restaurantId}/activeOrder/${orderId}`);
-        await restaurantOrderRef.remove();
       }
 
       res.status(200).send({
