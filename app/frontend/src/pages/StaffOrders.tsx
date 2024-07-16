@@ -1,7 +1,4 @@
-/**
- * Screen for staff workers to view all activeOrders
- */
-
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Accordion, AccordionDetails, AccordionSummary, Alert, CircularProgress, Container, Divider, List, Typography } from "@mui/material";
 import StaffOrderItem from "../components/StaffOrderItem";
@@ -9,11 +6,25 @@ import NavBar from "../components/Navbar";
 import OrderStatus, { convertOrderStatusToString } from "../model/OrderStatus";
 import { ArrowDropDown } from "@mui/icons-material";
 import restaurantService, { ActiveOrderItem } from "../services/restaurantService";
+import Notification from "../components/Notification";
 
 const StaffOrders = () => {
-
     const { restaurantId } = useParams();
     const { data, isLoading, isError, isSuccess } = restaurantService.getRestaurantActiveOrders(restaurantId).useQuery();
+    const [orders, setOrders] = useState([] as string[]);
+
+    useEffect(() => {
+        if (data) {
+            const ids = data.data.map(order => order.orderId);
+            setOrders(ids);
+        }
+    }, [data]);
+
+    const getNotificationMessage = (path: string, data: any) => {
+        const orderId = path.split('/')[1];
+        if (data !== OrderStatus.ARRIVED) return '';
+        return `Courier for Order ${orderId} has arrived`;
+    };
 
     const ordersByStatus: Record<string, ActiveOrderItem[]> = data?.data.reduce((acc: Record<string, ActiveOrderItem[]>, order: ActiveOrderItem) => {
         acc[order.tracking.status] = acc[order.tracking.status] || [];
@@ -47,7 +58,6 @@ const StaffOrders = () => {
                     </AccordionDetails>
                 </Accordion>
             })
-
         }
     }
 
@@ -62,6 +72,10 @@ const StaffOrders = () => {
                 {renderList(ordersByStatus)}
             </Container>
         </div>
+        <Notification
+            subscribePaths={orders.map(orderId => `orders/${orderId}/tracking/status`)}
+            getNotificationMessage={getNotificationMessage}
+        />
     </>
 }
 

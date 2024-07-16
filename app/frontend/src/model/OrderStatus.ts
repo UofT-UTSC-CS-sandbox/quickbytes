@@ -8,6 +8,8 @@ enum OrderStatus {
     ACCEPTED = 'ACCEPTED',
     // Once the restaurant worker has indicated that the food is ready for pickup
     AWAITING_PICK_UP = 'AWAITING-PICK-UP',
+    // Once the courier has indicated that they have arrived at the restaurant
+    ARRIVED = 'ARRIVED',
     // Once a courier has picked up the order from the restaurant and is en-route to customer
     EN_ROUTE = 'EN-ROUTE',
     // Once the courier and customer have met and handed over the order.
