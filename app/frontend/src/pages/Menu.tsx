@@ -121,7 +121,7 @@ const RestaurantMenu = () => {
                             <Typography>Choose a menu category to start browsing.</Typography>
                     }
                 </Stack>
-                <CheckoutCart order={order} setOrder={setOrder}/>
+                { order && <CheckoutCart order={order} setOrder={setOrder}/> }
             </Stack>
             {(item && id) &&
                 <Dialog open={!!item} onClose={() => setItem(null)} fullWidth maxWidth="sm">
