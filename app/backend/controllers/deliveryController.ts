@@ -102,7 +102,7 @@ export async function getActiveOrder(req: Request, res: Response) {
 }
 
 export async function updateOrderStatus(req: Request, res: Response) {
-  const { orderId, status, courier } = req.body; 
+  const { orderId, status, courierRequest } = req.body; 
   const isValidOrderStatus = (status: any): status is OrderStatus => {
     return Object.values(OrderStatus).includes(status);
   };
@@ -132,7 +132,7 @@ export async function updateOrderStatus(req: Request, res: Response) {
         // set order back to ordered so courier can accept it in deliveries
         await orderRef.update({
           /* An order is only truly cancelled at the customer's request */
-          'tracking/status': courier ? OrderStatus.ORDERED : OrderStatus.CANCELLED,
+          'tracking/status': courierRequest ? OrderStatus.ORDERED : OrderStatus.CANCELLED,
           'courierId': null
         }))
       /* Remove from active delivery/order */
@@ -144,12 +144,12 @@ export async function updateOrderStatus(req: Request, res: Response) {
       const courierId = orderData.courierId;
 
       /* A courier cancellation should not remove the order from the customer */
-      if (!courier && customerId) {
+      if (!courierRequest && customerId) {
         const customerRef = database.ref(`user/${customerId}/activeOrder`);
         await customerRef.remove();
       }
 
-      /* Any cancellation should yiled the same result for the courier */
+      /* Any cancellation should yield the same result for the courier */
       if (courierId) {
         const courierRef = database.ref(`user/${courierId}/activeDelivery`);
         await courierRef.remove();

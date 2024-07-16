@@ -100,8 +100,8 @@ const OrderTracking = ({ directionsMapComponent }) => {
           if (confirmed) {
             const orderId = orderData.data;
             const newStatus = OrderStatus.CANCELLED;
-            /* TODO: ensure order has not been picked up. */
-            updateOrderStatus({ orderId: orderId, status: newStatus, courier: false });
+            
+            updateOrderStatus({ orderId: orderId, status: newStatus, courierRequest: false });
           }
         }
       };

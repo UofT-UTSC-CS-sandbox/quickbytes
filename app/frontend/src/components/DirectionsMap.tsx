@@ -224,7 +224,7 @@ function Directions({ loadHandler, coord }: DirectionProps) {
       console.log(orderData.data)
       const orderId = orderData.data; 
       const newStatus = OrderStatus.EN_ROUTE; // change later to change status depending on where in the workflow
-      updateOrderStatus({ orderId: orderId, status: newStatus, courier: courier });
+      updateOrderStatus({ orderId: orderId, status: newStatus, courierRequest: courier });
     }
   };
 
@@ -235,7 +235,7 @@ function Directions({ loadHandler, coord }: DirectionProps) {
         const orderId = orderData.data;
         const newStatus = OrderStatus.CANCELLED;
         /* TODO: ensure order has not been picked up. */
-        updateOrderStatus({ orderId: orderId, status: newStatus, courier: courier });
+        updateOrderStatus({ orderId: orderId, status: newStatus, courierRequest: courier });
       }
     }
   };
