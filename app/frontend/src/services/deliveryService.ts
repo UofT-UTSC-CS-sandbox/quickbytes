@@ -39,10 +39,16 @@ type GetDeliveriesResponse = {
                 lat: number,
                 lng: number
             },
+            dropOffName: string,
             orderPlacedTime: number
             status: OrderStatus
         },
-        userId: number | string
+        estimates?: {
+            distanceMeters: number
+            distance: string,
+            time: string,
+            timeSeconds: number
+        },
     }>
 }
 
@@ -56,7 +62,8 @@ type AcceptDeliveryRequest = {
 
 type UpdateOrderStatusRequest = {
     orderId: string,
-    status: OrderStatus
+    status: OrderStatus,
+    courierRequest: boolean
 }
 
 type Coordinates = {

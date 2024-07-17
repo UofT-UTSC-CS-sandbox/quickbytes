@@ -11,11 +11,9 @@ import { Snackbar, Alert } from '@mui/material';
 import deliveryService from '../services/deliveryService';
 import OrderStatus from '../model/OrderStatus';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { useNavigate } from 'react-router-dom';
-
-import restaurantService from '../services/restaurantService';
-
-import orderService from '../services/orderService';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { database, ref, onValue } from '../firebaseConfig';
+import { ToastContainer, toast } from 'react-toastify';
 
 interface DirectionsRoute {
   summary: string;
@@ -26,6 +24,9 @@ interface BasicMenuProps {
   routes: DirectionsRoute[];
   setRouteIndex: React.Dispatch<React.SetStateAction<number>>;
 }
+
+/* For hiding notifications */
+const AUTO_CLOSE_TIME = 5000;
 
 /* Generates and renders basic drop menu for routes*/
 function BasicMenu({ routes, setRouteIndex }: BasicMenuProps) {
@@ -92,7 +93,10 @@ function Directions({ loadHandler, coord }: DirectionProps) {
   const selected = routes[routeIndex];
   const leg = selected?.legs[0];
 
-
+  /* Check if we are in courier mode */
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const courier = searchParams.get('courier') === "true";
 
   console.log(coord);
   const destination: google.maps.LatLngLiteral = {
@@ -169,10 +173,50 @@ function Directions({ loadHandler, coord }: DirectionProps) {
       
   }, []);
 
-  const {mutate: updateOrderStatus} = deliveryService.updateOrderStatus((d)=> console.log(d.message)).useMutation();
-  const {data: orderData} = deliveryService.getCourierActiveOrder(userId).useQuery();
-  const nav = useNavigate();
+  const {mutate: updateOrderStatus} = deliveryService.updateOrderStatus((d) => {
+    console.log(d.message)
+    // Courier returns to delivery page upon cancellation, customer to home page
+    nav(courier ? '/deliveries' : "/");
+  }).useMutation();
+  const {data: orderData} = courier ? deliveryService.getCourierActiveOrder(userId).useQuery() : 
+                                            deliveryService.getCustomerActiveOrder(userId).useQuery();
+  
+  const showNotification = (data: any) => {
+    const message = "The user has cancelled this order"
+    toast.info(message, {
+        position: "top-center",
+        autoClose: AUTO_CLOSE_TIME,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        onClose: () => {
+          nav("/deliveries");
+        }
+    });
+  };
+                                            
+  // listen to changes in the order status and show a notification
+  useEffect(() => {
+      if (orderData) {
+          const orderId = orderData.data;
+          const dataRef = ref(database, `orders/${orderId}/tracking/status`);
 
+          const unsubscribeData = onValue(dataRef, (snapshot) => {
+              const data = snapshot.val();
+              // We only care for order cancellations for now
+              if (!data || data!=OrderStatus.CANCELLED || data != OrderStatus.ORDERED) return;
+              console.log("order cancelled");
+              showNotification(data);
+          });
+
+          return () => unsubscribeData();
+      }
+  }, [orderData]);
+
+
+  const nav = useNavigate();
   const handleUpdateStatus = () => {
     console.log(userId)
     console.log(orderData)
@@ -180,21 +224,21 @@ function Directions({ loadHandler, coord }: DirectionProps) {
       console.log(orderData.data)
       const orderId = orderData.data; 
       const newStatus = OrderStatus.EN_ROUTE; // change later to change status depending on where in the workflow
-      updateOrderStatus({ orderId: orderId, status: newStatus });
+      updateOrderStatus({ orderId: orderId, status: newStatus, courierRequest: courier });
     }
   };
 
   const handleCancelOrder = () => {
-    console.log(userId)
-    console.log(orderData)
     if (orderData) {
-      console.log(orderData.data)
-      const orderId = orderData.data; 
-      const newStatus = OrderStatus.CANCELLED; 
-      updateOrderStatus({ orderId: orderId, status: newStatus });
+      const confirmed = window.confirm('Are you sure you want to cancel this order?');
+      if (confirmed) {
+        const orderId = orderData.data;
+        const newStatus = OrderStatus.CANCELLED;
+        /* TODO: ensure order has not been picked up. */
+        updateOrderStatus({ orderId: orderId, status: newStatus, courierRequest: courier });
+      }
     }
-    nav('/deliveries');
-  }
+  };
   
   return (
     <>
@@ -221,7 +265,10 @@ function Directions({ loadHandler, coord }: DirectionProps) {
           </div>
           <div className='buttons'>
             <Button variant="contained" sx={{ backgroundColor: 'rgba(163, 0, 0, 1)', color: 'white' }} size="large" onClick={handleCancelOrder}>Cancel Order</Button>
-            <Button variant="contained" sx={{ backgroundColor: 'rgba(0, 127, 163, 1)', color: 'white' }} size="large" onClick={handleUpdateStatus}>Notify</Button>
+            {
+              courier ? <Button variant="contained" sx={{ backgroundColor: 'rgba(0, 127, 163, 1)', color: 'white' }} size="large" onClick={handleUpdateStatus}>Notify</Button> : null
+            }
+            
           </div>
         </div>
       }
@@ -257,6 +304,7 @@ export default function DirectionsMap({coord}: {coord:string | undefined}) {
           </div> : null}
 
       </div>
+      <ToastContainer />
     </div>
   );
 }

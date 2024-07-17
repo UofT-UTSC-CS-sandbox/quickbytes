@@ -15,7 +15,8 @@ type GetOrderDropoffResponse = {
  */
 type GetPickupLocationResponse = {
     lat: number,
-    lng: number
+    lng: number,
+    dropOffName: string
 }
 
 

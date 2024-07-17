@@ -49,7 +49,17 @@ type SetPickupLocationRequest = { lat: number, lng: number }
 /**
  * Response body for the setPickupLocation request.
  */
-type SetPickUpLocationResponse = {}
+type SetPickUpLocationResponse = {
+    dropOff: { lat: number, lng: number },
+    dropOffName: string,
+}
+
+/* The restaurant object, used when obtaining an active order */
+type Restaurant = {
+    location: string;
+    restaurantName: string;
+    restaurantId: number
+}
 
 /**
  * Response body for the getClientActiveOrder request.
@@ -74,7 +84,7 @@ type GetClientActiveOrderResponse = {
  * The response body for getUserActiveOrders
  */
 export type ActiveOrderResponse = { 
-    data: ActiveOrderItem[]
+    data: ActiveOrderItem
 }
 
 /**
@@ -105,7 +115,8 @@ export type ActiveOrderItem = {
         orderPlacedTime: number,
         dropOff: { lat: number, lng: number }
         status: OrderStatus
-    }
+    },
+    restaurant: Restaurant,
     orderId: string
 }
 
@@ -185,7 +196,7 @@ export default {
             },
             {
                 mutationKey: ['setPickupLocation', orderId],
-                onSuccess
+                onSuccess,
             }
         ),
     /**

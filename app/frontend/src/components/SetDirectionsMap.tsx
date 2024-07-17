@@ -1,21 +1,24 @@
 import { APIProvider, Map, MapCameraChangedEvent, useMap } from '@vis.gl/react-google-maps';
 import React, { useEffect, useState } from 'react';
-import { Button, TextField, Typography } from "@mui/material";
+import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Fab, Typography } from "@mui/material";
 import styles from './SetDirectionsMap.module.css';
-import orderService from '../services/orderService';
+import { lookupBuilding } from '../utils/CampusEncode';
+import { Close } from '@mui/icons-material';
 
-export default function SingleMarkerMap({ onConfirmPickupLocation, orderId, initialPosition }: { onConfirmPickupLocation: (position: { lat: number, lng: number }) => void, orderId: string, initialPosition: { lat: number, lng: number } }) {
+interface SingleMarkerMapProps {
+    orderId: string,
+    initialPosition: { lat: number, lng: number },
+    sendSetPickupLocation: ({ lat, lng }: { lat: number, lng: number }) => void,
+    rejectLocationChange: () => void
+}
+
+export default function SingleMarkerMap({ sendSetPickupLocation, rejectLocationChange, initialPosition }: SingleMarkerMapProps) {
     const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
     const [markerPosition, setMarkerPosition] = useState(initialPosition);
-    const [additionalInfo, setAdditionalInfo] = useState("");
-
-    const { mutate: setPickupLocation } = orderService.setPickupLocation(
-        orderId,
-        () => onConfirmPickupLocation(markerPosition)
-    ).useMutation()
+    const [showConfirmCloseMap, setShowConfirmCloseMap] = useState(false);
 
     const handleConfirmPosition = () => {
-        setPickupLocation({
+        sendSetPickupLocation({
             lat: markerPosition.lat,
             lng: markerPosition.lng
         })
@@ -29,15 +32,6 @@ export default function SingleMarkerMap({ onConfirmPickupLocation, orderId, init
                         <Typography>Drag the red marker to the desired pickup location.</Typography>
                     </div>
                     <div className={styles.addiInfo}>
-                        <Typography>Additional Pickup Location Info:</Typography>
-                        <TextField
-                            inputProps={{ inputMode: 'text', className: styles.textFieldInput }}
-                            placeholder="Enter room # / Other info"
-                            value={additionalInfo}
-                            size="small"
-                            onChange={(e) => setAdditionalInfo(e.target.value)}
-                            fullWidth
-                        />
                         <div className={styles.confirmButton}>
                             <Button variant='contained' onClick={handleConfirmPosition}>Confirm Pickup Location</Button>
                         </div>
@@ -60,11 +54,31 @@ export default function SingleMarkerMap({ onConfirmPickupLocation, orderId, init
                             },
                             strictBounds: true,
                         }}
-                        >
-                    <MarkerAtCenter setMarkerPosition={setMarkerPosition} initialPosition={initialPosition} />
-                </Map>
+                        mapTypeControl={false}
+                        streetViewControl={false}
+                    >
+                        <MarkerAtCenter setMarkerPosition={setMarkerPosition} initialPosition={initialPosition} />
+                    </Map>
+                </div>
+                <Fab sx={{ position: 'absolute', top: 8, right: 8 }} color='error' onClick={() => setShowConfirmCloseMap(true)}>
+                    <Close />
+                </Fab>
+                <Dialog
+                    open={showConfirmCloseMap}
+                    onClose={() => setShowConfirmCloseMap(false)}
+                >
+                    <DialogTitle>{"Discard changes?"}</DialogTitle>
+                    <DialogContent>
+                        <DialogContentText id="alert-dialog-description">
+                            Your new pickup location is not saved. Are you sure you want to cancel your changes?
+                        </DialogContentText>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={() => rejectLocationChange()} color="error">Discard</Button>
+                        <Button onClick={() => setShowConfirmCloseMap(false)} autoFocus color="primary">Keep Editing</Button>
+                    </DialogActions>
+                </Dialog>
             </div>
-        </div>
         </APIProvider >
     );
 }
@@ -85,12 +99,12 @@ const MarkerAtCenter: React.FC<MarkerAtCenterProps> = ({ setMarkerPosition, init
         const marker = new google.maps.Marker({
             position: initialPosition,
             map: map,
-            title: 'Center Marker - This marker is draggable and can be moved to a different location.',
+            title: 'Dropoff Marker - Drag this marker to set your delivery location.',
             draggable: true
         });
 
         const infoWindow = new google.maps.InfoWindow({
-            content: 'Center Marker - This marker is draggable and can be moved to a different location.'
+            content: 'Dropoff Marker - Drag this marker to set your delivery location.'
         });
 
         marker.addListener('click', () => {
@@ -103,7 +117,18 @@ const MarkerAtCenter: React.FC<MarkerAtCenterProps> = ({ setMarkerPosition, init
                 setMarkerPosition({ lat: position.lat(), lng: position.lng() });
             }
             infoWindow.close();
-            infoWindow.setContent(`<div class=${styles.infoWindowContent}>Pin dropped at: ${position?.lat()}, ${position?.lng()}</div>`);
+            const dropOffLat = position?.lat();
+            const dropOffLng = position?.lng();
+            if (dropOffLat && dropOffLng) {
+                const building = lookupBuilding(dropOffLat, dropOffLng);
+
+                infoWindow.setContent(`
+                <div class=${styles.infoWindowContent}>
+                    <h3>Delivery Location</h3>
+                    ${building?.name || 'On campus'} <br/>
+                    Coordinates: ${dropOffLat}, ${dropOffLng}
+                </div>`);
+            }
             infoWindow.open(map, marker);
         });
 
