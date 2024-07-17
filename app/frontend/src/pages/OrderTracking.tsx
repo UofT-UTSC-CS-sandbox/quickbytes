@@ -13,10 +13,17 @@ import Notification from '../components/Notification';
 import settingService from '../services/settingService';
 import restaurantService from '../services/restaurantService';
 import orderService from '../services/orderService';
+import SingleMarkerMap from '../components/SetDirectionsMap';
+import trackingService from '../services/trackingService';
+
+// The default pickup location if none is available from the order
+const DEFAULT_PICKUP_LOCATION = { lat: 43.785171372795524, lng: -79.18748160572729 };
+
 
 const OrderTracking = ({ directionsMapComponent }) => {
     const [userId, setUserId] = useState('');
-    const { coord } = useParams();
+    const [updatingLocation, setUpdatingLocation] = useState(false);
+    const [pickupLocation, setPickupLocation] = useState<{ lat: number, lng: number }>(DEFAULT_PICKUP_LOCATION);
     const [orderId, setOrderId] = useState<string | null>(null);
     const [directionsAvailable, setDirectionsAvailable] = useState(true);
 
@@ -111,6 +118,20 @@ const OrderTracking = ({ directionsMapComponent }) => {
         }
       };
 
+      // Retreive the current drop off location assigned to the order to display when user changes
+      const { data: dropOffLoc, isLoading: dropOffLocLoading } = trackingService.getOrderDropoff(orderId).useQuery();
+      useEffect(() => {
+        setPickupLocation(dropOffLoc?.data);
+      }, [dropOffLoc?.data]);
+
+      const { data: setPickupLocationResponse, mutate: sendSetPickupLocation } = orderService.setPickupLocation(
+            orderId as string,
+            (data) => {
+                setUpdatingLocation(false);
+                setPickupLocation(data.dropOff);
+            }
+        ).useMutation()
+
       /* This component will be displayed when courier tracking is not yet available */
       const OrderSummary = () => {
         return (
@@ -140,7 +161,7 @@ const OrderTracking = ({ directionsMapComponent }) => {
             </Typography>
       
             <div style={{ marginTop: 20, textAlign: 'center' }}>
-              <Button variant="contained" color="primary" onClick={console.log}> {/* TODO add a pop-up to reselect pickup location */}
+              <Button variant="contained" color="primary" onClick={() => setUpdatingLocation(true)}> {/* TODO add a pop-up to reselect pickup location */}
                 Update pickup location
               </Button>
               <Button variant="outlined" color="secondary" onClick={handleCancelOrder} style={{ marginLeft: 10 }}>
@@ -150,17 +171,32 @@ const OrderTracking = ({ directionsMapComponent }) => {
           </div>
         );
       }
+    /* The main component of the page */
+    const MainView = () => {
+        if (directionsAvailable) /* If tracking is available, display on map */
+            return directionsMapComponent;
+        else if (updatingLocation) // If the user is attempting to change the location, display map with marker
+            return <SingleMarkerMap
+                    sendSetPickupLocation={sendSetPickupLocation}
+                    rejectLocationChange={() => setUpdatingLocation(false)}
+                    orderId={orderId as string}
+                    initialPosition={pickupLocation}
+                />;
+        else
+            return <OrderSummary /> /* Otherwise there is no tracking available and the location is not
+                                        being modified, just display a summary of the order */
+    }
 
     return (
         <div>
-            <NavBar />
-            {directionsAvailable ? directionsMapComponent : <OrderSummary />}
+            {updatingLocation ? null : <NavBar />}
             {orderId && (
                 <Notification
                     subscribePaths={[`orders/${orderId}/tracking/status`]}
                     getNotificationMessage={getNotificationMessage}
                 />
             )}
+            <MainView />
             <ToastContainer />
         </div>
     );
