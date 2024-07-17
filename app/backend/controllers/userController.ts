@@ -92,8 +92,81 @@ export const getCustomerConfirmationPin = async (req: Request, res: Response) =>
   }
 };
 
+export const updateNotification = async(req: Request, res: Response) => {
+  const { userId } = req.params;
+  const { role, enabled } = req.body; 
+  if (!userId || !role) {
+    return res.status(400).json({ success: false, message: 'userId and role are required fields' });
+  }
 
+  const database = admin.database();
+  const userRef = database.ref(`user/${userId}/settings/notifications/${role}`);
+  
+  try{
+    await userRef.set(enabled);
+    res.status(200).json({ success: true, message: 'Notification setting updated successfully' });
+  } catch (error) {
+    console.error('Error updating notification setting:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+}
 
+export const updateRole = async(req: Request, res: Response) => {
+  const { userId } = req.params;
+  const { role, enabled } = req.body; 
+  if (!userId || !role) {
+    return res.status(400).json({ success: false, message: 'userId and role are required fields' });
+  }
+
+  const database = admin.database();
+  const userRef = database.ref(`user/${userId}/settings/roles/${role}`);
+  
+  try{
+    await userRef.set(enabled);
+    res.status(200).json({ success: true, message: 'Notification setting updated successfully' });
+  } catch (error) {
+    console.error('Error updating notification setting:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+}
+
+export const getNotificationSettings = async (req: Request, res: Response) => {
+  const userId = req.params.userId;
+
+  try {
+    // Fetch user data from Firebase Realtime Database
+    const database = admin.database();
+    const userRef = database.ref(`user/${userId}/settings/notifications`);
+    const notification_settings = await userRef.get();
+
+    if (notification_settings) {
+      res.status(200).json({ notification_settings });
+    } else {
+      res.status(404).json({ error: 'Location not found for this user' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch location' });
+  }
+};
+
+export const getRoleSettings = async (req: Request, res: Response) => {
+  const userId = req.params.userId;
+
+  try {
+    // Fetch user data from Firebase Realtime Database
+    const database = admin.database();
+    const userRef = database.ref(`user/${userId}/settings/roles`);
+    const role_settings = await userRef.get();
+
+    if (role_settings) {
+      res.status(200).json({ role_settings });
+    } else {
+      res.status(404).json({ error: 'Location not found for this user' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch location' });
+  }
+};
 
 
 
