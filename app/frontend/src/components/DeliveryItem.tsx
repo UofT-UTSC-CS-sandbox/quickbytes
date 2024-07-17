@@ -1,65 +1,72 @@
-import React, {useState} from 'react';
-import { ListItem, ListItemText, Button } from '@mui/material';
-import ConfirmationPopup from './ConfirmationPopUp';
+import React from 'react';
+import { ListItem, ListItemText, Button, List, ListItemAvatar, Avatar, Divider, Stack, ListItemIcon } from '@mui/material';
+import currencyFormatter from './CurrencyFormatter';
+import { DirectionsWalkRounded, Place, Storefront } from '@mui/icons-material';
 
 interface Coordinate {
   lng: number;
   lat: number;
 }
 
-interface DeliveryItem {
+export interface DeliveryItemData {
   restaurant: string;
   id: string;
   location: string;
   pay: number;
   dropOff: Coordinate;
+  dropOffName: string;
+  itemCount: number;
+  distanceText: string,
+  timeText: string
 }
 
-const DeliveryItem: React.FC<DeliveryItem> = ({ id, restaurant, location, pay, dropOff }) => {
-  const [popupOpen, setPopupOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState({ id, restaurant, location, pay, dropOff });
+export interface DeliveryItemProps {
+  handleOnClick: () => void
+}
 
-  const handleClick = () => {
-    setSelectedItem({ id, restaurant, location, pay, dropOff });
-    setPopupOpen(true);
-  };
-
-  const handleClosePopup = () => {
-    setPopupOpen(false);
-  };
+const DeliveryItem: React.FC<DeliveryItemData & DeliveryItemProps> = ({ restaurant, location, pay, itemCount, dropOffName, handleOnClick, distanceText, timeText }) => {
 
   return (
     <>
-      <ListItem
-        style={{
-          borderBottom: '1px solid #ccc',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '8px 16px',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center' }}>
+      <List dense sx={{ width: '100%' }}>
+        <ListItem
+          style={{ justifyContent: 'space-between' }}
+        >
+          <Stack direction="row" justifyContent="space-between" alignItems='center' sx={{ width: '100%' }}>
+            <ListItemAvatar>
+              <Avatar>
+                <Place />
+              </Avatar>
+            </ListItemAvatar>
+            <ListItemText
+              sx={{ width: '200px' }}
+              primary={restaurant}
+              secondary={<span>{`${location}`}<br/>{`${itemCount} ${itemCount > 1 ? 'items' : 'item'}`}</span>} // Displaying location as secondary text
+            />
+
+            <div style={{ fontWeight: 'bold', marginRight: '50px' }}>
+              {currencyFormatter.format(pay)}
+            </div>
+
+            <Button variant="contained" color="success" onClick={handleOnClick}>
+              View
+            </Button>
+          </Stack>
+        </ListItem>
+
+        <ListItem>
+          <ListItemAvatar>
+            <Avatar>
+              <Storefront />
+            </Avatar>
+          </ListItemAvatar>
           <ListItemText
-            primary={restaurant}
-            secondary={`Location: ${location}`} // Displaying location as secondary text
-          />
-        </div>
-
-        <div style={{ marginLeft: '16px', fontWeight: 'bold' }}>
-          ${pay}
-        </div>
-
-        <Button variant="contained" color="success" onClick={handleClick}>
-          Accept
-        </Button>
-      </ListItem>
-
-      <ConfirmationPopup
-        open={popupOpen}
-        onClose={handleClosePopup}
-        item={selectedItem}
-      />
+            primary={dropOffName ?? 'Dropoff Location'}
+            secondary={`${distanceText} (${timeText})`}>
+          </ListItemText>
+        </ListItem>
+      </List>
+      <Divider />
     </>
   );
 };
