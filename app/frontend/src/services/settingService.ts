@@ -1,3 +1,4 @@
+import { NotificationType } from "../model/NotificationTypes"
 import { usePostEndpoint, useGetEndpoint } from "./base"
 
 type UpdateNotificationResponse = {
@@ -13,22 +14,14 @@ type UpdateRoleResponse = UpdateNotificationResponse
 type UpdateRoleRequest = UpdateNotificationRequest
 
 interface GetNotificationSettingsResponse {
-    data: {
-        notification_settings: {
-            courierNotifications: boolean,
-            customerNotifications: boolean
-        }
-    }
+    notification_settings: Record<NotificationType, boolean>
 }
 
-interface GetRoleSettingsResponse {
-    data: {
-        role_settings: {
-            courierRole: boolean,
-            customerRole: boolean
-        }
+interface GetRoleSettingsResponse {       
+    role_settings: {
+        courierRole: boolean,
+        customerRole: boolean
     }
-
 }
 
 /**

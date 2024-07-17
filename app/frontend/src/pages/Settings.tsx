@@ -3,6 +3,7 @@ import { Box, Drawer, AppBar, CssBaseline, Toolbar, List, Divider, ListItem, Lis
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import NavBar from '../components/Navbar';
 import settingService from '../services/settingService';
+import { NOTIFICATION_LABELS, NotificationType, RoleType } from '../model/NotificationTypes';
 
 interface TabPanelProps {
     children?: React.ReactNode;
@@ -31,10 +32,8 @@ const drawerWidth = 240;
 function Settings() {
     const [userID, setUserId] = useState('');
     const [value, setValue] = useState(0);
-    const [customerNotificationsEnabled, setCustomerNotificationsEnabled] = useState(false);
-    const [courierNotificationsEnabled, setCourierNotificationsEnabled] = useState(false);
-    const [customerRoleEnabled, setCustomerRoleEnabled] = useState(false);
-    const [courierRoleEnabled, setCourierRoleEnabled] = useState(false);
+    const [notificationsEnabled, setNotificationsEnabled] = useState<NotificationType[]>([]);
+    const [rolesEnabled, setRolesEnabled] = useState<RoleType[]>([]);
 
     useEffect(() => {
         const auth = getAuth();
@@ -61,37 +60,37 @@ function Settings() {
 
     useEffect(() => {
         if (data) {
-            setCustomerNotificationsEnabled(data.notification_settings.customerNotifications);
-            setCourierNotificationsEnabled(data.notification_settings.courierNotifications);
+            setNotificationsEnabled(Object.values(NotificationType).filter((type) => data.notification_settings[type] === true));
         }
     }, [data]);
 
     useEffect(() => {
         if (roleData) {
-            setCustomerRoleEnabled(roleData.role_settings.customerRole);
-            setCourierRoleEnabled(roleData.role_settings.courierRole);
+            setRolesEnabled(Object.values(RoleType).filter((role) => roleData.role_settings[role] === true));
         }
     }, [roleData]);
 
-    const handleSwitchChange = (event: React.ChangeEvent<HTMLInputElement>, role: string, type: string) => {
+    const handleNotificationChange = (event: React.ChangeEvent<HTMLInputElement>, type: NotificationType) => {
         const enabled = event.target.checked;
-
-        if (type === 'notification') {
-            if (role === 'customerNotifications') {
-                setCustomerNotificationsEnabled(enabled);
-            } else {
-                setCourierNotificationsEnabled(enabled);
-            }
-            updateNotification({ role, enabled });
+        const existingNotifs = notificationsEnabled.filter((notification: NotificationType) => notification !== type);
+        if (enabled) {
+            setNotificationsEnabled([...existingNotifs, type]);
         } else {
-            if (role === 'customerRole') {
-                setCustomerRoleEnabled(enabled);
-            } else {
-                setCourierRoleEnabled(enabled);
-            }
-            updateRole({ role, enabled });
+            setNotificationsEnabled(existingNotifs);
         }
-    };
+        updateNotification({ role: type, enabled });
+    }
+
+    const handleRoleChange = (event: React.ChangeEvent<HTMLInputElement>, role: RoleType) => {
+        const enabled = event.target.checked;
+        const existingRoles = rolesEnabled.filter((existing: RoleType) => existing !== role);
+        if (enabled) {
+            setRolesEnabled([...existingRoles, role]);
+        } else {
+            setRolesEnabled(existingRoles);
+        }
+        updateRole({ role, enabled });
+    }
 
     return (
         <Box sx={{ display: 'flex' }}>
@@ -130,11 +129,11 @@ function Settings() {
                         Profile
                         <FormGroup>
                             <FormControlLabel
-                                control={<Switch checked={customerRoleEnabled} onChange={(e) => handleSwitchChange(e, 'customerRole', 'role')} />}
+                                control={<Switch checked={rolesEnabled.includes(RoleType.CUSTOMER_ROLE)} onChange={(e) => handleRoleChange(e, RoleType.CUSTOMER_ROLE)} />}
                                 label="Toggle for customer role"
                             />
                             <FormControlLabel
-                                control={<Switch checked={courierRoleEnabled} onChange={(e) => handleSwitchChange(e, 'courierRole', 'role')} />}
+                                control={<Switch checked={rolesEnabled.includes(RoleType.COURIER_ROLE)} onChange={(e) => handleRoleChange(e, RoleType.COURIER_ROLE)} />}
                                 label="Toggle for courier role"
                             />
                         </FormGroup>
@@ -144,14 +143,14 @@ function Settings() {
                     <div>
                         Notifications
                         <FormGroup>
-                            <FormControlLabel
-                                control={<Switch checked={customerNotificationsEnabled} onChange={(e) => handleSwitchChange(e, 'customerNotifications', 'notification')} />}
-                                label="Toggle on for customer notifications"
-                            />
-                            <FormControlLabel
-                                control={<Switch checked={courierNotificationsEnabled} onChange={(e) => handleSwitchChange(e, 'courierNotifications', 'notification')} />}
-                                label="Toggle on for courier notifications"
-                            />
+                            {
+                                Object.values(NotificationType).map((type) => (
+                                    <FormControlLabel
+                                        control={<Switch checked={notificationsEnabled.includes(type)} onChange={(e) => handleNotificationChange(e, type)} />}
+                                        label={NOTIFICATION_LABELS[type]}
+                                    />
+                                ))
+                            }
                         </FormGroup>
                     </div>
                 </CustomTabPanel>
