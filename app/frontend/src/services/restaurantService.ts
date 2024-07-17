@@ -9,7 +9,8 @@ type AllRestaurantsResponse = {
         address: string,
         coordinateX: number,
         coordinateY: number,
-        id: string
+        id: string,
+        image: string
     }[]
 }
 
@@ -21,7 +22,10 @@ type RestaurantMenuResponse = {
         name: string,
         description: string
         address: string,
-        categories: MenuCategory[]
+        categories: MenuCategory[],
+        coordinateX: number,
+        coordinateY: number,
+        image: string
     }
 }
 

@@ -12,7 +12,6 @@ export function getAllRestaurants(req: Request, res: Response) {
         .then((snapshot: DataSnapshot) => {
             if (snapshot.exists()) {
                 const restaurants = snapshot.val();
-                console.log(restaurants)
                 const data = restaurants
                 // The restaurants list is actually an array, so need to add ID and filter out null indices
                 .map((restaurant: any, index: number) => ({...restaurant, id: index }))
@@ -456,13 +455,14 @@ export async function getPickupLocation(req: Request, res: Response) {
         const snapshot = await database.ref(orderref).once("value");
         const orderdata = snapshot.val();
 
-        const restaurantId = orderdata.restaurant.restaurantId;
-        console.log(restaurantId, "restaurant id")
-
-        const restaurantSnapshot = await database.ref(`restaurants/${restaurantId}/information/location`).once('value');
-        const location = restaurantSnapshot.val();
-        if (location) {
-            res.status(200).json(location);
+        const trackingSnapshot = await database.ref(`orders/${orderId}/tracking`).once('value');
+        
+        if (trackingSnapshot.exists()) {
+            const trackingInfo = trackingSnapshot.val();
+            res.status(200).json({
+                lat: trackingInfo.dropOff.lat,
+                lng: trackingInfo.dropOff.lng,
+            });
         } else {
             res.status(404).json({ error: 'Pickup location not set' });
         }
