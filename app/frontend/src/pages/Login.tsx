@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import './Login.css';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
 
@@ -9,6 +9,8 @@ const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || '/';
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -16,7 +18,7 @@ const Login: React.FC = () => {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       await userCredential.user.reload();
 
-      navigate('/user-page');
+      navigate(from, { replace: true });
     } catch (error) {
       if (axios.isAxiosError(error)) {
         alert(error.response?.data || 'An error occurred');
