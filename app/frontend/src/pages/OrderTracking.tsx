@@ -8,8 +8,7 @@ import DirectionsMap from '../components/DirectionsMap';
 import NavBar from '../components/Navbar';
 import OrderStatus from '../model/OrderStatus';
 import deliveryService from '../services/deliveryService';
-
-
+import settingService from '../services/settingService';
 import restaurantService from '../services/restaurantService';
 import orderService from '../services/orderService';
 
@@ -36,9 +35,12 @@ function OrderTracking({ directionsMapComponent }) {
     // get the active orderId of the customer
     const { data: orderData, error } = deliveryService.getCustomerActiveOrder(userId).useQuery();
 
+    // get user notification settings
+    const { data: settingsData } = settingService.getNotificationSettings(userId).useQuery();
     // listen to changes in the order status and show a notification
     useEffect(() => {
-        if (orderData) {
+        // only subscribe to notification if notification settings are enabled for customer
+        if (orderData && settingsData.notification_settings.customerNotifications) {
             const orderId = orderData.data;
             const dataRef = ref(database, `orders/${orderId}/tracking/status`);
 
