@@ -49,6 +49,19 @@ export async function createUserOrder(req: Request, res: Response) {
     const restaurantId = req.params.id;
     const { menuItemId, optionSelected, addOnsSelected, quantity } = req.body;
 
+    // Prevent user from placing this order if there is already an existing one
+    const checkIfOrderingRef = database.ref(`user/${userId}`);
+    // Get information of orders under the user's DB entry
+    const checkIfOrdering = await checkIfOrderingRef.get();
+    if (checkIfOrdering.exists()) {
+        // Reject if there is any order IDs being kept under active orders or ordering
+        if (!!checkIfOrdering.activeOrders || !!checkIfOrdering.ordering) {
+            // Send ambiguous error message
+            res.status(404).send({ data: "Cannot create user order." });
+            return;
+        }
+    }
+
     try {
         // Generate a unique key for the order
         const ordersRef = database.ref('orders');
@@ -161,6 +174,15 @@ export async function addItemToOrder(req: Request, res: Response, database: Data
     menuItemId: string, optionSelected: string, addOnsSelected: Record<string, string>, quantity: number
 }) {
     try {
+        // Prevent items from different restaurants from being added together in the same order
+        const orderRestaurantId = `orders/${orderId}/restaurant/restaurantId`;
+        const rIdSnapshot = await database.ref(orderRestaurantId).get();
+
+        if (!rIdSnapshot.exists() || rIdSnapshot.val() !== restaurantId) {
+            res.status(400).send({ data: "Something went wrong", error: "Invalid item combination." });
+            return;
+        }
+
         // Calculate the final price information
         const menuRef = `restaurants/${restaurantId}/information/categories`;
         const snapshot = await admin.database().ref(menuRef).get();
@@ -226,7 +248,7 @@ export async function addItemToOrder(req: Request, res: Response, database: Data
             res.status(201).send({
                 orderKey: orderId,
                 menuKey: itemKey,
-                data: { ...oldOrderObj.order, id: orderId, status: oldOrderObj.tracking.status }
+                data: { ...oldOrderObj.order, id: orderId, status: oldOrderObj.tracking.status, restaurant: oldOrderObj.restaurant }
             });
         } else {
             res.status(404).send({ data: "Something went wrong" });
@@ -274,6 +296,47 @@ export function getOrderDropOff(req: Request, res: Response) {
             console.error("Error retrieving data:", error);
             res.status(500).send("Internal server error");
         });
+}
+
+/**
+ * Get the current order in progress (user is still ordering, or awaiting delivery)
+ * for the logged in user. Looks first for an order under "ordering", then under
+ * "activeOrders"
+ */
+export async function getCustomerActiveOrder(req: Request, res: Response) {
+    const database = admin.database();
+    const userId = 1; // Replace with actual user ID retrieval logic
+    const userOrderLocation = database.ref(`user/${userId}/ordering`);
+    let orderIdSnapshot = undefined;
+    try {
+        orderIdSnapshot = await userOrderLocation.get();
+        if (!orderIdSnapshot.exists()) {
+
+            const userActiveLocation = database.ref(`user/${userId}/activeOrders`);
+            orderIdSnapshot = await userActiveLocation.get();
+
+            if (!orderIdSnapshot.exists()) {
+                res.send({ data: null });
+                return;
+            }
+        }
+        const orderId = Object.values(orderIdSnapshot.val()).at(0);
+        const orderLocation = database.ref(`orders/${orderId}`);
+        const orderSnapshot = await orderLocation.get();
+
+        if (!orderSnapshot.exists()) {
+            res.send({ data: null });
+            return;
+        } else {
+            const value = orderSnapshot.val();
+            const items = value.order.items ?? {};
+            res.send({ data: { ...value.order, items, id: orderId, status: value.tracking.status, restaurant: value.restaurant } });
+            return;
+        }
+    } catch (error) {
+        console.log("getCurrentlyEditingOrder error:", error);
+        res.status(500).send({ data: null });
+    }
 }
 
 // Get the only in-progress order for the user

@@ -74,6 +74,11 @@ type GetClientActiveOrderResponse = {
                 price: number,
                 quantity: number,
             }>;
+        restaurant: {
+            address: string;
+            restaurantName: string;
+            restaurantId: string
+        }
         price: number;
         id: string;
         status: OrderStatus;
@@ -217,7 +222,7 @@ export default {
             }
         ),
     /**
-     * Get the order that is in-progress and has not been placed, which
+     * Get the orders that are in-progress and has not been placed, which
      * belongs to the current user at the given restaurant
      * @param restaurantId The ID of the restaurant to check for in-progress orders.
      * @returns Service endpoint to get the current non-placed order for the user.
@@ -233,7 +238,27 @@ export default {
                 enabled: !!restaurantId,
             }
         ),
+    // TODO: Merge the getClientActiveOrder and getSingleClientActiveOrder once
+    // the directions map component is refactored, since the 
+    // customer is not allowed to have two active orders at the same time,
+    // especially involving different restaurants.
     
+    /**
+     * Get the orders that are in-progress and has not been placed, which
+     * belongs to the current user at the given restaurant
+     * @param restaurantId The ID of the restaurant to check for in-progress orders.
+     * @returns Service endpoint to get the current non-placed order for the user.
+     */
+    getSingleClientActiveOrder: () => 
+        useGetEndpoint<GetClientActiveOrderResponse>(
+            {
+                inputUrl: `restaurants/my-order`,
+                useAuth: false,
+            },
+            {
+                queryKey: ['getSingleClientActiveOrder'],
+            }
+        ),
      /**
      * Get the array of active orders corresponding to the particular user.
      * @param userId The ID of the user to get orders for.

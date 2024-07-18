@@ -185,10 +185,17 @@ const MenuAdd = ({ data, close, setOrder, order, restaurantId }: MenuAddProps) =
 
                     <Typography>Price</Typography>
                     <p>{currencyFormatter.format(price)}</p>
-                    <Stack direction='row' justifyContent="space-between">
-                        <Button disabled={isAddItemPending} variant='contained' color='success' onClick={onAddSubmit} startIcon={!isAddItemPending ? <Add /> : <CircularProgress/>}>Add To Order</Button>
-                        <Button disabled={isAddItemPending} onClick={close} color='error'>Cancel</Button>
-                    </Stack>
+
+                    { 
+                        order?.restaurant.restaurantId === restaurantId ?
+
+                        <Stack direction='row' justifyContent="space-between">
+                            <Button disabled={isAddItemPending} variant='contained' color='success' onClick={onAddSubmit} startIcon={!isAddItemPending ? <Add /> : <CircularProgress/>}>Add To Order</Button>
+                            <Button disabled={isAddItemPending} onClick={close} color='error'>Cancel</Button>
+                        </Stack>
+                        :
+                        <Alert severity="warning">You currently have an order in-progress for {order?.restaurant.restaurantName}. You cannot order from more than 1 restaurant or have more than one order pending delivery at the same time.</Alert>
+                    }
 
                     { isCreateOrderError && <Alert severity='error'>Encountered an error while creating your order. Please try again.</Alert> }
                     { isAddItemError && <Alert severity='error'>Encountered an error while adding this item. Please try again.</Alert> }
