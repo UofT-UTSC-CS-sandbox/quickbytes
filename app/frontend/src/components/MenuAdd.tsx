@@ -136,7 +136,7 @@ const MenuAdd = ({ data, close, setOrder, order, restaurantId }: MenuAddProps) =
 
             <DialogContent>
                 {/* add image here */}
-                <img style={{ width: '50%', borderRadius: 15 }} src='/menu/shawarma/ChickenShawarmaPlate.webp' alt={data?.name} />
+                <img style={{ width: '50%', borderRadius: 15 }} src='/shawarma2.jpg' alt={data?.name} />
                 <Stack spacing={2}>
                 <Typography>{data?.description}</Typography>
 

@@ -16,7 +16,7 @@ const MenuItemCard = ({ data, onClick }: { data: MenuItem, onClick: (itemName: s
                         </Stack>
                         <CardMedia 
                         component='img' 
-                        image='/menu/shawarma/ChickenShawarmaPlate.webp'
+                        image='/shawarma2.jpg'
                         sx={{ width: 150, borderRadius: 4, height: 100 }}
                         alt={`${data.name} photo`}/>
                     </Stack>
