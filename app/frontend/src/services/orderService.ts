@@ -222,7 +222,7 @@ export default {
             }
         ),
     /**
-     * Get the orders that are in-progress and has not been placed, which
+     * Get the order that is in-progress and has not been placed, which
      * belongs to the current user at the given restaurant
      * @param restaurantId The ID of the restaurant to check for in-progress orders.
      * @returns Service endpoint to get the current non-placed order for the user.
@@ -244,12 +244,12 @@ export default {
     // especially involving different restaurants.
     
     /**
-     * Get the orders that are in-progress and has not been placed, which
-     * belongs to the current user at the given restaurant
-     * @param restaurantId The ID of the restaurant to check for in-progress orders.
+     * Get the sole order that the user is currently editing or awaiting delivery
+     * for as a customer. This differs from getClientActiveOrders in that it
+     * can also return an order that is being created but not yet placed.
      * @returns Service endpoint to get the current non-placed order for the user.
      */
-    getSingleClientActiveOrder: () => 
+    getClientInProgressOrder: () => 
         useGetEndpoint<GetClientActiveOrderResponse>(
             {
                 inputUrl: `restaurants/my-order`,
@@ -264,7 +264,6 @@ export default {
      * @param userId The ID of the user to get orders for.
      * @returns Service endpoint to get the orders for the user.
      */
-
     getClientActiveOrders: (userId: string) => 
         useGetEndpoint<ActiveOrderResponse>(
             {

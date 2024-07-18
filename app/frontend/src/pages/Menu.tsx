@@ -26,7 +26,7 @@ const RestaurantMenu = () => {
     const [order, setOrder] = useState<OrderCart | null>(null);
 
     // Fetch the any in-progress orders that the user has with ANY restaurant
-    const { data: activeOrder, isError: isActiveOrderError, error: activeOrderError } = orderService.getSingleClientActiveOrder().useQuery();
+    const { data: activeOrder, isError: isActiveOrderError, error: activeOrderError } = orderService.getClientInProgressOrder().useQuery();
     useEffect(() => {
         if (activeOrder?.data && !isActiveOrderError && id) {
             setOrder({

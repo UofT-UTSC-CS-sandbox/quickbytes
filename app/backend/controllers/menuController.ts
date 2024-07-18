@@ -301,9 +301,10 @@ export function getOrderDropOff(req: Request, res: Response) {
 /**
  * Get the current order in progress (user is still ordering, or awaiting delivery)
  * for the logged in user. Looks first for an order under "ordering", then under
- * "activeOrders"
+ * "activeOrders". This may differ from other active order endpoints because
+ * it can also return an order that is being created but not yet placed.
  */
-export async function getCustomerActiveOrder(req: Request, res: Response) {
+export async function getCustomerInProgressOrder(req: Request, res: Response) {
     const database = admin.database();
     const userId = 1; // Replace with actual user ID retrieval logic
     const userOrderLocation = database.ref(`user/${userId}/ordering`);
