@@ -238,7 +238,7 @@ export default {
                 enabled: !!restaurantId,
             }
         ),
-    // TODO: Merge the getClientActiveOrder and getSingleClientActiveOrder once
+    // TODO: Consider merging getClientActiveOrder and getClientInProgressOrder once
     // the directions map component is refactored, since the 
     // customer is not allowed to have two active orders at the same time,
     // especially involving different restaurants.
