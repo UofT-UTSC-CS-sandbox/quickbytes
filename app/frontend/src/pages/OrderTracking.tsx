@@ -45,12 +45,13 @@ const OrderTracking = ({ directionsMapComponent }) => {
     const { data: orderData, error } = deliveryService.getCustomerActiveOrder(userId).useQuery();
     const { data: order } = orderService.getClientActiveOrders(userId).useQuery();
 
-    // get user notification settings
+    // get user role and notification settings
     const { data: settingsData } = settingService.getNotificationSettings(userId).useQuery();
+    const { data: roleData } = settingService.getRoleSettings(userId).useQuery();
     // listen to changes in the order status and show a notification
     useEffect(() => {
         // only subscribe to notification if notification settings are enabled for customer
-        if (orderData && settingsData.notification_settings.customerNotifications) {
+        if (orderData && settingsData.notification_settings.customerNotifications && roleData.role_settings.customerRole) {
             const orderId = orderData.data;
             setOrderId(orderId);
             const dataRef = ref(database, `orders/${orderId}/tracking/status`);
