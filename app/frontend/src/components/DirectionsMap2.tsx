@@ -31,7 +31,7 @@ export default function DirectionsMap2({ id, getOrders }: DirectionsMapProps) {
   useEffect(() => {
     console.log("isloadingggg")
     if (isSuccess && data) {
-      console.log(data.data)
+      console.log(data.data, "it shows")
       try {
         console.log(data.data.map(orderItem => orderItem.orderId), "id lists ")
         console.log("the id is set this works")
@@ -61,6 +61,8 @@ export default function DirectionsMap2({ id, getOrders }: DirectionsMapProps) {
       });
       
 */
+
+
 
   }, [isSuccess, id, getOrders, data]
 );

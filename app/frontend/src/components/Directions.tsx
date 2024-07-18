@@ -60,8 +60,9 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
     }, [routesLibrary, map]);
 
     useEffect(() => {
+        console.log("fetching")
         if (!courierMarker || !directionsService) return;
-
+        console.log("fetching2")
 
 
         const interpolatePosition = (start: google.maps.LatLngLiteral, end: google.maps.LatLngLiteral, fraction: number) => {
@@ -104,7 +105,7 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
                 };
 
                 let destination = pickupLoc;
-                console.log(currLoc)
+                console.log(currLoc, "its logged")
 
                 /*
                 
@@ -128,9 +129,12 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
                     if (initialOrderIdRef.current === orderId) {
                         //setTimeout(() => {
                             directionsRenderer.setOptions({ preserveViewport: true });
+                            
                         //}, 100);
                     } else {
+                        console.log("this should work")
                         directionsRenderer.setOptions({ preserveViewport: false });
+                        courierMarker.setPosition(new google.maps.LatLng(currLoc.location));
                         initialOrderIdRef.current = orderId;
                     }
 
@@ -151,10 +155,12 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
                 errorHandler(error);
             }
             refetch();
+            console.log("should've refetched")
         };
 
         fetchLocations();
         const intervalId = setInterval(fetchLocations, 1000);
+        console.log("should be executing and showing every second")
 
         return () => clearInterval(intervalId);
     }, [courierMarker, directionsService, directionsRenderer, orderId, errorHandler, currLoc]);
