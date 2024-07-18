@@ -36,6 +36,8 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
     const { data: dropOffLoc, isLoading: dropOffLocLoading } = trackingService.getOrderDropoff(orderId).useQuery();
     const { data: confirmationPinData, isLoading: confirmationPinLoading } = trackingService.getCustomerConfirmationPin("7gPDsXFo8WaI9awl87qlbcJsJBx2").useQuery();
 
+
+
     useEffect(() => {
         if (confirmationPinData) {
             setConfirmationPin(confirmationPinData.customerConfirmationPin);
@@ -43,7 +45,7 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
     }, [confirmationPinData]);
 
     useEffect(() => {
-        if (!orderId) return;
+        if (!orderId) return ;
         //getCourierLocation(orderId).then(data => {
         //setDropOffCoord(data.dropOffLocation);
         //setRestaurantName(data.name);
@@ -100,8 +102,8 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
 
 
                 const mapOptions = {
-                    center: map.getCenter(),
-                    zoom: map.getZoom(),
+                    center: currLoc.location,
+                    zoom: 16,
                 };
 
                 let destination = pickupLoc;
@@ -133,9 +135,11 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
                         //}, 100);
                     } else {
                         console.log("this should work")
-                        directionsRenderer.setOptions({ preserveViewport: false });
+                        
+                        //directionsRenderer.setOptions({ preserveViewport: false });
                         courierMarker.setPosition(new google.maps.LatLng(currLoc.location));
                         initialOrderIdRef.current = orderId;
+                        map.setOptions(mapOptions);
                     }
 
 
@@ -163,7 +167,7 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
         console.log("should be executing and showing every second")
 
         return () => clearInterval(intervalId);
-    }, [courierMarker, directionsService, directionsRenderer, orderId, errorHandler, currLoc]);
+    }, [courierMarker, directionsService, directionsRenderer, orderId, errorHandler, currLoc, pickUpLoading, dropOffLocLoading, currLoading, confirmationPinLoading]);
 
     const handleConfirmationPinClick = () => {
         // Show the customer confirmation pin in the alert message
