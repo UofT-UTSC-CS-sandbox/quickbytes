@@ -97,7 +97,9 @@ app.listen(port, () => {
 
 
 
+
 /*
+
 const updateCourierLocation = (location:any) => {
   const db = admin.database();
   db.ref(`user/7gPDsXFo8WaI9awl87qlbcJsJBx2/currentLocation`).set(location)
@@ -111,8 +113,8 @@ const updateCourierLocation = (location:any) => {
 
 const simulateCourierMovement = ( duration:any) => {
   const steps = duration / 1000;
-  const latStep = 0.001;
-  const lngStep = 0.001
+  const latStep = 0.0001;
+  const lngStep = 0.0001
   let currentLocation = { lat:43.79, lng:-79.18742833862305 };
   let currentStep = 0;
 
@@ -129,9 +131,9 @@ const simulateCourierMovement = ( duration:any) => {
   }, 1000);
 };
 
-const duration = 60000; // Duration in milliseconds (e.g., 60000ms = 60 seconds)
+const duration = 20000; // Duration in milliseconds (e.g., 60000ms = 60 seconds)
 
 simulateCourierMovement(duration);
 
-
 */
+

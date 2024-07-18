@@ -26,15 +26,11 @@ export default function DirectionsMap2({ id, getOrders }: DirectionsMapProps) {
   const [orderId, setOrderId] = useState<string | null>(null);
   const [orderIds, setOrderIds] = useState<string[]>([]);
 
-  const {  data, isLoading, isError} = getOrders(id).useQuery();
-
-  if (isLoading) {
-    console.log("stillloading")
-}
+  const {  data, isLoading, isSuccess, isError} = getOrders(id).useQuery();
 
   useEffect(() => {
     console.log("isloadingggg")
-    if (!isLoading && data) {
+    if (isSuccess && data) {
       console.log(data.data)
       try {
         console.log(data.data.map(orderItem => orderItem.orderId), "id lists ")
@@ -64,9 +60,8 @@ export default function DirectionsMap2({ id, getOrders }: DirectionsMapProps) {
       
 */
 
-  }, [isLoading, id, getOrders, data]);
+  }, [isSuccess, id, getOrders, data]);
 
-  console.log(isLoading)
   if (isLoading) {
     return <div>Loading...</div>;
 }
