@@ -25,8 +25,7 @@ interface GetRoleSettingsResponse {
 }
 
 /**
- * All API functions related to retrieving and updating map tracking information
- * such as map coordinates, wayfinding and estimated time of arrival.
+ * All API functions related to user settings.
  */
 export default {
         /**
