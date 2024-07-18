@@ -61,6 +61,7 @@ export const getUserCurrentLocation = async (req: Request, res: Response) => {
   }
 };
 
+
 export const getCustomerConfirmationPin = async (req: Request, res: Response) => {
   const userId = req.params.userId as string;
 

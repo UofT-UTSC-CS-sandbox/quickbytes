@@ -29,7 +29,7 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
     //const [dropOffCoord, setDropOffCoord] = useState<google.maps.LatLngLiteral | null>(null);
     //const [restaurantName, setRestaurantName] = useState<string | null>(null);
     const initialOrderIdRef = useRef<string | null>(null);
-    const { data: currLoc, isLoading: currLoading, refetch } = trackingService.getCurrentLocation("7gPDsXFo8WaI9awl87qlbcJsJBx2").useQuery();
+    const { data: currLoc, isLoading: currLoading, refetch } = trackingService.getCurrentLocationFromOrder(orderId).useQuery();
 
     console.log(currLoc)
     const { data: pickupLoc, isLoading: pickUpLoading } = trackingService.getPickupLocation(orderId).useQuery();
@@ -91,6 +91,8 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
 
         const fetchLocations = async () => {
             try {
+
+                console.log(orderId)
                 if (currLoading || pickUpLoading || dropOffLocLoading) {
                     return (<p>Loading information...</p>);
                 }
@@ -103,13 +105,17 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
 
                 let destination = pickupLoc;
                 console.log(currLoc)
+
                 /*
+                
                 if (data.status === OrderStatus.EN_ROUTE) {
                     destination = dropOffLoc;
                 } else if (data.status === OrderStatus.AWAITING_PICK_UP) {
                     destination = pickupLoc;
                 }
-                    */
+
+                */
+                    
                 destinationMarker?.setPosition(new google.maps.LatLng(destination));
 
                 directionsService.route({
@@ -118,18 +124,20 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
                     travelMode: google.maps.TravelMode.WALKING,
                     provideRouteAlternatives: false
                 }).then(result => {
-                    directionsRenderer.setDirections(result);
-                    const previousLocation = courierMarker.getPosition()?.toJSON() as google.maps.LatLngLiteral || currLoc.location;
-                    animateCourier(previousLocation, currLoc.location, 1000);
 
                     if (initialOrderIdRef.current === orderId) {
-                        setTimeout(() => {
+                        //setTimeout(() => {
                             directionsRenderer.setOptions({ preserveViewport: true });
-                        }, 100);
+                        //}, 100);
                     } else {
                         directionsRenderer.setOptions({ preserveViewport: false });
                         initialOrderIdRef.current = orderId;
                     }
+
+
+                    directionsRenderer.setDirections(result);
+                    const previousLocation = courierMarker.getPosition()?.toJSON() as google.maps.LatLngLiteral || currLoc.location;
+                    animateCourier(previousLocation, currLoc.location, 1000);
 
                     const routeLeg = result.routes[0].legs[0];
                     setRouteInfo({

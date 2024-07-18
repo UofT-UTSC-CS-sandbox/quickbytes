@@ -93,6 +93,17 @@ export default {
                 enabled: !!userId,
             }),
 
+    getCurrentLocationFromOrder: (orderId: string | undefined) =>
+            useGetEndpoint<GetCurrentLocationResponse>(
+                {
+                    inputUrl: `deliveries/${orderId}/courier-location`,
+                    useAuth: false,
+                },
+                {
+                    queryKey: ['getCurrentLocationFromOrder', orderId],
+                    enabled: !!orderId,
+                }),    
+
     /**
      * Function to fetch the customer confirmation pin from the courier.
      * 

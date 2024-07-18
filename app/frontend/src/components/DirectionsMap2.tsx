@@ -34,9 +34,11 @@ export default function DirectionsMap2({ id, getOrders }: DirectionsMapProps) {
       console.log(data.data)
       try {
         console.log(data.data.map(orderItem => orderItem.orderId), "id lists ")
+        console.log("the id is set this works")
           setOrderIds(data.data.map(orderItem => orderItem.orderId));
           setOrderId(data.data.map(orderItem => orderItem.orderId)[0]); // Safely access the second item
           setLoading(false);
+
       } catch (err) {
           //setDisplayError(err);
           console.log("broken")
@@ -60,11 +62,19 @@ export default function DirectionsMap2({ id, getOrders }: DirectionsMapProps) {
       
 */
 
-  }, [isSuccess, id, getOrders, data]);
+  }, [isSuccess, id, getOrders, data]
+);
+
+useEffect(() =>{
+  setOrderId(orderIds[0]);
+  
+}, [orderIds, isSuccess]);
 
   if (isLoading) {
     return <div>Loading...</div>;
-}
+  }
+
+
 
 
  
