@@ -10,6 +10,8 @@ import { database, ref, onValue } from '../firebaseConfig';
 import OrderStatus from '../model/OrderStatus';
 import deliveryService from '../services/deliveryService';
 import Notification from '../components/Notification';
+import settingService from '../services/settingService';
+import restaurantService from '../services/restaurantService';
 import orderService from '../services/orderService';
 import SingleMarkerMap from '../components/SetDirectionsMap';
 import trackingService from '../services/trackingService';
@@ -43,9 +45,13 @@ const OrderTracking = ({ directionsMapComponent }) => {
     const { data: orderData, error } = deliveryService.getCustomerActiveOrder(userId).useQuery();
     const { data: order } = orderService.getClientActiveOrders(userId).useQuery();
 
+    // get user role and notification settings
+    const { data: settingsData } = settingService.getNotificationSettings(userId).useQuery();
+    const { data: roleData } = settingService.getRoleSettings(userId).useQuery();
     // listen to changes in the order status and show a notification
     useEffect(() => {
-        if (orderData) {
+        // only subscribe to notification if notification settings are enabled for customer
+        if (orderData && settingsData.notification_settings.customerNotifications && roleData.role_settings.customerRole) {
             const orderId = orderData.data;
             setOrderId(orderId);
             const dataRef = ref(database, `orders/${orderId}/tracking/status`);

@@ -1,9 +1,32 @@
 import './Navbar.css';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext'; // Import AuthContext for Firebase authentication
+import { useState, useEffect } from 'react';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import settingService from '../services/settingService';
 
 export default function NavBar() {
   const { currentUser, logout } = useAuth(); // useAuth provides currentUser and logout function
+  const [userId, setUserId] = useState('');
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const auth = getAuth();
+
+    // Get current user uid from Firebase
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+        if (user) {
+            setUserId(user.uid);
+        } else {
+            console.log('No user is signed in.');
+        }
+    });
+    return () => unsubscribeAuth();
+  }, []);
+  
+  // get user role settings
+  const { data: roleData } = settingService.getRoleSettings(userId).useQuery();
+  const { mutate: updateRole } = settingService.updateRole(userId, () => console.log("Successfully updated role")).useMutation();
 
   const handleSignOut = async () => {
     try {
@@ -13,6 +36,19 @@ export default function NavBar() {
     }
   };
 
+  const handleRoleConfirmation = (currRole: boolean | undefined, role: string , path: string) => {
+    if (currRole) {
+      navigate(path);
+    } else {
+      const confirmRole = window.confirm('You do not have the required role to access this page. Do you want to enabled this role and proceed?');
+      if (confirmRole) {
+        updateRole({ role, enabled: true });
+        navigate(path);
+      }
+    }
+  };
+
+  // customer path is temporary, replace with actual path
   return (
     <nav className="navbar">
       <div className="navbar-title">
@@ -23,12 +59,20 @@ export default function NavBar() {
       <div className="navbar-options">
         {currentUser ? (
           <>
-            <Link to="/customer" className="navbar-option">
+            <a
+              className="navbar-option"
+              style={{cursor: 'pointer'}}
+              onClick={() => handleRoleConfirmation(roleData?.role_settings.customerRole, 'customerRole', '/user-page')}
+            >
               Customer
-            </Link>
-            <Link to="/courier" className="navbar-option">
+            </a>
+            <a
+              className="navbar-option"
+              style={{cursor: 'pointer'}}
+              onClick={() => handleRoleConfirmation(roleData?.role_settings.courierRole, 'courierRole', '/deliveries')}
+            >
               Courier
-            </Link>
+            </a>
             <Link to="/settings" className="navbar-option">
               Settings
             </Link>
