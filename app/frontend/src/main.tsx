@@ -15,18 +15,10 @@ import PrivateRoute from './privateRoute';
 import './index.css'
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import  DirectionsMap2 from './components/DirectionsMap.tsx'
-import { getRestaurantOrders, getUserOrders} from './middleware';
-
-import orderService from './services/orderService.ts';
-import restaurantService from './services/restaurantService.ts';
-import DirectionsMap from './components/DirectionsMap.tsx';
 
 import WelcomePage from './pages/WelcomePage.tsx';
 import Deliveries from './pages/Deliveries.tsx';
 import StaffOrders from './pages/StaffOrders.tsx';
-
-import useCurrentLocation from './services/currentLocationServiceCustomer';
  
 
 const queryClient = new QueryClient();
@@ -59,23 +51,12 @@ const theme = createTheme({
 
 
 /*
-const CourierTracking = () => {
-  const { coord } = useParams();
-  return <OrderTracking directionsMapComponent={<DirectionsMap coord={coord} />} />;
-};
-
-
-const CustomerTracking = () => {
-  const { coord } = useParams();
-  return <OrderTracking directionsMapComponent={<DirectionsMap2 id={"1"} getOrders={orderService.getClientActiveOrders} useCurrentLocation={useCurrentLocation}/>} />;
-};
-
-
 const RestaurantTracking = () => {
   const { coord } = useParams();
   return <OrderTracking directionsMapComponent={<DirectionsMap2 id={"3"} getOrders={restaurantService.getRestaurantActiveOrders} useCurrentLocation={useCurrentLocation}/>} />;
 };
 */
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
