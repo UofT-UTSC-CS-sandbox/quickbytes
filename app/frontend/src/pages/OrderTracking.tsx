@@ -8,6 +8,7 @@ import DirectionsMap from '../components/DirectionsMap';
 import NavBar from '../components/Navbar';
 import OrderStatus from '../model/OrderStatus';
 import deliveryService from '../services/deliveryService';
+import DirectionsMap2 from '../components/DirectionsMap2';
 
 
 import restaurantService from '../services/restaurantService';

@@ -93,7 +93,13 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
                     requestAnimationFrame(step);
                 } else {
                     courierMarker.setPosition(new google.maps.LatLng(end));
+                    
                 }
+                const mapOptions = {
+                    center: courierMarker.getPosition(),
+                    zoom: 16,
+                };
+                map.setOptions(mapOptions);
             };
 
             requestAnimationFrame(step);
@@ -108,10 +114,7 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
                 }
 
 
-                const mapOptions = {
-                    center: currLoc.location,
-                    zoom: 16,
-                };
+
 
                 let destination = pickupLoc;
                 console.log(currLoc, "its logged")
@@ -135,6 +138,8 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
                     provideRouteAlternatives: false
                 }).then(result => {
 
+
+
                     if (initialOrderIdRef.current === orderId) {
                         setTimeout(() => {
                             directionsRenderer.setOptions({ preserveViewport: true });
@@ -146,7 +151,6 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
                         directionsRenderer.setOptions({ preserveViewport: false });
                         courierMarker.setPosition(new google.maps.LatLng(currLoc.location));
                         initialOrderIdRef.current = orderId;
-                        //map.setOptions(mapOptions);
                     }
 
 
