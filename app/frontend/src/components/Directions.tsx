@@ -97,7 +97,7 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
                 }
                 const mapOptions = {
                     center: courierMarker.getPosition(),
-                    zoom: 16,
+                    zoom: 19,
                 };
                 map.setOptions(mapOptions);
             };

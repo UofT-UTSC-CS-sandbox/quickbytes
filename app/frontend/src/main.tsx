@@ -15,7 +15,7 @@ import PrivateRoute from './privateRoute';
 import './index.css'
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import  DirectionsMap2 from './components/DirectionsMap2.tsx'
+import  DirectionsMap2 from './components/DirectionsMap.tsx'
 import { getRestaurantOrders, getUserOrders} from './middleware';
 
 import orderService from './services/orderService.ts';
@@ -57,19 +57,25 @@ const theme = createTheme({
 
 //
 
+
+/*
 const CourierTracking = () => {
   const { coord } = useParams();
   return <OrderTracking directionsMapComponent={<DirectionsMap coord={coord} />} />;
 };
+
+
 const CustomerTracking = () => {
   const { coord } = useParams();
   return <OrderTracking directionsMapComponent={<DirectionsMap2 id={"1"} getOrders={orderService.getClientActiveOrders} useCurrentLocation={useCurrentLocation}/>} />;
 };
+
+
 const RestaurantTracking = () => {
   const { coord } = useParams();
   return <OrderTracking directionsMapComponent={<DirectionsMap2 id={"3"} getOrders={restaurantService.getRestaurantActiveOrders} useCurrentLocation={useCurrentLocation}/>} />;
 };
-
+*/
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
@@ -81,10 +87,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <Route path="/user-page" element={<PrivateRoute> <WelcomePage /> </PrivateRoute>} />
             <Route path="/staff/:restaurantId" element={<PrivateRoute> <StaffOrders /> </PrivateRoute>} />
             <Route path="/deliveries" element={<PrivateRoute> <Deliveries /> </PrivateRoute>} />
-            <Route path="/track/customer" element={<PrivateRoute><CustomerTracking/></PrivateRoute>} />
-            <Route path="/track/restaurant" element={<PrivateRoute><RestaurantTracking/></PrivateRoute>} />
             <Route path='/restaurant/:id' element={<PrivateRoute><Menu /></PrivateRoute>} />
-            <Route path="/tracking/:coord" element={<PrivateRoute><CourierTracking /></PrivateRoute>} />
+            <Route path="/tracking" element={<PrivateRoute><OrderTracking /></PrivateRoute>} />
             <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
             <Route path="/sign-up" element={<SignUp />} />
             <Route path="/login" element={<Login />} />

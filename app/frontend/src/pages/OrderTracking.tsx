@@ -8,13 +8,13 @@ import DirectionsMap from '../components/DirectionsMap';
 import NavBar from '../components/Navbar';
 import OrderStatus from '../model/OrderStatus';
 import deliveryService from '../services/deliveryService';
-import DirectionsMap2 from '../components/DirectionsMap2';
+import useCurrentLocation from '../services/currentLocationServiceCustomer';
 
 
 import restaurantService from '../services/restaurantService';
 import orderService from '../services/orderService';
 
-function OrderTracking({ directionsMapComponent }) {
+function OrderTracking() {
     const [userId, setUserId] = useState('');
     const { coord } = useParams();
 
@@ -87,11 +87,15 @@ function OrderTracking({ directionsMapComponent }) {
             progress: undefined,
         });
     };
-
+    console.log(userId, "this is the current user id logged in")
+    
+    //The DirectionsMap wont have the userid fixed once roles such as customer,courier,and restaurant are established
+    //Additionally, the getOrders function should change to restaurantService.getRestaurantActiveOrders if the restaurant is viewing
+    //And useCurrentLocation should change based on if the courier or customer/restaurant is using the view
     return (
         <div>
             <NavBar />
-            {directionsMapComponent}
+            <DirectionsMap id={"1"} getOrders={orderService.getClientActiveOrders} useCurrentLocation={useCurrentLocation} />
             <ToastContainer />
         </div>
     );
