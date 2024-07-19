@@ -3,7 +3,7 @@ import { OrderStatus } from "../schema/Order";
 import { MenuItem } from "../schema/Restaurant";
 import admin from "../firebase-config";
 import { DataSnapshot, Database } from 'firebase-admin/database';
-import { lookupBuilding } from '../utils/lookupBuilding'; 
+import { lookupBuilding } from '../utils/lookupBuilding';
 
 export function getAllRestaurants(req: Request, res: Response) {
     const database = admin.database();
@@ -14,15 +14,15 @@ export function getAllRestaurants(req: Request, res: Response) {
             if (snapshot.exists()) {
                 const restaurants = snapshot.val();
                 const data = restaurants
-                // The restaurants list is actually an array, so need to add ID and filter out null indices
-                .map((restaurant: any, index: number) => ({...restaurant, id: index }))
-                .filter((restaurant: any) => typeof restaurant.information !== 'undefined')
-                // Only return the general information, not menu info
-                .map((restaurant: any) => {
-                    const { categories, ...rest } = restaurant.information;
-                    const id = typeof restaurant.id === 'string' ? restaurant.id : restaurant.id.toString();
-                    return { ...rest, id }
-                });
+                    // The restaurants list is actually an array, so need to add ID and filter out null indices
+                    .map((restaurant: any, index: number) => ({ ...restaurant, id: index }))
+                    .filter((restaurant: any) => typeof restaurant.information !== 'undefined')
+                    // Only return the general information, not menu info
+                    .map((restaurant: any) => {
+                        const { categories, ...rest } = restaurant.information;
+                        const id = typeof restaurant.id === 'string' ? restaurant.id : restaurant.id.toString();
+                        return { ...rest, id }
+                    });
                 res.send({ data });
             } else {
                 res.status(404).send({ data: "Something went wrong" });
@@ -391,7 +391,7 @@ export async function placeOrder(req: Request, res: Response) {
         }
 
         const restaurantId = restaurantIdSnapshot.val();
-      
+
         // Remove this order from the list of in-progress (not yet placed) orders under the user and the restaurant.
         const orderingLocation = database.ref(`user/${userId}/ordering/${restaurantId}`);
         await orderingLocation.remove();
@@ -501,13 +501,12 @@ export async function getPickupLocation(req: Request, res: Response) {
         const orderdata = snapshot.val();
 
         const trackingSnapshot = await database.ref(`orders/${orderId}/tracking`).once('value');
-        
+
         if (trackingSnapshot.exists()) {
             const trackingInfo = trackingSnapshot.val();
             res.status(200).json({
                 lat: trackingInfo.dropOff.lat,
                 lng: trackingInfo.dropOff.lng,
-                dropOffName: trackingInfo.dropOffName
             });
         } else {
             res.status(404).json({ error: 'Pickup location not set' });
@@ -518,23 +517,23 @@ export async function getPickupLocation(req: Request, res: Response) {
     }
 }
 
-export const getActiveRestaurantorders= async (req: Request, res: Response) => {
+export const getActiveRestaurantorders = async (req: Request, res: Response) => {
     const { restaurantId } = req.params;
     const db = admin.database();
     try {
-      const ref = db.ref(`restaurants/${restaurantId}/activeOrders`);
-      const snapshot = await ref.once('value');
-  
-      if (!snapshot.exists()) {
-        return res.status(404).json({ error: 'Restaurant not found or no active orders' });
-      }
-  
-      const activeOrders = snapshot.val();
-      const orderIds = Object.keys(activeOrders);
-  
-      res.status(200).json({ orderIds });
+        const ref = db.ref(`restaurants/${restaurantId}/activeOrders`);
+        const snapshot = await ref.once('value');
+
+        if (!snapshot.exists()) {
+            return res.status(404).json({ error: 'Restaurant not found or no active orders' });
+        }
+
+        const activeOrders = snapshot.val();
+        const orderIds = Object.keys(activeOrders);
+
+        res.status(200).json({ orderIds });
     } catch (error) {
-      console.error('Error getting active orders:', error);
-      res.status(500).json({ error: 'Internal server error' });
+        console.error('Error getting active orders:', error);
+        res.status(500).json({ error: 'Internal server error' });
     }
-  }
+}

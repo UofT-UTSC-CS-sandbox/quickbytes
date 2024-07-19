@@ -18,7 +18,7 @@ export const getUserActiveOrder = async (req: Request, res: Response) => {
 
       // Reference to the specific order
       const orderRef = database.ref(`orders/${activeOrder}`);
-      
+
       // Fetch the order data
       const orderSnapshot = await orderRef.once('value');
 
@@ -27,6 +27,42 @@ export const getUserActiveOrder = async (req: Request, res: Response) => {
         res.status(200).json({ data: order });
       } else {
         res.status(404).json({ message: 'Order not found' });
+      }
+    } else {
+      res.status(404).json({ message: 'No active orders found' });
+    }
+  } catch (error) {
+    console.error('Error retrieving active orders:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+export const getUserActiveOrders = async (req: Request, res: Response) => {
+  const userId = 1;
+  try {
+    // Reference to the user's active orders
+    const userOrdersRef = database.ref(`user/${userId}/activeOrders`);
+    const snapshot = await userOrdersRef.once('value');
+
+    if (snapshot.exists()) {
+      const activeOrders = snapshot.val();
+      const orders = [];
+
+      // Iterate through each active order ID
+      for (const orderId of Object.values(activeOrders)) {
+        // Reference to the specific order
+        const orderRef = database.ref(`orders/${orderId}`);
+        // Fetch the order data
+        const orderSnapshot = await orderRef.once('value');
+        if (orderSnapshot.exists()) {
+          orders.push(orderSnapshot.val());
+        }
+      }
+
+      if (orders.length > 0) {
+        res.status(200).json({ data: orders });
+      } else {
+        res.status(404).json({ message: 'No active orders found' });
       }
     } else {
       res.status(404).json({ message: 'No active orders found' });
@@ -88,17 +124,17 @@ export const getCustomerConfirmationPin = async (req: Request, res: Response) =>
   }
 };
 
-export const updateRole = async(req: Request, res: Response) => {
+export const updateRole = async (req: Request, res: Response) => {
   const { userId } = req.params;
-  const { role, enabled } = req.body; 
+  const { role, enabled } = req.body;
   if (!userId || !role) {
     return res.status(400).json({ success: false, message: 'userId and role are required fields' });
   }
 
   const database = admin.database();
   const userRef = database.ref(`user/${userId}/settings/roles/${role}`);
-  
-  try{
+
+  try {
     await userRef.set(enabled);
     res.status(200).json({ success: true, message: 'Notification setting updated successfully' });
   } catch (error) {
@@ -145,9 +181,9 @@ export const getRoleSettings = async (req: Request, res: Response) => {
   }
 };
 
-export const updateNotification = async(req: Request, res: Response) => {
+export const updateNotification = async (req: Request, res: Response) => {
   const { userId } = req.params;
-  const { role, enabled } = req.body; 
+  const { role, enabled } = req.body;
   if (!userId || !role) {
     return res.status(400).json({ success: false, message: 'userId and role are required fields' });
   }
@@ -155,7 +191,7 @@ export const updateNotification = async(req: Request, res: Response) => {
   const database = admin.database();
   const userRef = database.ref(`user/${userId}/settings/notifications/${role}`);
 
-  try{
+  try {
     await userRef.set(enabled);
     res.status(200).json({ success: true, message: 'Notification setting updated successfully' });
   } catch (error) {
