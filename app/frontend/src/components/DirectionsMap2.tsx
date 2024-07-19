@@ -12,9 +12,10 @@ import restaurantService from '../services/restaurantService';
 interface DirectionsMapProps {
   id: string;
   getOrders: (userId: string) => any;
+  useCurrentLocation: (orderId: string | null) => { currentLocation: any, isLoading: boolean, error: any };
 }
 
-export default function DirectionsMap2({ id, getOrders }: DirectionsMapProps) {
+export default function DirectionsMap2({ id, getOrders, useCurrentLocation }: DirectionsMapProps) {
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string;
   const [displayError, setDisplayError] = useState<Error | null>(null);
   const errorHandler = (err: Error) => {
@@ -88,7 +89,7 @@ useEffect(() =>{
       <div style={{ width: "100%", height: "100vh" }}>
         <APIProvider apiKey={apiKey} onLoad={() => console.log('Maps API has loaded.')}>
           <div className='map-container'>
-            <Directions orderId={orderId} loadHandler={loadHandler} errorHandler={errorHandler} setLoading={setLoading} orderMenu={orderMenu} />
+            <Directions orderId={orderId} loadHandler={loadHandler} errorHandler={errorHandler} setLoading={setLoading} orderMenu={orderMenu} useCurrentLocation={useCurrentLocation} />
             <Map
               id={'map'}
               options={{

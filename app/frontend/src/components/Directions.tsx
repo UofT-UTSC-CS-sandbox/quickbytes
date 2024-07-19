@@ -2,6 +2,7 @@ import { useMap, useMapsLibrary } from '@vis.gl/react-google-maps';
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { Button, Stack } from "@mui/material";
 import './DirectionsMap.css';
+//import useCurrentLocation from '../services/currentLocationServiceCustomer';
 import OrderStatus from '../model/OrderStatus'; // Import OrderStatus
 
 import restaurantService from '../services/restaurantService';
@@ -14,9 +15,10 @@ interface DirectionProps {
     setLoading: React.Dispatch<React.SetStateAction<boolean>>;
     orderId: string | null;
     orderMenu: React.ReactNode;
+    useCurrentLocation: (orderId: string | null) => { currentLocation: any, isLoading: boolean, error: any };
 }
 
-export default function Directions({ errorHandler, loadHandler, orderId, orderMenu, setLoading }: DirectionProps) {
+export default function Directions({ errorHandler, loadHandler, orderId, orderMenu, setLoading, useCurrentLocation }: DirectionProps) {
     const map = useMap("map");
     const routesLibrary = useMapsLibrary("routes");
     const [directionsService, setDirectionsService] = useState<google.maps.DirectionsService>();
@@ -29,13 +31,14 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
     //const [dropOffCoord, setDropOffCoord] = useState<google.maps.LatLngLiteral | null>(null);
     //const [restaurantName, setRestaurantName] = useState<string | null>(null);
     const initialOrderIdRef = useRef<string | null>(null);
-    const { data: currLoc, isLoading: currLoading, refetch } = trackingService.getCurrentLocationFromOrder(orderId).useQuery();
+    //const { data: currLoc, isLoading: currLoading, refetch } = trackingService.getCurrentLocationFromOrder(orderId).useQuery();
 
+    const { currentLocation: currLoc, isLoading: currLoading, error } = useCurrentLocation(orderId);
     console.log(currLoc)
     const { data: pickupLoc, isLoading: pickUpLoading } = trackingService.getPickupLocation(orderId).useQuery();
     const { data: dropOffLoc, isLoading: dropOffLocLoading } = trackingService.getOrderDropoff(orderId).useQuery();
     const { data: confirmationPinData, isLoading: confirmationPinLoading } = trackingService.getCustomerConfirmationPin("7gPDsXFo8WaI9awl87qlbcJsJBx2").useQuery();
-
+    
 
 
     useEffect(() => {
@@ -158,16 +161,16 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
             } catch (error) {
                 errorHandler(error);
             }
-            refetch();
+            //refetch();
             console.log("should've refetched")
         };
 
         fetchLocations();
-        const intervalId = setInterval(fetchLocations, 1000);
-        console.log("should be executing and showing every second")
+        //const intervalId = setInterval(fetchLocations, 1000);
+        //console.log("should be executing and showing every second")
 
-        return () => clearInterval(intervalId);
-    }, [courierMarker, directionsService, directionsRenderer, orderId, errorHandler, currLoc, pickUpLoading, dropOffLocLoading, currLoading, confirmationPinLoading]);
+       // return () => clearInterval(intervalId);
+    }, [courierMarker, directionsService, directionsRenderer, orderId, errorHandler, currLoc,currLoading, pickUpLoading, dropOffLocLoading, currLoading, confirmationPinLoading]);
 
     const handleConfirmationPinClick = () => {
         // Show the customer confirmation pin in the alert message

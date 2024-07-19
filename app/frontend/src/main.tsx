@@ -26,6 +26,9 @@ import WelcomePage from './pages/WelcomePage.tsx';
 import Deliveries from './pages/Deliveries.tsx';
 import StaffOrders from './pages/StaffOrders.tsx';
 
+import useCurrentLocation from './services/currentLocationServiceCustomer';
+ 
+
 const queryClient = new QueryClient();
 const theme = createTheme({
   palette: {
@@ -60,11 +63,11 @@ const CourierTracking = () => {
 };
 const CustomerTracking = () => {
   const { coord } = useParams();
-  return <OrderTracking directionsMapComponent={<DirectionsMap2 id={"1"} getOrders={orderService.getClientActiveOrders}/>} />;
+  return <OrderTracking directionsMapComponent={<DirectionsMap2 id={"1"} getOrders={orderService.getClientActiveOrders} useCurrentLocation={useCurrentLocation}/>} />;
 };
 const RestaurantTracking = () => {
   const { coord } = useParams();
-  return <OrderTracking directionsMapComponent={<DirectionsMap2 id={"3"} getOrders={restaurantService.getRestaurantActiveOrders}/>} />;
+  return <OrderTracking directionsMapComponent={<DirectionsMap2 id={"3"} getOrders={restaurantService.getRestaurantActiveOrders} useCurrentLocation={useCurrentLocation}/>} />;
 };
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
