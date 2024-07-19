@@ -45,7 +45,7 @@ export function getOneRestaurant(req: Request, res: Response) {
 export async function createUserOrder(req: Request, res: Response) {
     const database = admin.database();
     // TODO: Get unique identifier of user from auth and check user is authenticated.
-    const userId = 1; // Replace with actual user ID logic
+    const userId = "1"; // Replace with actual user ID logic
     const restaurantId = req.params.id;
     const { menuItemId, optionSelected, addOnsSelected, quantity } = req.body;
 
@@ -141,20 +141,25 @@ export async function addToOrder(req: Request, res: Response) {
     const database = admin.database();
     const { id: restaurantId, orderId } = req.params;
     const { menuItemId, optionSelected, addOnsSelected, quantity } = req.body;
+    const userId: string = "1"; // TODO: Get unique identifier of user from auth
 
     try {
+        const orderRef = database.ref(`orders/${orderId}`);
+        const snapshot = await orderRef.get();
+        // Ensure that order exists
+        if (!snapshot.exists()) {
+            return res.status(404).send({ data: "Order not found" });
+        }
+        const order = snapshot.val();
         // Prevent adding to order if order already placed
-        const trackingRef = database.ref(`orders/${orderId}/tracking`);
-        const snapshot = await trackingRef.get();
-
-        if (snapshot.exists()) {
-            if (snapshot.val().status !== OrderStatus.ORDERING) {
-                res.status(400).send({ data: "Cannot add items to an order that has already been placed" });
-                return;
-            }
-        } else {
-            res.status(404).send({ data: "Order not found" });
-            return;
+        if (order.tracking.status !== OrderStatus.ORDERING) {
+            return res.status(400).send({ data: "Cannot add items to an order that has already been placed" });
+        }
+        // Only allow the user who placed the order to add items to the order
+        if (order.userId !== userId) {
+            // Reject with 404 instead of 403, so that brute forcing possible IDs
+            // doesn't reveal valid orders.
+            return res.status(404).send({ data: "Order not found" });
         }
 
         // Add menu item to the order
@@ -306,7 +311,7 @@ export function getOrderDropOff(req: Request, res: Response) {
  */
 export async function getCustomerInProgressOrder(req: Request, res: Response) {
     const database = admin.database();
-    const userId = 1; // Replace with actual user ID retrieval logic
+    const userId = "1"; // Replace with actual user ID retrieval logic
     const userOrderLocation = database.ref(`user/${userId}/ordering`);
     let orderIdSnapshot = undefined;
     try {
@@ -343,7 +348,7 @@ export async function getCustomerInProgressOrder(req: Request, res: Response) {
 // Get the only in-progress order for the user
 export async function getActiveOrder(req: Request, res: Response) {
     const database = admin.database();
-    const userId = 1; // Replace with actual user ID retrieval logic
+    const userId: string = "1"; // Replace with actual user ID retrieval logic
     const restaurantId = req.params.id;
     const userOrderLocation = database.ref(`user/${userId}/ordering/${restaurantId}`);
     try {
@@ -435,7 +440,7 @@ export async function placeOrder(req: Request, res: Response) {
     const { orderId } = req.params;
     try {
         // Find the restaurant id of the order
-        const userId = 1;
+        const userId = "1";
         const restaurantIdLocation = database.ref(`orders/${orderId}/restaurantId`);
         const restaurantIdSnapshot = await restaurantIdLocation.get();
         if (!restaurantIdSnapshot.exists() || !restaurantIdSnapshot.val()) {
