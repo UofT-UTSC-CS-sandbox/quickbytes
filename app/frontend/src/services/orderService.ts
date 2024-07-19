@@ -74,6 +74,11 @@ type GetClientActiveOrderResponse = {
                 price: number,
                 quantity: number,
             }>;
+        restaurant: {
+            address: string;
+            restaurantName: string;
+            restaurantId: string
+        }
         price: number;
         id: string;
         status: OrderStatus;
@@ -259,12 +264,29 @@ export default {
             }
         ),
 
+    
     /**
+     * Get the sole order that the user is currently editing or awaiting delivery
+     * for as a customer. This differs from getClientActiveOrders in that it
+     * can also return an order that is being created but not yet placed.
+     * @returns Service endpoint to get the current non-placed order for the user.
+     */
+    getClientInProgressOrder: () => 
+        useGetEndpoint<GetClientActiveOrderResponse>(
+            {
+                inputUrl: `restaurants/my-order`,
+                useAuth: false,
+            },
+            {
+                queryKey: ['getSingleClientActiveOrder'],
+            }
+        ),
+      
+     /**
      * Get the array of active orders corresponding to the particular user.
      * @param userId The ID of the user to get orders for.
      * @returns Service endpoint to get the orders for the user.
      */
-
     getUserActiveOrders: (userId: string) =>
         useGetEndpoint<ActiveOrdersResponse>(
             {

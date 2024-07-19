@@ -17,7 +17,14 @@ export type OrderCart = {
     // The identifier of the order within the database
     id: string,
     // The restaurant ID that the order is for
-    restaurantId: string,
+    restaurant: {
+        // The name of the restaurant
+        restaurantName: string
+        // The ID of the restaurant
+        restaurantId: string
+        // The address of the restaurant
+        address: string
+    }
     // Items in the order, each indexed by their unique key in the database
     items: Record<string, CartItem>,
     // Total price for the order

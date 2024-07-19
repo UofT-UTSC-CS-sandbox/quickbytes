@@ -56,9 +56,22 @@ export function getOneRestaurant(req: Request, res: Response) {
 export async function createUserOrder(req: Request, res: Response) {
     const database = admin.database();
     // TODO: Get unique identifier of user from auth and check user is authenticated.
-    const userId = 1; // Replace with actual user ID logic
+    const userId = "1"; // Replace with actual user ID logic
     const restaurantId = req.params.id;
     const { menuItemId, optionSelected, addOnsSelected, quantity } = req.body;
+
+    // Prevent user from placing this order if there is already an existing one
+    const checkIfOrderingRef = database.ref(`user/${userId}`);
+    // Get information of orders under the user's DB entry
+    const checkIfOrdering = await checkIfOrderingRef.get();
+    if (checkIfOrdering.exists()) {
+        // Reject if there is any order IDs being kept under active orders or ordering
+        if (!!checkIfOrdering.activeOrders || !!checkIfOrdering.ordering) {
+            // Send ambiguous error message
+            res.status(404).send({ data: "Cannot create user order." });
+            return;
+        }
+    }
 
     try {
         // Generate a unique key for the order
@@ -139,20 +152,25 @@ export async function addToOrder(req: Request, res: Response) {
     const database = admin.database();
     const { id: restaurantId, orderId } = req.params;
     const { menuItemId, optionSelected, addOnsSelected, quantity } = req.body;
+    const userId: string = "1"; // TODO: Get unique identifier of user from auth
 
     try {
+        const orderRef = database.ref(`orders/${orderId}`);
+        const snapshot = await orderRef.get();
+        // Ensure that order exists
+        if (!snapshot.exists()) {
+            return res.status(404).send({ data: "Order not found" });
+        }
+        const order = snapshot.val();
         // Prevent adding to order if order already placed
-        const trackingRef = database.ref(`orders/${orderId}/tracking`);
-        const snapshot = await trackingRef.get();
-
-        if (snapshot.exists()) {
-            if (snapshot.val().status !== OrderStatus.ORDERING) {
-                res.status(400).send({ data: "Cannot add items to an order that has already been placed" });
-                return;
-            }
-        } else {
-            res.status(404).send({ data: "Order not found" });
-            return;
+        if (order.tracking.status !== OrderStatus.ORDERING) {
+            return res.status(400).send({ data: "Cannot add items to an order that has already been placed" });
+        }
+        // Only allow the user who placed the order to add items to the order
+        if (order.userId !== userId) {
+            // Reject with 404 instead of 403, so that brute forcing possible IDs
+            // doesn't reveal valid orders.
+            return res.status(404).send({ data: "Order not found" });
         }
 
         // Add menu item to the order
@@ -172,6 +190,15 @@ export async function addItemToOrder(req: Request, res: Response, database: Data
     menuItemId: string, optionSelected: string, addOnsSelected: Record<string, string>, quantity: number
 }) {
     try {
+        // Prevent items from different restaurants from being added together in the same order
+        const orderRestaurantId = `orders/${orderId}/restaurant/restaurantId`;
+        const rIdSnapshot = await database.ref(orderRestaurantId).get();
+
+        if (!rIdSnapshot.exists() || rIdSnapshot.val() !== restaurantId) {
+            res.status(400).send({ data: "Something went wrong", error: "Invalid item combination." });
+            return;
+        }
+
         // Calculate the final price information
         const menuRef = `restaurants/${restaurantId}/information/categories`;
         const snapshot = await admin.database().ref(menuRef).get();
@@ -237,7 +264,7 @@ export async function addItemToOrder(req: Request, res: Response, database: Data
             res.status(201).send({
                 orderKey: orderId,
                 menuKey: itemKey,
-                data: { ...oldOrderObj.order, id: orderId, status: oldOrderObj.tracking.status }
+                data: { ...oldOrderObj.order, id: orderId, status: oldOrderObj.tracking.status, restaurant: oldOrderObj.restaurant }
             });
         } else {
             res.status(404).send({ data: "Something went wrong" });
@@ -287,10 +314,52 @@ export function getOrderDropOff(req: Request, res: Response) {
         });
 }
 
+/**
+ * Get the current order in progress (user is still ordering, or awaiting delivery)
+ * for the logged in user. Looks first for an order under "ordering", then under
+ * "activeOrders". This may differ from other active order endpoints because
+ * it can also return an order that is being created but not yet placed.
+ */
+export async function getCustomerInProgressOrder(req: Request, res: Response) {
+    const database = admin.database();
+    const userId = "1"; // Replace with actual user ID retrieval logic
+    const userOrderLocation = database.ref(`user/${userId}/ordering`);
+    let orderIdSnapshot = undefined;
+    try {
+        orderIdSnapshot = await userOrderLocation.get();
+        if (!orderIdSnapshot.exists()) {
+
+            const userActiveLocation = database.ref(`user/${userId}/activeOrders`);
+            orderIdSnapshot = await userActiveLocation.get();
+
+            if (!orderIdSnapshot.exists()) {
+                res.send({ data: null });
+                return;
+            }
+        }
+        const orderId = Object.values(orderIdSnapshot.val()).at(0);
+        const orderLocation = database.ref(`orders/${orderId}`);
+        const orderSnapshot = await orderLocation.get();
+
+        if (!orderSnapshot.exists()) {
+            res.send({ data: null });
+            return;
+        } else {
+            const value = orderSnapshot.val();
+            const items = value.order.items ?? {};
+            res.send({ data: { ...value.order, items, id: orderId, status: value.tracking.status, restaurant: value.restaurant } });
+            return;
+        }
+    } catch (error) {
+        console.log("getCurrentlyEditingOrder error:", error);
+        res.status(500).send({ data: null });
+    }
+}
+
 // Get the only in-progress order for the user
 export async function getActiveOrder(req: Request, res: Response) {
     const database = admin.database();
-    const userId = 1; // Replace with actual user ID retrieval logic
+    const userId: string = "1"; // Replace with actual user ID retrieval logic
     const restaurantId = req.params.id;
     const userOrderLocation = database.ref(`user/${userId}/ordering/${restaurantId}`);
     try {
@@ -382,7 +451,7 @@ export async function placeOrder(req: Request, res: Response) {
     const { orderId } = req.params;
     try {
         // Find the restaurant id of the order
-        const userId = 1;
+        const userId = "1";
         const restaurantIdLocation = database.ref(`orders/${orderId}/restaurantId`);
         const restaurantIdSnapshot = await restaurantIdLocation.get();
         if (!restaurantIdSnapshot.exists() || !restaurantIdSnapshot.val()) {
