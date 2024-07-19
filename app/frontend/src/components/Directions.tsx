@@ -9,6 +9,10 @@ import restaurantService from '../services/restaurantService';
 import orderService from '../services/orderService';
 import trackingService from '../services/trackingService';
 
+import deliveryService from '../services/deliveryService';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { useNavigate } from 'react-router-dom';
+
 interface DirectionProps {
     errorHandler: (error: Error) => void;
     loadHandler: (loadVal: boolean) => void;
@@ -132,17 +136,17 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
                 }).then(result => {
 
                     if (initialOrderIdRef.current === orderId) {
-                        //setTimeout(() => {
+                        setTimeout(() => {
                             directionsRenderer.setOptions({ preserveViewport: true });
                             
-                        //}, 100);
+                        }, 100);
                     } else {
                         console.log("this should work")
                         
-                        //directionsRenderer.setOptions({ preserveViewport: false });
+                        directionsRenderer.setOptions({ preserveViewport: false });
                         courierMarker.setPosition(new google.maps.LatLng(currLoc.location));
                         initialOrderIdRef.current = orderId;
-                        map.setOptions(mapOptions);
+                        //map.setOptions(mapOptions);
                     }
 
 
@@ -177,6 +181,25 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
         alert(`This is your 4 digit confirmation pin: ${confirmationPin}`);
     };
 
+
+  const {mutate: updateOrderStatus} = deliveryService.updateOrderStatus((d)=> console.log(d.message)).useMutation();
+  const nav = useNavigate();
+
+  const handleUpdateStatus = () => {
+    if (orderId) {
+      const newStatus = OrderStatus.EN_ROUTE; // change later to change status depending on where in the workflow
+      updateOrderStatus({ orderId: orderId, status: newStatus });
+    }
+  };
+
+  const handleCancelOrder = () => {
+    if (orderId) {
+      const newStatus = OrderStatus.CANCELLED; 
+      updateOrderStatus({ orderId: orderId, status: newStatus });
+    }
+    nav('/deliveries');
+  }
+
     return (
         <div className='sidebar-container'>
             <div className='header'>
@@ -196,8 +219,8 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
                 <Button variant="contained" color="primary" size="large" onClick={handleConfirmationPinClick}>Confirmation Pin</Button>
             </Stack>
             <div className='buttons'>
-                <Button variant="contained" sx={{ backgroundColor: 'rgba(163, 0, 0, 1)', color: 'white' }} size="large">one</Button>
-                <Button variant="contained" sx={{ backgroundColor: 'rgba(0, 127, 163, 1)', color: 'white' }} size="large">two</Button>
+                <Button variant="contained" sx={{ backgroundColor: 'rgba(163, 0, 0, 1)', color: 'white' }} size="large" onClick={handleCancelOrder}>Cancel Order</Button>
+                <Button variant="contained" sx={{ backgroundColor: 'rgba(0, 127, 163, 1)', color: 'white' }} size="large" onClick={handleUpdateStatus}>Notify</Button>
             </div>
         </div>
     );

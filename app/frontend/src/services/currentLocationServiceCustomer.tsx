@@ -9,7 +9,7 @@ const useCurrentLocation = (orderId: string | null) => {
         if (data) {
             setCurrentLocation(data);
         }
-    }, [data]);
+    }, [data, orderId]);
 
     useEffect(() => {
         if (!orderId) return;
