@@ -49,12 +49,15 @@ function OrderTracking() {
     const { data: order } = orderService.getClientActiveOrders(userId).useQuery();
 
     // get user role and notification settings
-    const { data: settingsData } = settingService.getNotificationSettings(userId).useQuery();
-    const { data: roleData } = settingService.getRoleSettings(userId).useQuery();
+    const { data: settingsData, isLoading: settingLoad } = settingService.getNotificationSettings(userId).useQuery();
+    const { data: roleData, isLoading: roleLoad } = settingService.getRoleSettings(userId).useQuery();
     // listen to changes in the order status and show a notification
     useEffect(() => {
         // only subscribe to notification if notification settings are enabled for customer
-        if (orderData && settingsData.notification_settings.customerNotifications && roleData.role_settings.customerRole) {
+        if(settingLoad || roleLoad){
+          return;
+        }
+        if (orderData && settingsData?.notification_settings?.customerNotifications && roleData?.role_settings?.customerRole) {
             const orderId = orderData.data;
             setOrderId(orderId);
             const dataRef = ref(database, `orders/${orderId}/tracking/status`);

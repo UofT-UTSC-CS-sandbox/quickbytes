@@ -18,6 +18,8 @@ import restaurantService from '../services/restaurantService';
 import uberMapStyle from './mapStyles.json';
 import OrderMenu from './OrderMenu'; // Import the new OrderMenu component
 
+import Directions from './Directions';
+
 
 
 interface DirectionsMapProps {

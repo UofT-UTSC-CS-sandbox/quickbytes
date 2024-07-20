@@ -97,7 +97,7 @@ app.listen(port, () => {
 
 
 
-/*
+
 const updateCourierLocation = (location:any) => {
   const db = admin.database();
   db.ref(`user/7gPDsXFo8WaI9awl87qlbcJsJBx2/currentLocation`).set(location)
@@ -134,4 +134,4 @@ const duration = 20000; // Duration in milliseconds (e.g., 60000ms = 60 seconds)
 simulateCourierMovement(duration);
 
 
-*/
+
