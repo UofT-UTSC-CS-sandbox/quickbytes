@@ -27,13 +27,13 @@ Our decision to overlap sprint tasks with ongoing maintenance work ended up comp
 
 2. Overlooking Minor Bugs
 
-Minor bugs very overlooked, which eventually led to a buildup of small issues that collectively degraded the user experience such as in the map components. The bugs were resolved during the refactoring process, but complicated the task. This decision emphasized the need to address all levels of bugs to maintain overall application quality.
+	Minor bugs very overlooked, which eventually led to a buildup of small issues that collectively degraded the user experience such as in the map components. The bugs were resolved during the refactoring process, but complicated the task. This decision emphasized the need to address all levels of bugs to maintain overall application quality.
 
 #### Planned changes
 
 1. Separate Development and Maintenance Tasks
 
-We will separate feature development from maintenance tasks to avoid inneficiencies. This change aims to streamline our workflow and ensure that both development and maintenance receive adequate attention without causing conflicts.
+	We will separate feature development from maintenance tasks to avoid inneficiencies. This change aims to streamline our workflow and ensure that both development and maintenance receive adequate attention without causing conflicts.
 
 ## Product - Review
 
