@@ -1,5 +1,5 @@
 import express from 'express';
-import { getUserActiveOrder, getUserCurrentLocation, getCustomerConfirmationPin, updateNotification, updateRole, getNotificationSettings, getRoleSettings, getUserActiveOrders } from '../controllers/userController';
+import { getUserActiveOrder, getUserCurrentLocation, getCustomerConfirmationPin, updateNotification, updateRole, getNotificationSettings, getRoleSettings, getUserActiveOrders, getUserActiveDelivery } from '../controllers/userController';
 
 const router = express.Router();
 
@@ -11,6 +11,6 @@ router.get('/:userId/get-confirm-pin', getCustomerConfirmationPin);
 router.get('/:userId/getNotificationSettings', getNotificationSettings);
 router.get('/:userId/getRoleSettings', getRoleSettings);
 router.get('/:userId/activeOrders', getUserActiveOrders);
-
+router.get('/:userId/activeDelivery', getUserActiveDelivery);
 
 export default router;
