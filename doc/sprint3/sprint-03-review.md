@@ -23,7 +23,7 @@ During this sprint, we focused on refining our processes to enhance team efficie
 
 1. Overlapping Sprint Tasks with Maintenance Work
 
-Our decision to overlap sprint tasks with ongoing maintenance work ended up complicating certain tasks. While the intention was to maximize productivity, the dual focus hindered some progress due to the fact that maintenance work would be done on one branch while sprint tasks were done seperately on an unmaintained copy of the files. This decision outlined that it may be helpful to order certain tasks in terms of completion in order to avoid certain inefficiencies.
+	Our decision to overlap sprint tasks with ongoing maintenance work ended up complicating certain tasks. While the intention was to maximize productivity, the dual focus hindered some progress due to the fact that maintenance work would be done on one branch while sprint tasks were done seperately on an unmaintained copy of the files. This decision outlined that it may be helpful to order certain tasks in terms of completion in order to avoid certain inefficiencies.
 
 2. Overlooking Minor Bugs
 
