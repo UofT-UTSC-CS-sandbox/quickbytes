@@ -460,7 +460,6 @@ export async function placeOrder(req: Request, res: Response) {
         }
 
         const restaurantId = restaurantIdSnapshot.val();
-
         // Remove this order from the list of in-progress (not yet placed) orders under the user and the restaurant.
         const orderingLocation = database.ref(`user/${userId}/ordering/${restaurantId}`);
         await orderingLocation.remove();
