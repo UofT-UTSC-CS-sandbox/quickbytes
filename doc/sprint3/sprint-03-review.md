@@ -51,6 +51,15 @@ During this sprint, we focused on refining our processes to enhance team efficie
     - Removed route options
     - Added service to provide continuous updates of courier current location.
     - Refactored and reorganized code for reusability for different user roles (courier, customer etc)
+5. Change Notification Settings
+    - Artifact: The [courier delivery component](../../app/frontend/src/components/CourierDelivery.tsx)
+6. Notification Upon Courier Arrival
+    - Artifact: The [courier delivery component](../../app/frontend/src/components/CourierDelivery.tsx)
+8. Update Pickup Location
+9. Order Cancellation
+10. Browse through Restaurants
+11. Fix Page Redirect Flow
+
 
 ## Meeting Highlights
 
