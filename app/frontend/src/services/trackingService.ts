@@ -15,7 +15,8 @@ type GetOrderDropoffResponse = {
  */
 type GetPickupLocationResponse = {
     lat: number,
-    lng: number
+    lng: number,
+    dropOffName: string
 }
 
 
@@ -76,6 +77,18 @@ export default {
             }
         ),
 
+    getRestaurantLocation: (orderID: string | undefined) =>
+        useGetEndpoint<GetPickupLocationResponse>(
+            {
+                inputUrl: `restaurants/order/${orderID}/restaurant-location`,
+                useAuth: false
+            },
+            {
+                queryKey: ['getRestaurantLocation', orderID],
+                enabled: !!orderID,
+            }
+        ),
+
     /**
      * Function to fetch the current location of a user.
      * 
@@ -92,6 +105,17 @@ export default {
                 queryKey: ['getCurrentLocation', userId],
                 enabled: !!userId,
             }),
+
+    getCurrentLocationFromOrder: (orderId: string | undefined) =>
+            useGetEndpoint<GetCurrentLocationResponse>(
+                {
+                    inputUrl: `deliveries/${orderId}/courier-location`,
+                    useAuth: false,
+                },
+                {
+                    queryKey: ['getCurrentLocationFromOrder', orderId],
+                    enabled: !!orderId,
+                }),    
 
     /**
      * Function to fetch the customer confirmation pin from the courier.

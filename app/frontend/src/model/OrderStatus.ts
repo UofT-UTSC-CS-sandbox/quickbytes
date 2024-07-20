@@ -8,6 +8,8 @@ enum OrderStatus {
     ACCEPTED = 'ACCEPTED',
     // Once the restaurant worker has indicated that the food is ready for pickup
     AWAITING_PICK_UP = 'AWAITING-PICK-UP',
+    // Once the courier has indicated that they have arrived at the restaurant
+    ARRIVED = 'ARRIVED',
     // Once a courier has picked up the order from the restaurant and is en-route to customer
     EN_ROUTE = 'EN-ROUTE',
     // Once the courier and customer have met and handed over the order.
@@ -32,6 +34,27 @@ export function convertOrderStatusToString(orderStatus: OrderStatus) {
             return 'Delivered to customer';
         case OrderStatus.CANCELLED:
             return 'Order cancelled';
+        default:
+            return orderStatus
+    }
+}
+
+export function convertOrderStatusToStringCustomerFriendly(orderStatus: OrderStatus) {
+    switch (orderStatus) {
+        case OrderStatus.ORDERING:
+            return 'Your order has not been placed yet.';
+        case OrderStatus.ORDERED:
+            return 'We are currently waiting to match a courier to your order.';
+        case OrderStatus.ACCEPTED:
+            return 'Your order is being prepared.';
+        case OrderStatus.AWAITING_PICK_UP:
+            return 'The courier is en route to pick up your order.';
+        case OrderStatus.EN_ROUTE:
+            return 'The courier is currently on the way to your delivery location.';
+        case OrderStatus.DELIVERED:
+            return 'Your order was successfully delivered.';
+        case OrderStatus.CANCELLED:
+            return 'Your order was cancelled.';
         default:
             return orderStatus
     }

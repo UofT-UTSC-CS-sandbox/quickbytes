@@ -5,7 +5,7 @@ is not verified and they try to access the protected page.
 */
 
 import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation  } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 import { auth } from './firebaseConfig';
 import { signOut} from 'firebase/auth';
@@ -20,12 +20,14 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
   //the verification-instructions page in the case that the email has not been verified yet (this functionality has issues)
   const { currentUser, loading} = useAuth();
 
+  const location = useLocation();
+
   if (loading) {
     return <div>Loading...</div>;
   }
 
   if (!currentUser) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" state={{ from: location }} />;
   }
 
   
@@ -33,8 +35,7 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
   if(!auth.currentUser?.emailVerified){
     signOut(auth);
     alert('Please verify your email address before logging in.');
-    return <Navigate to="/login" />;
-    //return <Navigate to="/verification-instructions" />;
+    return <Navigate to="/login" state={{ from: location }} />;
   }
 
   return <>{children}</>;

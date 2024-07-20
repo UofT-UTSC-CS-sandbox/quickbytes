@@ -25,14 +25,12 @@ const RestaurantMenu = () => {
     const [item, setItem] = useState<MenuItem | null>(null);
     const [order, setOrder] = useState<OrderCart | null>(null);
 
-    // Fetch the any in-progress orders that the user has with the restaurant
-    // that haven't been placed yet.
-    const { data: activeOrder, isError: isActiveOrderError, error: activeOrderError } = orderService.getClientActiveOrder(id).useQuery();
+    // Fetch the any in-progress orders that the user has with ANY restaurant
+    const { data: activeOrder, isError: isActiveOrderError, error: activeOrderError } = orderService.getClientInProgressOrder().useQuery();
     useEffect(() => {
         if (activeOrder?.data && !isActiveOrderError && id) {
             setOrder({
                 ...activeOrder.data,
-                restaurantId: id,
                 items: activeOrder.data.items ?? {},
                 price: activeOrder.data.price ?? 0,
             });
@@ -121,7 +119,7 @@ const RestaurantMenu = () => {
                             <Typography>Choose a menu category to start browsing.</Typography>
                     }
                 </Stack>
-                <CheckoutCart order={order} setOrder={setOrder}/>
+                { order && id && <CheckoutCart order={order} setOrder={setOrder} pageRestaurantId={id} /> }
             </Stack>
             {(item && id) &&
                 <Dialog open={!!item} onClose={() => setItem(null)} fullWidth maxWidth="sm">

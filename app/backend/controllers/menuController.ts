@@ -3,6 +3,7 @@ import { OrderStatus } from "../schema/Order";
 import { MenuItem } from "../schema/Restaurant";
 import admin from "../firebase-config";
 import { DataSnapshot, Database } from 'firebase-admin/database';
+import { lookupBuilding } from '../utils/lookupBuilding';
 
 export function getAllRestaurants(req: Request, res: Response) {
     const database = admin.database();
@@ -11,7 +12,18 @@ export function getAllRestaurants(req: Request, res: Response) {
     restaurantsRef.once('value')
         .then((snapshot: DataSnapshot) => {
             if (snapshot.exists()) {
-                res.send({ data: snapshot.val() });
+                const restaurants = snapshot.val();
+                const data = restaurants
+                    // The restaurants list is actually an array, so need to add ID and filter out null indices
+                    .map((restaurant: any, index: number) => ({ ...restaurant, id: index }))
+                    .filter((restaurant: any) => typeof restaurant.information !== 'undefined')
+                    // Only return the general information, not menu info
+                    .map((restaurant: any) => {
+                        const { categories, ...rest } = restaurant.information;
+                        const id = typeof restaurant.id === 'string' ? restaurant.id : restaurant.id.toString();
+                        return { ...rest, id }
+                    });
+                res.send({ data });
             } else {
                 res.status(404).send({ data: "Something went wrong" });
             }
@@ -44,9 +56,22 @@ export function getOneRestaurant(req: Request, res: Response) {
 export async function createUserOrder(req: Request, res: Response) {
     const database = admin.database();
     // TODO: Get unique identifier of user from auth and check user is authenticated.
-    const userId = 1; // Replace with actual user ID logic
+    const userId = "1"; // Replace with actual user ID logic
     const restaurantId = req.params.id;
     const { menuItemId, optionSelected, addOnsSelected, quantity } = req.body;
+
+    // Prevent user from placing this order if there is already an existing one
+    const checkIfOrderingRef = database.ref(`user/${userId}`);
+    // Get information of orders under the user's DB entry
+    const checkIfOrdering = await checkIfOrderingRef.get();
+    if (checkIfOrdering.exists()) {
+        // Reject if there is any order IDs being kept under active orders or ordering
+        if (!!checkIfOrdering.activeOrders || !!checkIfOrdering.ordering) {
+            // Send ambiguous error message
+            res.status(404).send({ data: "Cannot create user order." });
+            return;
+        }
+    }
 
     try {
         // Generate a unique key for the order
@@ -127,20 +152,25 @@ export async function addToOrder(req: Request, res: Response) {
     const database = admin.database();
     const { id: restaurantId, orderId } = req.params;
     const { menuItemId, optionSelected, addOnsSelected, quantity } = req.body;
+    const userId: string = "1"; // TODO: Get unique identifier of user from auth
 
     try {
+        const orderRef = database.ref(`orders/${orderId}`);
+        const snapshot = await orderRef.get();
+        // Ensure that order exists
+        if (!snapshot.exists()) {
+            return res.status(404).send({ data: "Order not found" });
+        }
+        const order = snapshot.val();
         // Prevent adding to order if order already placed
-        const trackingRef = database.ref(`orders/${orderId}/tracking`);
-        const snapshot = await trackingRef.get();
-
-        if (snapshot.exists()) {
-            if (snapshot.val().status !== OrderStatus.ORDERING) {
-                res.status(400).send({ data: "Cannot add items to an order that has already been placed" });
-                return;
-            }
-        } else {
-            res.status(404).send({ data: "Order not found" });
-            return;
+        if (order.tracking.status !== OrderStatus.ORDERING) {
+            return res.status(400).send({ data: "Cannot add items to an order that has already been placed" });
+        }
+        // Only allow the user who placed the order to add items to the order
+        if (order.userId !== userId) {
+            // Reject with 404 instead of 403, so that brute forcing possible IDs
+            // doesn't reveal valid orders.
+            return res.status(404).send({ data: "Order not found" });
         }
 
         // Add menu item to the order
@@ -160,6 +190,15 @@ export async function addItemToOrder(req: Request, res: Response, database: Data
     menuItemId: string, optionSelected: string, addOnsSelected: Record<string, string>, quantity: number
 }) {
     try {
+        // Prevent items from different restaurants from being added together in the same order
+        const orderRestaurantId = `orders/${orderId}/restaurant/restaurantId`;
+        const rIdSnapshot = await database.ref(orderRestaurantId).get();
+
+        if (!rIdSnapshot.exists() || rIdSnapshot.val() !== restaurantId) {
+            res.status(400).send({ data: "Something went wrong", error: "Invalid item combination." });
+            return;
+        }
+
         // Calculate the final price information
         const menuRef = `restaurants/${restaurantId}/information/categories`;
         const snapshot = await admin.database().ref(menuRef).get();
@@ -225,7 +264,7 @@ export async function addItemToOrder(req: Request, res: Response, database: Data
             res.status(201).send({
                 orderKey: orderId,
                 menuKey: itemKey,
-                data: { ...oldOrderObj.order, id: orderId, status: oldOrderObj.tracking.status }
+                data: { ...oldOrderObj.order, id: orderId, status: oldOrderObj.tracking.status, restaurant: oldOrderObj.restaurant }
             });
         } else {
             res.status(404).send({ data: "Something went wrong" });
@@ -240,7 +279,7 @@ export function getOrder(req: Request, res: Response) {
     const database = admin.database();
     const { orderId } = req.params;
 
-    admin.database().ref(`orders/${orderId}`).get()
+    database.ref(`orders/${orderId}`).get()
         .then((snapshot: DataSnapshot) => {
             if (snapshot.exists()) {
                 const value = snapshot.val();
@@ -275,10 +314,52 @@ export function getOrderDropOff(req: Request, res: Response) {
         });
 }
 
+/**
+ * Get the current order in progress (user is still ordering, or awaiting delivery)
+ * for the logged in user. Looks first for an order under "ordering", then under
+ * "activeOrders". This may differ from other active order endpoints because
+ * it can also return an order that is being created but not yet placed.
+ */
+export async function getCustomerInProgressOrder(req: Request, res: Response) {
+    const database = admin.database();
+    const userId = "1"; // Replace with actual user ID retrieval logic
+    const userOrderLocation = database.ref(`user/${userId}/ordering`);
+    let orderIdSnapshot = undefined;
+    try {
+        orderIdSnapshot = await userOrderLocation.get();
+        if (!orderIdSnapshot.exists()) {
+
+            const userActiveLocation = database.ref(`user/${userId}/activeOrders`);
+            orderIdSnapshot = await userActiveLocation.get();
+
+            if (!orderIdSnapshot.exists()) {
+                res.send({ data: null });
+                return;
+            }
+        }
+        const orderId = Object.values(orderIdSnapshot.val()).at(0);
+        const orderLocation = database.ref(`orders/${orderId}`);
+        const orderSnapshot = await orderLocation.get();
+
+        if (!orderSnapshot.exists()) {
+            res.send({ data: null });
+            return;
+        } else {
+            const value = orderSnapshot.val();
+            const items = value.order.items ?? {};
+            res.send({ data: { ...value.order, items, id: orderId, status: value.tracking.status, restaurant: value.restaurant } });
+            return;
+        }
+    } catch (error) {
+        console.log("getCurrentlyEditingOrder error:", error);
+        res.status(500).send({ data: null });
+    }
+}
+
 // Get the only in-progress order for the user
 export async function getActiveOrder(req: Request, res: Response) {
     const database = admin.database();
-    const userId = 1; // Replace with actual user ID retrieval logic
+    const userId: string = "1"; // Replace with actual user ID retrieval logic
     const restaurantId = req.params.id;
     const userOrderLocation = database.ref(`user/${userId}/ordering/${restaurantId}`);
     try {
@@ -370,7 +451,7 @@ export async function placeOrder(req: Request, res: Response) {
     const { orderId } = req.params;
     try {
         // Find the restaurant id of the order
-        const userId = 1;
+        const userId = "1";
         const restaurantIdLocation = database.ref(`orders/${orderId}/restaurantId`);
         const restaurantIdSnapshot = await restaurantIdLocation.get();
         if (!restaurantIdSnapshot.exists() || !restaurantIdSnapshot.val()) {
@@ -379,7 +460,6 @@ export async function placeOrder(req: Request, res: Response) {
         }
 
         const restaurantId = restaurantIdSnapshot.val();
-      
         // Remove this order from the list of in-progress (not yet placed) orders under the user and the restaurant.
         const orderingLocation = database.ref(`user/${userId}/ordering/${restaurantId}`);
         await orderingLocation.remove();
@@ -390,18 +470,58 @@ export async function placeOrder(req: Request, res: Response) {
         await activeOrderLocation.update({ [restaurantId]: orderId });
         await database.ref(`restaurants/${restaurantId}/activeOrders/`).update({ [orderId]: true });
 
-        // Update the order status to ORDERED
-        const trackingLocation = database.ref(`orders/${orderId}/tracking`);
-        await trackingLocation.update({ status: OrderStatus.ORDERED });
-
-        // Send back the order in the response
+        // Get the order information to update tracking
         const orderLocation = database.ref(`orders/${orderId}`);
         const orderSnapshot = await orderLocation.get();
 
         if (orderSnapshot.exists()) {
-            const items = orderSnapshot.val().order.items ?? {};
+            const orderInfo = orderSnapshot.val();
+            const items = orderInfo.order.items ?? {};
+
+            // Save a distance and time estimate from the restaurant to pick up
+            const restaurantLocation = database.ref(`restaurants/${restaurantId}/information`);
+            const restaurantSnapshot = await restaurantLocation.get();
+            const restaurantValues = restaurantSnapshot.val();
+            const queryParams = new URLSearchParams({
+                origins: `${restaurantValues.coordinateX},${restaurantValues.coordinateY}`,
+                destinations: `${orderInfo.tracking.dropOff.lat},${orderInfo.tracking.dropOff.lng}`,
+                mode: 'walking',
+                key: process.env.GOOGLE_MAPS_API_KEY as string
+            });
+            const distanceMatrixRequestURL = `https://maps.googleapis.com/maps/api/distancematrix/json?${queryParams}`;
+            const distanceMatrixResponse = await fetch(distanceMatrixRequestURL);
+
+            // If the connection fails, log and return an error
+            if (!distanceMatrixResponse.ok) {
+                console.log("Internal server error. Could not connect to map services. Status:", distanceMatrixResponse.status, "-", distanceMatrixResponse.statusText, "Tried URL:", distanceMatrixRequestURL);
+                res.status(500).send("Internal server error. Could not connect to map services.");
+                return;
+            }
+
+            const distanceMatrixData = await distanceMatrixResponse.json();
+
+            // If GCP API call fails or is rejected, log and return an error
+            if (distanceMatrixData.status !== 'OK') {
+                console.log("Internal server error. Could not use map services. Status:", distanceMatrixData.status, "Tried URL:", distanceMatrixRequestURL);
+                res.status(500).send("Internal server error. Could not use map services.");
+                return;
+            }
+
+            // Save the distance and time estimates under the estimates information on the order tracking
+            const distanceMatrixEstimates = database.ref(`orders/${orderId}/estimates`);
+            await distanceMatrixEstimates.set({
+                distanceMeters: distanceMatrixData.rows[0].elements[0].distance.value,
+                distance: distanceMatrixData.rows[0].elements[0].distance.text,
+                time: distanceMatrixData.rows[0].elements[0].duration.text,
+                timeSeconds: distanceMatrixData.rows[0].elements[0].duration.value
+            })
+
+            // Update the order status to ORDERED
+            const trackingLocation = database.ref(`orders/${orderId}/tracking`);
+            await trackingLocation.update({ status: OrderStatus.ORDERED });
+
             res.send({
-                data: { ...orderSnapshot.val().order, items, id: orderId, status: orderSnapshot.val().tracking.status },
+                data: { ...orderInfo.order, items, id: orderId, status: orderInfo.tracking.status },
                 orderKey: orderId
             });
         } else {
@@ -420,14 +540,18 @@ export async function setPickupLocation(req: Request, res: Response) {
     const database = admin.database();
     const dropOffLocation = `orders/${orderId}/tracking/dropOff`;
 
+    const building = lookupBuilding(lat, lng);
+    const locationName = building ? building.name : "On campus";
+
     const updates: Record<string, any> = {
         [`${dropOffLocation}/lat`]: lat,
-        [`${dropOffLocation}/lng`]: lng
+        [`${dropOffLocation}/lng`]: lng,
+        [`orders/${orderId}/tracking/dropOffName`]: locationName,
     };
 
     try {
         await database.ref().update(updates);
-        res.status(200).send({ message: "Pickup location updated successfully." });
+        res.status(200).send({ dropOff: { lat, lng }, dropOffName: locationName });
     } catch (error) {
         console.error("Error updating pickup location:", error);
         res.status(500).send("Internal server error");
@@ -435,6 +559,34 @@ export async function setPickupLocation(req: Request, res: Response) {
 }
 
 export async function getPickupLocation(req: Request, res: Response) {
+    const { orderId } = req.params;
+
+    const database = admin.database();
+    const orderref = `orders/${orderId}`;
+
+    try {
+        const snapshot = await database.ref(orderref).once("value");
+        const orderdata = snapshot.val();
+
+        const trackingSnapshot = await database.ref(`orders/${orderId}/tracking`).once('value');
+
+        if (trackingSnapshot.exists()) {
+            const trackingInfo = trackingSnapshot.val();
+            res.status(200).json({
+                lat: trackingInfo.dropOff.lat,
+                lng: trackingInfo.dropOff.lng,
+                dropOffName: trackingInfo.dropOffName
+            });
+        } else {
+            res.status(404).json({ error: 'Pickup location not set' });
+        }
+    } catch (error) {
+        console.error("Error fetching pickup location:", error);
+        res.status(500).send("Internal server error");
+    }
+}
+
+export async function getRestaurantLocation(req: Request, res: Response) {
     const { orderId } = req.params;
 
     const database = admin.database();
@@ -464,19 +616,19 @@ export const getActiveRestaurantorders= async (req: Request, res: Response) => {
     const { restaurantId } = req.params;
     const db = admin.database();
     try {
-      const ref = db.ref(`restaurants/${restaurantId}/activeOrders`);
-      const snapshot = await ref.once('value');
-  
-      if (!snapshot.exists()) {
-        return res.status(404).json({ error: 'Restaurant not found or no active orders' });
-      }
-  
-      const activeOrders = snapshot.val();
-      const orderIds = Object.keys(activeOrders);
-  
-      res.status(200).json({ orderIds });
+        const ref = db.ref(`restaurants/${restaurantId}/activeOrders`);
+        const snapshot = await ref.once('value');
+
+        if (!snapshot.exists()) {
+            return res.status(404).json({ error: 'Restaurant not found or no active orders' });
+        }
+
+        const activeOrders = snapshot.val();
+        const orderIds = Object.keys(activeOrders);
+
+        res.status(200).json({ orderIds });
     } catch (error) {
-      console.error('Error getting active orders:', error);
-      res.status(500).json({ error: 'Internal server error' });
+        console.error('Error getting active orders:', error);
+        res.status(500).json({ error: 'Internal server error' });
     }
-  }
+}

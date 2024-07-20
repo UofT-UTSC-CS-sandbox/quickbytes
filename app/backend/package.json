@@ -1,6 +1,8 @@
 {
   "dependencies": {
     "@googlemaps/js-api-loader": "^1.16.6",
+    "@turf/boolean-point-in-polygon": "^7.0.0",
+    "@turf/helpers": "^7.0.0",
     "@vis.gl/react-google-maps": "^1.0.2",
     "axios": "^1.7.2",
     "cors": "^2.8.5",
