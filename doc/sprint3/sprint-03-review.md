@@ -43,8 +43,14 @@ During this sprint, we focused on refining our processes to enhance team efficie
     - Artifact: The [order tracking page](../../app/frontend/src/pages/OrderTracking.tsx)
 2. View active orders
     - Artifact: The [customer orders component](../../app/frontend/src/components/CustomerOrders.tsx)
-4. View active deliveries
+3. View active deliveries
     - Artifact: The [courier delivery component](../../app/frontend/src/components/CourierDelivery.tsx)
+4. Refactor DirectionsMap and Directions
+    - Artifact: [DirectionsMap](../../app/frontend/src/components/DirectionsMap.tsx), [Directions](../../app/frontend/src/components/Directions.tsx)
+    - Removed bugs related to marker movement.
+    - Removed route options
+    - Added service to provide continuous updates of courier current location.
+    - Refactored and reorganized code for reusability for different user roles (courier, customer etc)
 
 ## Meeting Highlights
 
