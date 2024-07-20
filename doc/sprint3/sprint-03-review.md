@@ -41,6 +41,10 @@ During this sprint, we focused on refining our processes to enhance team efficie
 
 1. Order status updating
     - Artifact: The [order tracking page](../../app/frontend/src/pages/OrderTracking.tsx)
+2. View active orders
+    - Artifact: The [customer orders component](../../app/frontend/src/components/CustomerOrders.tsx)
+4. View active deliveries
+    - Artifact: The [courier delivery component](../../app/frontend/src/components/CourierDelivery.tsx)
 
 ## Meeting Highlights
 
