@@ -4,26 +4,47 @@ import { useAuth } from '../AuthContext'; // Import AuthContext for Firebase aut
 import { useState, useEffect } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import settingService from '../services/settingService';
+import { Badge, IconButton, Tooltip, styled, Drawer, Box, Typography } from '@mui/material';
+import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
+import CloseIcon from '@mui/icons-material/Close';
+import orderService from '../services/orderService';
+import CustomerOrders from './CustomerOrders';
+
+const TranslucentBadge = styled(Badge)(({ theme }) => ({
+  '& .MuiBadge-badge': {
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Change this to desired translucency
+    color: theme.palette.secondary.main,
+  },
+}));
 
 export default function NavBar() {
   const { currentUser, logout } = useAuth(); // useAuth provides currentUser and logout function
   const [userId, setUserId] = useState('');
+  const [activeLink, setActiveLink] = useState('');
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const navigate = useNavigate();
+  const { data: orders } = orderService.getUserActiveOrders(userId).useQuery();
+  const activeOrderCount = Array.isArray(orders?.data) ? orders.data.length : 0;
+
 
   useEffect(() => {
     const auth = getAuth();
 
     // Get current user uid from Firebase
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
-        if (user) {
-            setUserId(user.uid);
-        } else {
-            console.log('No user is signed in.');
-        }
+      if (user) {
+        setUserId(user.uid);
+      } else {
+        console.log('No user is signed in.');
+      }
     });
     return () => unsubscribeAuth();
   }, []);
-  
+
+  useEffect(() => {
+    setActiveLink(location.pathname);
+  }, [location]);
+
   // get user role settings
   const { data: roleData } = settingService.getRoleSettings(userId).useQuery();
   const { mutate: updateRole } = settingService.updateRole(userId, () => console.log("Successfully updated role")).useMutation();
@@ -36,7 +57,7 @@ export default function NavBar() {
     }
   };
 
-  const handleRoleConfirmation = (currRole: boolean | undefined, role: string , path: string) => {
+  const handleRoleConfirmation = (currRole: boolean | undefined, role: string, path: string) => {
     if (currRole) {
       navigate(path);
     } else {
@@ -46,6 +67,16 @@ export default function NavBar() {
         navigate(path);
       }
     }
+  };
+
+  const toggleDrawer = (open: boolean) => (event: React.KeyboardEvent | React.MouseEvent) => {
+    if (
+      event.type === 'keydown' &&
+      ((event as React.KeyboardEvent).key === 'Tab' || (event as React.KeyboardEvent).key === 'Shift')
+    ) {
+      return;
+    }
+    setDrawerOpen(open);
   };
 
   // customer path is temporary, replace with actual path
@@ -61,14 +92,14 @@ export default function NavBar() {
           <>
             <a
               className="navbar-option"
-              style={{cursor: 'pointer'}}
+              style={{ cursor: 'pointer' }}
               onClick={() => handleRoleConfirmation(roleData?.role_settings.customerRole, 'customerRole', '/user-page')}
             >
               Customer
             </a>
             <a
               className="navbar-option"
-              style={{cursor: 'pointer'}}
+              style={{ cursor: 'pointer' }}
               onClick={() => handleRoleConfirmation(roleData?.role_settings.courierRole, 'courierRole', '/deliveries')}
             >
               Courier
@@ -76,6 +107,13 @@ export default function NavBar() {
             <Link to="/settings" className="navbar-option">
               Settings
             </Link>
+            <Tooltip title="Active Orders">
+              <IconButton onClick={toggleDrawer(true)} style={{ color: 'white', marginRight: '16px', fontSize: '2rem' }}>
+                <TranslucentBadge badgeContent={activeOrderCount} color="secondary">
+                  <ShoppingBagIcon fontSize="inherit" />
+                </TranslucentBadge>
+              </IconButton>
+            </Tooltip>
             <button className="navbar-signout" onClick={handleSignOut}>
               Sign out
             </button>
@@ -86,6 +124,17 @@ export default function NavBar() {
           </Link>
         )}
       </div>
+      <Drawer anchor="right" open={drawerOpen} onClose={toggleDrawer(false)}>
+        <Box
+          sx={{ width: 350, padding: 2 }}
+          role="presentation"
+        >
+          <IconButton onClick={toggleDrawer(false)} style={{ float: 'right' }}>
+            <CloseIcon />
+          </IconButton>
+          <CustomerOrders isDrawer={true} onClose={toggleDrawer(false)} />
+        </Box>
+      </Drawer>
     </nav>
   );
 }
