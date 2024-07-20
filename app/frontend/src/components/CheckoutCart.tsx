@@ -5,7 +5,7 @@ import { Close, Place, ShoppingCart, ShoppingCartCheckout } from "@mui/icons-mat
 import currencyFormatter from "./CurrencyFormatter";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
-import OrderStatus from "../model/OrderStatus";
+import OrderStatus, { convertOrderStatusToStringCustomerFriendly } from "../model/OrderStatus";
 import SingleMarkerMap from "./SetDirectionsMap";
 import orderService from "../services/orderService";
 import trackingService from '../services/trackingService';
@@ -15,15 +15,18 @@ const DEFAULT_PICKUP_LOCATION = { lat: 43.785171372795524, lng: -79.187481605727
 interface CheckoutCartProps {
     order: OrderCart
     setOrder: React.Dispatch<React.SetStateAction<OrderCart | null>>
+
+    // The restaurant ID that the current page is currently displaying, not that of the order!
+    pageRestaurantId: string
 }
 
-const CheckoutCart = ({ order, setOrder }: CheckoutCartProps) => {
+const CheckoutCart = ({ order, setOrder, pageRestaurantId }: CheckoutCartProps) => {
     const [viewMap, setViewMap] = useState(false);
     const [pickupLocation, setPickupLocation] = useState<{ lat: number, lng: number }>(DEFAULT_PICKUP_LOCATION);
     const [pickupLocationName, setPickupLocationName] = useState<string | null>(null);
     const [pickupLocationSet, setPickupLocationSet] = useState(false);
     const nav = useNavigate();
-    
+
     // Fetch the pickup location using trackingService
     const { data: pickupData, error: pickupError, isError: isPickupError } = trackingService.getPickupLocation(order?.id).useQuery();
 
@@ -52,7 +55,7 @@ const CheckoutCart = ({ order, setOrder }: CheckoutCartProps) => {
         (data) => {
             setOrder(data.data);
             setShowSuccess(true);
-            if(pickupLocation) {
+            if (pickupLocation) {
                 nav(`/tracking/${pickupLocation.lng}_${pickupLocation.lat}?courier=false`);
             }
         }).useMutation();
@@ -77,6 +80,7 @@ const CheckoutCart = ({ order, setOrder }: CheckoutCartProps) => {
     const content = (
         <Stack spacing='20px' padding='10px'>
             <Typography variant='h4'>Your Order</Typography>
+            <Typography variant='body2' margin={0}>{order.restaurant.restaurantName}</Typography>
             {
                 Object.entries(order.items).map(([id, item]) =>
                     <CheckoutItem
@@ -113,7 +117,7 @@ const CheckoutCart = ({ order, setOrder }: CheckoutCartProps) => {
                     {pickupLocationSet ?
                         <span style={{ color: 'green' }}>
                             &#10003; You have a pick-up location set.
-                            <br/>
+                            <br />
                             <em style={{ fontWeight: 'bold' }}>{pickupLocationName}</em>
                         </span> :
                         "You have not set a pick-up location yet."
@@ -157,7 +161,13 @@ const CheckoutCart = ({ order, setOrder }: CheckoutCartProps) => {
                     {isError && <Alert severity="error" sx={{ display: isError ? 'flex' : 'none' }}>Something went wrong. Please try again.</Alert>}
                 </>
             )}
-            {order.status !== OrderStatus.CANCELLED && order.status !== OrderStatus.ORDERING && <Alert severity="success">Order successfully placed.</Alert>}
+            {
+                order.status !== OrderStatus.CANCELLED && order.status !== OrderStatus.ORDERING &&
+                <Alert severity="success" sx={{ maxWidth: { sm: '100%', lg: '300px'} }}>
+                    This order has been placed.<br />
+                    {convertOrderStatusToStringCustomerFriendly(order.status)}
+                </Alert>
+            }
             {showSuccess && (
                 <Snackbar open={showSuccess} onClose={() => setShowSuccess(false)} autoHideDuration={3000}>
                     <Alert severity="success">Order successfully placed.</Alert>

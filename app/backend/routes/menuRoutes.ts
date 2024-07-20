@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getRestaurantLocation, addToOrder, createUserOrder, deleteItemFromOrder, getActiveOrder, getAllRestaurants, getOneRestaurant, getOrder, getOrderDropOff, placeOrder, setPickupLocation,getPickupLocation, getActiveRestaurantorders} from "../controllers/menuController";
+import { getRestaurantLocation, addToOrder, createUserOrder, deleteItemFromOrder, getActiveOrder, getAllRestaurants, getOneRestaurant, getOrder, getOrderDropOff, placeOrder, setPickupLocation,getPickupLocation, getActiveRestaurantorders, getCustomerInProgressOrder} from "../controllers/menuController";
 
 const menuRouter = Router();
 
@@ -14,6 +14,7 @@ menuRouter.get('/:id/order/:orderId', getOrder);
 menuRouter.post('/:id/order', createUserOrder);
 menuRouter.get('/:id/order', getActiveOrder);
 menuRouter.get('/:restaurantId/orders', getActiveRestaurantorders);
+menuRouter.get('/my-order', getCustomerInProgressOrder);
 menuRouter.get('/:id', getOneRestaurant)
 menuRouter.get('/', getAllRestaurants);
 

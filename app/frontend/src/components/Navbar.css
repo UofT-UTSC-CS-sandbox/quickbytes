@@ -40,3 +40,8 @@
 .navbar-signout:hover {
     background-color: rgba(0, 114, 147, 1);
 }
+
+.navbar-option.active {
+    color: rgba(0, 127, 163, 1);
+    /* Change this to the desired active color */
+}
