@@ -6,9 +6,11 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import settingService from '../services/settingService';
 import { Badge, IconButton, Tooltip, styled, Drawer, Box, Typography } from '@mui/material';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import CloseIcon from '@mui/icons-material/Close';
 import orderService from '../services/orderService';
 import CustomerOrders from './CustomerOrders';
+import CourierDelivery from './CourierDelivery';
 
 const TranslucentBadge = styled(Badge)(({ theme }) => ({
   '& .MuiBadge-badge': {
@@ -21,11 +23,13 @@ export default function NavBar() {
   const { currentUser, logout } = useAuth(); // useAuth provides currentUser and logout function
   const [userId, setUserId] = useState('');
   const [activeLink, setActiveLink] = useState('');
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [customerdrawerOpen, setCustomerDrawerOpen] = useState(false);
+  const [courierDrawerOpen, setCourierDrawerOpen] = useState(false);
   const navigate = useNavigate();
   const { data: orders } = orderService.getUserActiveOrders(userId).useQuery();
+  const { data: deliveries } = orderService.getUserActiveDelivery(userId).useQuery();
   const activeOrderCount = Array.isArray(orders?.data) ? orders.data.length : 0;
-
+  const activeDeliveryCount = Array.isArray(deliveries?.data) ? deliveries.data.length : 0;
 
   useEffect(() => {
     const auth = getAuth();
@@ -69,14 +73,24 @@ export default function NavBar() {
     }
   };
 
-  const toggleDrawer = (open: boolean) => (event: React.KeyboardEvent | React.MouseEvent) => {
+  const toggleCustomerDrawer = (open: boolean) => (event: React.KeyboardEvent | React.MouseEvent) => {
     if (
       event.type === 'keydown' &&
       ((event as React.KeyboardEvent).key === 'Tab' || (event as React.KeyboardEvent).key === 'Shift')
     ) {
       return;
     }
-    setDrawerOpen(open);
+    setCustomerDrawerOpen(open);
+  };
+
+  const toggleCourierDrawer = (open: boolean) => (event: React.KeyboardEvent | React.MouseEvent) => {
+    if (
+      event.type === 'keydown' &&
+      ((event as React.KeyboardEvent).key === 'Tab' || (event as React.KeyboardEvent).key === 'Shift')
+    ) {
+      return;
+    }
+    setCourierDrawerOpen(open);
   };
 
   // customer path is temporary, replace with actual path
@@ -108,9 +122,16 @@ export default function NavBar() {
               Settings
             </Link>
             <Tooltip title="Active Orders">
-              <IconButton onClick={toggleDrawer(true)} style={{ color: 'white', marginRight: '16px', fontSize: '2rem' }}>
+              <IconButton onClick={toggleCustomerDrawer(true)} style={{ color: 'white', marginRight: '16px', fontSize: '2rem' }}>
                 <TranslucentBadge badgeContent={activeOrderCount} color="secondary">
                   <ShoppingBagIcon fontSize="inherit" />
+                </TranslucentBadge>
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Active Delivery">
+              <IconButton onClick={toggleCourierDrawer(true)} style={{ color: 'white', marginRight: '16px', fontSize: '2rem' }}>
+                <TranslucentBadge badgeContent={activeDeliveryCount} color="secondary">
+                  <LocalShippingIcon fontSize="inherit" />
                 </TranslucentBadge>
               </IconButton>
             </Tooltip>
@@ -124,15 +145,26 @@ export default function NavBar() {
           </Link>
         )}
       </div>
-      <Drawer anchor="right" open={drawerOpen} onClose={toggleDrawer(false)}>
+      <Drawer anchor="right" open={customerdrawerOpen} onClose={toggleCustomerDrawer(false)}>
         <Box
           sx={{ width: 350, padding: 2 }}
           role="presentation"
         >
-          <IconButton onClick={toggleDrawer(false)} style={{ float: 'right' }}>
+          <IconButton onClick={toggleCustomerDrawer(false)} style={{ float: 'right' }}>
             <CloseIcon />
           </IconButton>
-          <CustomerOrders isDrawer={true} onClose={toggleDrawer(false)} />
+          <CustomerOrders isDrawer={true} onClose={toggleCustomerDrawer(false)} />
+        </Box>
+      </Drawer>
+      <Drawer anchor="right" open={courierDrawerOpen} onClose={toggleCourierDrawer(false)}>
+        <Box
+          sx={{ width: 350, padding: 2 }}
+          role="presentation"
+        >
+          <IconButton onClick={toggleCourierDrawer(false)} style={{ float: 'right' }}>
+            <CloseIcon />
+          </IconButton>
+          <CourierDelivery isDrawer={true} onClose={toggleCourierDrawer(false)} />
         </Box>
       </Drawer>
     </nav>

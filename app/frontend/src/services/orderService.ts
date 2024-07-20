@@ -100,6 +100,13 @@ export type ActiveOrdersResponse = {
 }
 
 /**
+ * The response body for getUserActiveOrders
+ */
+export type ActiveDeliveryResponse = {
+    data: ActiveOrderItem[]
+}
+
+/**
  * Represents a menu item in an order returned in the 
  * getUserActiveOrders response body.
  */
@@ -264,14 +271,14 @@ export default {
             }
         ),
 
-    
+
     /**
      * Get the sole order that the user is currently editing or awaiting delivery
      * for as a customer. This differs from getClientActiveOrders in that it
      * can also return an order that is being created but not yet placed.
      * @returns Service endpoint to get the current non-placed order for the user.
      */
-    getClientInProgressOrder: () => 
+    getClientInProgressOrder: () =>
         useGetEndpoint<GetClientActiveOrderResponse>(
             {
                 inputUrl: `restaurants/my-order`,
@@ -281,12 +288,12 @@ export default {
                 queryKey: ['getSingleClientActiveOrder'],
             }
         ),
-      
-     /**
-     * Get the array of active orders corresponding to the particular user.
-     * @param userId The ID of the user to get orders for.
-     * @returns Service endpoint to get the orders for the user.
-     */
+
+    /**
+    * Get the array of active orders corresponding to the particular user.
+    * @param userId The ID of the user to get orders for.
+    * @returns Service endpoint to get the orders for the user.
+    */
     getUserActiveOrders: (userId: string) =>
         useGetEndpoint<ActiveOrdersResponse>(
             {
@@ -297,5 +304,23 @@ export default {
                 queryKey: ['getUserActiveOrders', userId],
                 enabled: !!userId,
             }
-        )
+        ),
+
+    /**
+    * Get the array of active orders corresponding to the particular user.
+    * @param userId The ID of the user to get orders for.
+    * @returns Service endpoint to get the orders for the user.
+    */
+
+    getUserActiveDelivery: (userId: string) =>
+        useGetEndpoint<ActiveDeliveryResponse>(
+            {
+                inputUrl: `user/${userId}/activeDelivery`,
+                useAuth: false,
+            },
+            {
+                queryKey: ['getUserActiveDelivery', userId],
+                enabled: !!userId,
+            }
+        ),
 }
