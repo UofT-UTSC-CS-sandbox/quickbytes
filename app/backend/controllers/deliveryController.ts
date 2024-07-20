@@ -222,6 +222,30 @@ export const updateDeliveryLocation = async (req: Request, res: Response) => {
   }
 };
 
+export const getCurrentLocationFromOrder = async (req: Request, res: Response) => {
+  const orderId = req.params.orderId;
+  console.log("entered getCurrentLocation")
+
+  try {
+    // Fetch user data from Firebase Realtime Database
+    const snapshot = await admin.database().ref(`orders/${orderId}/courierId`).once('value');
+    const courierId = snapshot.val();
+    console.log(courierId, "the id is showing atleast")
+
+    const snapshot2 = await admin.database().ref(`user/${courierId}/currentLocation`).once('value');
+    const location = snapshot2.val();
+    console.log(location, "the location is showing atleast")
+
+    if (location) {
+      res.status(200).json({ location });
+    } else {
+      res.status(404).json({ error: 'Location not found for this user' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch location' });
+  }
+};
+
 
 export const getOrderRestaurantLocation = async (req: Request, res: Response) => {
   const orderId = req.params.orderId;

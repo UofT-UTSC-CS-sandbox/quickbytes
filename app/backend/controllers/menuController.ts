@@ -587,7 +587,33 @@ export async function getPickupLocation(req: Request, res: Response) {
     }
 }
 
-export const getActiveRestaurantorders = async (req: Request, res: Response) => {
+export async function getRestaurantLocation(req: Request, res: Response) {
+    const { orderId } = req.params;
+
+    const database = admin.database();
+    const orderref = `orders/${orderId}`;
+
+    try {
+        const snapshot = await database.ref(orderref).once("value");
+        const orderdata = snapshot.val();
+
+        const restaurantId = orderdata.restaurant.restaurantId;
+        console.log(restaurantId, "restaurant id")
+
+        const restaurantSnapshot = await database.ref(`restaurants/${restaurantId}/information/location`).once('value');
+        const location = restaurantSnapshot.val();
+        if (location) {
+            res.status(200).json(location);
+        } else {
+            res.status(404).json({ error: 'Pickup location not set' });
+        }
+    } catch (error) {
+        console.error("Error fetching pickup location:", error);
+        res.status(500).send("Internal server error");
+    }
+}
+
+export const getActiveRestaurantorders= async (req: Request, res: Response) => {
     const { restaurantId } = req.params;
     const db = admin.database();
     try {

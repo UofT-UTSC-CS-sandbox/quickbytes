@@ -273,6 +273,24 @@ export default {
 
 
     /**
+     * Get the array of active orders corresponding to the particular user.
+     * Also assumes that the user has multiple orders.
+     * @param userId The ID of the user to get orders for.
+     * @returns Service endpoint to get the orders for the user.
+     */
+
+    getClientActiveOrders2: (userId: string) => 
+        useGetEndpoint<ActiveOrderResponse>(
+            {
+                inputUrl: `user/${userId}/orders2`,
+                useAuth: false,
+            },
+            {
+                 queryKey: ['getUserOrders', userId],
+                enabled: !!userId,
+            }
+        ),
+    /**
      * Get the sole order that the user is currently editing or awaiting delivery
      * for as a customer. This differs from getClientActiveOrders in that it
      * can also return an order that is being created but not yet placed.

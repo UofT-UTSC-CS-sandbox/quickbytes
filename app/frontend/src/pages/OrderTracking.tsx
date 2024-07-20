@@ -19,8 +19,11 @@ import trackingService from '../services/trackingService';
 // The default pickup location if none is available from the order
 const DEFAULT_PICKUP_LOCATION = { lat: 43.785171372795524, lng: -79.18748160572729 };
 
+import DirectionsMap from '../components/DirectionsMap';
+import useCurrentLocation from '../services/currentLocationServiceCustomer';
 
-const OrderTracking = ({ directionsMapComponent }) => {
+
+function OrderTracking() {
     const [userId, setUserId] = useState('');
     const [updatingLocation, setUpdatingLocation] = useState(false);
     const [pickupLocation, setPickupLocation] = useState<{ lat: number, lng: number }>(DEFAULT_PICKUP_LOCATION);
@@ -46,12 +49,15 @@ const OrderTracking = ({ directionsMapComponent }) => {
     const { data: order } = orderService.getClientActiveOrders(userId).useQuery();
 
     // get user role and notification settings
-    const { data: settingsData } = settingService.getNotificationSettings(userId).useQuery();
-    const { data: roleData } = settingService.getRoleSettings(userId).useQuery();
+    const { data: settingsData, isLoading: settingLoad } = settingService.getNotificationSettings(userId).useQuery();
+    const { data: roleData, isLoading: roleLoad } = settingService.getRoleSettings(userId).useQuery();
     // listen to changes in the order status and show a notification
     useEffect(() => {
         // only subscribe to notification if notification settings are enabled for customer
-        if (orderData && settingsData.notification_settings.customerNotifications && roleData.role_settings.customerRole) {
+        if(settingLoad || roleLoad){
+          return;
+        }
+        if (orderData && settingsData?.notification_settings?.customerNotifications && roleData?.role_settings?.customerRole) {
             const orderId = orderData.data;
             setOrderId(orderId);
             const dataRef = ref(database, `orders/${orderId}/tracking/status`);
@@ -61,7 +67,7 @@ const OrderTracking = ({ directionsMapComponent }) => {
                 // can only have either one active delivery or order at one time, if no active order then don't show any notifications
                 if (!data || data==OrderStatus.ORDERING ) return;
                 showNotification(data);
-                setDirectionsAvailable(data == OrderStatus.ACCEPTED);
+                setDirectionsAvailable(data != OrderStatus.CANCELLED && data != OrderStatus.ORDERING && data !=OrderStatus.ORDERED);
                 console.log('Data from Firebase:', data);
             });
 
@@ -175,7 +181,11 @@ const OrderTracking = ({ directionsMapComponent }) => {
     /* The main component of the page */
     const MainView = () => {
         if (directionsAvailable) /* If tracking is available, display on map */
-            return directionsMapComponent;
+
+            //The DirectionsMap wont have the userid fixed once roles such as customer,courier,and restaurant are established
+            //Additionally, the getOrders function should change to restaurantService.getRestaurantActiveOrders if the restaurant is viewing
+            //And useCurrentLocation should change based on if the courier or customer/restaurant is using the view
+            return <DirectionsMap id={"1"} getOrders={orderService.getClientActiveOrders2} useCurrentLocation={useCurrentLocation} />;
         else if (updatingLocation) // If the user is attempting to change the location, display map with marker
             return <SingleMarkerMap
                     sendSetPickupLocation={sendSetPickupLocation}

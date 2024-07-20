@@ -14,294 +14,119 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { database, ref, onValue } from '../firebaseConfig';
 import { ToastContainer, toast } from 'react-toastify';
+import restaurantService from '../services/restaurantService';
+import uberMapStyle from './mapStyles.json';
+import OrderMenu from './OrderMenu'; // Import the new OrderMenu component
 
-interface DirectionsRoute {
-  summary: string;
-  legs: google.maps.DirectionsLeg[];
+import Directions from './Directions';
+
+
+
+interface DirectionsMapProps {
+  id: string;
+  getOrders: (userId: string) => any;
+  useCurrentLocation: (orderId: string | null) => { currentLocation: any, isLoading: boolean, error: any };
 }
 
-interface BasicMenuProps {
-  routes: DirectionsRoute[];
-  setRouteIndex: React.Dispatch<React.SetStateAction<number>>;
-}
-
-/* For hiding notifications */
-const AUTO_CLOSE_TIME = 5000;
-
-/* Generates and renders basic drop menu for routes*/
-function BasicMenu({ routes, setRouteIndex }: BasicMenuProps) {
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-  const open = Boolean(anchorEl);
-  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleMenuItemClick = (index: number) => {
-    setRouteIndex(index);
-    handleClose();
-  };
-
-  return (
-    <>
-      <Button
-        id="basic-button"
-        aria-controls={open ? 'basic-menu' : undefined}
-        aria-haspopup="true"
-        aria-expanded={open ? 'true' : undefined}
-        onClick={handleClick}
-        sx={{ color: 'black', backgroundColor: 'white', '&:hover': { backgroundColor: 'lightgray' } }} // Added styles
-      >
-        Other Routes
-      </Button>
-      <Menu
-        id="basic-menu"
-        anchorEl={anchorEl}
-        open={open}
-        onClose={handleClose}
-        MenuListProps={{
-          'aria-labelledby': 'basic-button',
-        }}
-      >
-        {routes.map((route, index) => (
-          <MenuItem key={index} onClick={() => handleMenuItemClick(index)}>
-            <p>{route.legs[0].distance?.text} route</p>
-          </MenuItem>
-        ))}
-      </Menu>
-    </>
-  );
-}
-
-interface DirectionProps {
-  loadHandler: (loadVal: boolean) => void;
-  coord: string | undefined;
-}
-
-/* Generates and renders directions */
-function Directions({ loadHandler, coord }: DirectionProps) {
-  const map = useMap("map");
-  const routesLibrary = useMapsLibrary("routes");
-  const [directionsService, setDirectionsService] = useState<google.maps.DirectionsService>();
-  const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer>();
-  const [routes, setRoutes] = useState<google.maps.DirectionsRoute[]>([]);
-  const [routeIndex, setRouteIndex] = useState(0);
-  const [originCoord, setOriginCoord] = useState<google.maps.LatLngLiteral | null>(null);
+export default function DirectionsMap({ id, getOrders, useCurrentLocation }: DirectionsMapProps) {
+  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string;
   const [displayError, setDisplayError] = useState<Error | null>(null);
-  const selected = routes[routeIndex];
-  const leg = selected?.legs[0];
-
-  /* Check if we are in courier mode */
-  const location = useLocation();
-  const searchParams = new URLSearchParams(location.search);
-  const courier = searchParams.get('courier') === "true";
-
-  console.log(coord);
-  const destination: google.maps.LatLngLiteral = {
-    lng: Number(coord?.split("_")[0]),
-    lat: Number(coord?.split("_")[1])
+  const errorHandler = (err: Error) => {
+    console.error(err);
+    setDisplayError(err);
   };
+  const [loading, setLoading] = useState(true);
+  const loadHandler = (loadVal: boolean) => setLoading(loadVal);
+  const [orderId, setOrderId] = useState<string | null>(null);
+  const [orderIds, setOrderIds] = useState<string[]>([]);
+
+  const {  data, isLoading, isSuccess, isError} = getOrders(id).useQuery();
 
   useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position: GeolocationPosition) => {
-          const pos = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          };
-          map?.setCenter(pos);
-          setOriginCoord(pos);
-        },
-        () => {
-          setDisplayError(new Error("Could not find your location, please try again later"))
-          loadHandler(false);
-        }
-      );
-    } else {
-      setDisplayError(new Error("Browser doesn't support Geolocation"));
-      loadHandler(false);
-    }
-  }, [setDisplayError, loadHandler, map]);
+    console.log("isloadingggg")
+    if (isSuccess && data) {
+      console.log(data.data, "it shows")
+      try {
+        console.log(data.data.map(orderItem => orderItem.orderId), "id lists ")
+        console.log("the id is set this works")
+          setOrderIds(data.data.map(orderItem => orderItem.orderId));
+          setOrderId(data.data.map(orderItem => orderItem.orderId)[0]); // Safely access the second item
+          setLoading(false);
 
+      } catch (err) {
+          //setDisplayError(err);
+          console.log("broken")
+          setLoading(false);
+      }
+  }
 
-  useEffect(() => {
-    if (!routesLibrary || !map) return;
-    setDirectionsService(new routesLibrary.DirectionsService());
-    setDirectionsRenderer(new routesLibrary.DirectionsRenderer({ map }));
-  }, [routesLibrary, map]);
+    /*
 
-  useEffect(() => {
-    if (!directionsRenderer || !directionsService || !originCoord) return;
-    directionsService.route({
-      origin: originCoord,
-      destination: destination,
-      travelMode: google.maps.TravelMode.WALKING,
-      provideRouteAlternatives: true
-    }).then(result => {
-      directionsRenderer.setDirections(result);
-      setRoutes(result.routes);
-    });
-  }, [directionsService, directionsRenderer, originCoord]);
-
-  useEffect(() => {
-    if (!directionsRenderer || originCoord) return;
-    directionsRenderer.setRouteIndex(routeIndex);
-  }, [routeIndex, directionsRenderer]);
-
-  useEffect(() => {
-    if (leg) {
-      loadHandler(false);
-    }
-  }, [leg, loadHandler]);
-
-  const [userId, setUserId] = useState('');
-
-  // get the active orderId of the customer
-  useEffect(() => {
-      const auth = getAuth();
-
-      onAuthStateChanged(auth, (user) => {
-          if (user) {
-              setUserId(user.uid);
-          } else {
-              console.log('No user is signed in.');
-          }
+    getOrders(id)
+      .then(data => {
+        setOrderIds(data);
+        // For now, it defaults to selecting the order at index 1
+        setOrderId(data[1]);
+        setLoading(false);
+      })
+      .catch(err => {
+        setDisplayError(err);
+        setLoading(false);
       });
       
-  }, []);
-
-  const {mutate: updateOrderStatus} = deliveryService.updateOrderStatus((d) => {
-    console.log(d.message)
-    // Courier returns to delivery page upon cancellation, customer to home page
-    nav(courier ? '/deliveries' : "/");
-  }).useMutation();
-  const {data: orderData} = courier ? deliveryService.getCourierActiveOrder(userId).useQuery() : 
-                                            deliveryService.getCustomerActiveOrder(userId).useQuery();
-  
-  const showNotification = (data: any) => {
-    const message = "The user has cancelled this order"
-    toast.info(message, {
-        position: "top-center",
-        autoClose: AUTO_CLOSE_TIME,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        onClose: () => {
-          nav("/deliveries");
-        }
-    });
-  };
-                                            
-  // listen to changes in the order status and show a notification
-  useEffect(() => {
-      if (orderData) {
-          const orderId = orderData.data;
-          const dataRef = ref(database, `orders/${orderId}/tracking/status`);
-
-          const unsubscribeData = onValue(dataRef, (snapshot) => {
-              const data = snapshot.val();
-              // We only care for order cancellations for now
-              if (!data || data!=OrderStatus.CANCELLED || data != OrderStatus.ORDERED) return;
-              console.log("order cancelled");
-              showNotification(data);
-          });
-
-          return () => unsubscribeData();
-      }
-  }, [orderData]);
+*/
 
 
-  const nav = useNavigate();
-  const handleUpdateStatus = () => {
-    console.log(userId)
-    console.log(orderData)
-    if (orderData) {
-      console.log(orderData.data)
-      const orderId = orderData.data; 
-      const newStatus = OrderStatus.EN_ROUTE; // change later to change status depending on where in the workflow
-      updateOrderStatus({ orderId: orderId, status: newStatus, courierRequest: courier });
-    }
-  };
 
-  const handleCancelOrder = () => {
-    if (orderData) {
-      const confirmed = window.confirm('Are you sure you want to cancel this order?');
-      if (confirmed) {
-        const orderId = orderData.data;
-        const newStatus = OrderStatus.CANCELLED;
-        /* TODO: ensure order has not been picked up. */
-        updateOrderStatus({ orderId: orderId, status: newStatus, courierRequest: courier });
-      }
-    }
-  };
-  
-  return (
-    <>
-      <Snackbar open={displayError != null} autoHideDuration={6000} onClose={() => setDisplayError(null)}>
-        <Alert
-          onClose={() => setDisplayError(null)}
-          severity="error"
-          variant="filled"
-          sx={{ width: '100%' }}
-        >
-          {displayError?.message}
-        </Alert>
-      </Snackbar>
-      {
-        leg &&
-        <div className='sidebar-container'>
-          <div className='header'>
-            <h3>{leg.end_address.split(',')[0]}</h3>
-            <BasicMenu routes={routes} setRouteIndex={setRouteIndex} />
-          </div>
-          <div className='status'>
-            <h2>Placeholder status text...</h2>
-            <p>Estimated arrival in <b>{leg.duration?.text} or {leg.distance?.text}</b></p>
-          </div>
-          <div className='buttons'>
-            <Button variant="contained" sx={{ backgroundColor: 'rgba(163, 0, 0, 1)', color: 'white' }} size="large" onClick={handleCancelOrder}>Cancel Order</Button>
-            {
-              courier ? <Button variant="contained" sx={{ backgroundColor: 'rgba(0, 127, 163, 1)', color: 'white' }} size="large" onClick={handleUpdateStatus}>Notify</Button> : null
-            }
-            
-          </div>
-        </div>
-      }
-    </>
+  }, [isSuccess, id, getOrders, data]
   );
-}
 
+  useEffect(() =>{
+    setOrderId(orderIds[0]);
+    
+  }, [orderIds, isSuccess]);
 
-export default function DirectionsMap({coord}: {coord:string | undefined}) {
-  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string;
-  const [loading, setLoading] = useState(true);
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
-  const loadHandler = (loadVal: boolean) => setLoading(loadVal);
+  const orderMenu = <OrderMenu orderIds={orderIds} setOrderId={setOrderId} setLoading={setLoading} />;
+
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: "100%", height: "100vh" }}>
       <div style={{ width: "100%", height: "100vh" }}>
         <APIProvider apiKey={apiKey} onLoad={() => console.log('Maps API has loaded.')}>
           <div className='map-container'>
-            <Directions loadHandler={loadHandler} coord={coord}/>
+            <Directions orderId={orderId} loadHandler={loadHandler} errorHandler={errorHandler} setLoading={setLoading} orderMenu={orderMenu} useCurrentLocation={useCurrentLocation} />
             <Map
               id={'map'}
+              options={{
+                styles: uberMapStyle,
+              }}
               defaultZoom={13}
-              defaultCenter={{ lat: -33.860664, lng: 151.208138 }}>
+              defaultCenter={{ lat: -33.860664, lng: 151.208138 }}
+              onCameraChanged={(ev) => console.log('camera changed:', ev.detail.center, 'zoom:', ev.detail.zoom, 'zoom2:', ev.map.getZoom())}
+            >
             </Map>
           </div>
         </APIProvider>
-        {loading ?
+        <Snackbar open={displayError != null} autoHideDuration={6000} onClose={() => setDisplayError(null)}>
+          <Alert
+            onClose={() => setDisplayError(null)}
+            severity="error"
+            variant="filled"
+            sx={{ width: '100%' }}
+          >
+            {displayError?.message}
+          </Alert>
+        </Snackbar>
+        {loading ? (
           <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <Typography variant="h6">Loading...</Typography>
               <CircularProgress />
             </div>
-          </div> : null}
+          </div> ) : null}
 
       </div>
       <ToastContainer />
