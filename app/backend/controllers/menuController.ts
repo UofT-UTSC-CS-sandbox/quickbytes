@@ -3,6 +3,7 @@ import { OrderStatus } from "../schema/Order";
 import { MenuItem } from "../schema/Restaurant";
 import admin from "../firebase-config";
 import { DataSnapshot, Database } from 'firebase-admin/database';
+import { lookupBuilding } from '../utils/lookupBuilding'; 
 
 export function getAllRestaurants(req: Request, res: Response) {
     const database = admin.database();
@@ -11,7 +12,18 @@ export function getAllRestaurants(req: Request, res: Response) {
     restaurantsRef.once('value')
         .then((snapshot: DataSnapshot) => {
             if (snapshot.exists()) {
-                res.send({ data: snapshot.val() });
+                const restaurants = snapshot.val();
+                const data = restaurants
+                // The restaurants list is actually an array, so need to add ID and filter out null indices
+                .map((restaurant: any, index: number) => ({...restaurant, id: index }))
+                .filter((restaurant: any) => typeof restaurant.information !== 'undefined')
+                // Only return the general information, not menu info
+                .map((restaurant: any) => {
+                    const { categories, ...rest } = restaurant.information;
+                    const id = typeof restaurant.id === 'string' ? restaurant.id : restaurant.id.toString();
+                    return { ...rest, id }
+                });
+                res.send({ data });
             } else {
                 res.status(404).send({ data: "Something went wrong" });
             }
@@ -240,7 +252,7 @@ export function getOrder(req: Request, res: Response) {
     const database = admin.database();
     const { orderId } = req.params;
 
-    admin.database().ref(`orders/${orderId}`).get()
+    database.ref(`orders/${orderId}`).get()
         .then((snapshot: DataSnapshot) => {
             if (snapshot.exists()) {
                 const value = snapshot.val();
@@ -390,18 +402,58 @@ export async function placeOrder(req: Request, res: Response) {
         await activeOrderLocation.update({ [restaurantId]: orderId });
         await database.ref(`restaurants/${restaurantId}/activeOrders/`).update({ [orderId]: true });
 
-        // Update the order status to ORDERED
-        const trackingLocation = database.ref(`orders/${orderId}/tracking`);
-        await trackingLocation.update({ status: OrderStatus.ORDERED });
-
-        // Send back the order in the response
+        // Get the order information to update tracking
         const orderLocation = database.ref(`orders/${orderId}`);
         const orderSnapshot = await orderLocation.get();
 
         if (orderSnapshot.exists()) {
-            const items = orderSnapshot.val().order.items ?? {};
+            const orderInfo = orderSnapshot.val();
+            const items = orderInfo.order.items ?? {};
+
+            // Save a distance and time estimate from the restaurant to pick up
+            const restaurantLocation = database.ref(`restaurants/${restaurantId}/information`);
+            const restaurantSnapshot = await restaurantLocation.get();
+            const restaurantValues = restaurantSnapshot.val();
+            const queryParams = new URLSearchParams({
+                origins: `${restaurantValues.coordinateX},${restaurantValues.coordinateY}`,
+                destinations: `${orderInfo.tracking.dropOff.lat},${orderInfo.tracking.dropOff.lng}`,
+                mode: 'walking',
+                key: process.env.GOOGLE_MAPS_API_KEY as string
+            });
+            const distanceMatrixRequestURL = `https://maps.googleapis.com/maps/api/distancematrix/json?${queryParams}`;
+            const distanceMatrixResponse = await fetch(distanceMatrixRequestURL);
+
+            // If the connection fails, log and return an error
+            if (!distanceMatrixResponse.ok) {
+                console.log("Internal server error. Could not connect to map services. Status:", distanceMatrixResponse.status, "-", distanceMatrixResponse.statusText, "Tried URL:", distanceMatrixRequestURL);
+                res.status(500).send("Internal server error. Could not connect to map services.");
+                return;
+            }
+
+            const distanceMatrixData = await distanceMatrixResponse.json();
+
+            // If GCP API call fails or is rejected, log and return an error
+            if (distanceMatrixData.status !== 'OK') {
+                console.log("Internal server error. Could not use map services. Status:", distanceMatrixData.status, "Tried URL:", distanceMatrixRequestURL);
+                res.status(500).send("Internal server error. Could not use map services.");
+                return;
+            }
+
+            // Save the distance and time estimates under the estimates information on the order tracking
+            const distanceMatrixEstimates = database.ref(`orders/${orderId}/estimates`);
+            await distanceMatrixEstimates.set({
+                distanceMeters: distanceMatrixData.rows[0].elements[0].distance.value,
+                distance: distanceMatrixData.rows[0].elements[0].distance.text,
+                time: distanceMatrixData.rows[0].elements[0].duration.text,
+                timeSeconds: distanceMatrixData.rows[0].elements[0].duration.value
+            })
+
+            // Update the order status to ORDERED
+            const trackingLocation = database.ref(`orders/${orderId}/tracking`);
+            await trackingLocation.update({ status: OrderStatus.ORDERED });
+
             res.send({
-                data: { ...orderSnapshot.val().order, items, id: orderId, status: orderSnapshot.val().tracking.status },
+                data: { ...orderInfo.order, items, id: orderId, status: orderInfo.tracking.status },
                 orderKey: orderId
             });
         } else {
@@ -420,14 +472,18 @@ export async function setPickupLocation(req: Request, res: Response) {
     const database = admin.database();
     const dropOffLocation = `orders/${orderId}/tracking/dropOff`;
 
+    const building = lookupBuilding(lat, lng);
+    const locationName = building ? building.name : "On campus";
+
     const updates: Record<string, any> = {
         [`${dropOffLocation}/lat`]: lat,
-        [`${dropOffLocation}/lng`]: lng
+        [`${dropOffLocation}/lng`]: lng,
+        [`orders/${orderId}/tracking/dropOffName`]: locationName,
     };
 
     try {
         await database.ref().update(updates);
-        res.status(200).send({ message: "Pickup location updated successfully." });
+        res.status(200).send({ dropOff: { lat, lng }, dropOffName: locationName });
     } catch (error) {
         console.error("Error updating pickup location:", error);
         res.status(500).send("Internal server error");
@@ -435,6 +491,34 @@ export async function setPickupLocation(req: Request, res: Response) {
 }
 
 export async function getPickupLocation(req: Request, res: Response) {
+    const { orderId } = req.params;
+
+    const database = admin.database();
+    const orderref = `orders/${orderId}`;
+
+    try {
+        const snapshot = await database.ref(orderref).once("value");
+        const orderdata = snapshot.val();
+
+        const trackingSnapshot = await database.ref(`orders/${orderId}/tracking`).once('value');
+        
+        if (trackingSnapshot.exists()) {
+            const trackingInfo = trackingSnapshot.val();
+            res.status(200).json({
+                lat: trackingInfo.dropOff.lat,
+                lng: trackingInfo.dropOff.lng,
+                dropOffName: trackingInfo.dropOffName
+            });
+        } else {
+            res.status(404).json({ error: 'Pickup location not set' });
+        }
+    } catch (error) {
+        console.error("Error fetching pickup location:", error);
+        res.status(500).send("Internal server error");
+    }
+}
+
+export async function getRestaurantLocation(req: Request, res: Response) {
     const { orderId } = req.params;
 
     const database = admin.database();

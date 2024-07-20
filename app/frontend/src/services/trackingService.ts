@@ -15,7 +15,8 @@ type GetOrderDropoffResponse = {
  */
 type GetPickupLocationResponse = {
     lat: number,
-    lng: number
+    lng: number,
+    dropOffName: string
 }
 
 
@@ -72,6 +73,18 @@ export default {
             },
             {
                 queryKey: ['getPickupLocation', orderID],
+                enabled: !!orderID,
+            }
+        ),
+
+    getRestaurantLocation: (orderID: string | undefined) =>
+        useGetEndpoint<GetPickupLocationResponse>(
+            {
+                inputUrl: `restaurants/order/${orderID}/restaurant-location`,
+                useAuth: false
+            },
+            {
+                queryKey: ['getRestaurantLocation', orderID],
                 enabled: !!orderID,
             }
         ),

@@ -11,7 +11,10 @@ import trackingService from '../services/trackingService';
 
 import deliveryService from '../services/deliveryService';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation} from 'react-router-dom';
+
+import { ToastContainer, toast } from 'react-toastify';
+
 
 interface DirectionProps {
     errorHandler: (error: Error) => void;
@@ -39,9 +42,14 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
 
     const { currentLocation: currLoc, isLoading: currLoading, error } = useCurrentLocation(orderId);
     console.log(currLoc)
-    const { data: pickupLoc, isLoading: pickUpLoading } = trackingService.getPickupLocation(orderId).useQuery();
+    const { data: pickupLoc, isLoading: pickUpLoading } = trackingService.getRestaurantLocation(orderId).useQuery();
     const { data: dropOffLoc, isLoading: dropOffLocLoading } = trackingService.getOrderDropoff(orderId).useQuery();
     const { data: confirmationPinData, isLoading: confirmationPinLoading } = trackingService.getCustomerConfirmationPin("7gPDsXFo8WaI9awl87qlbcJsJBx2").useQuery();
+
+    
+    const location = useLocation();
+    const searchParams = new URLSearchParams(location.search);
+    const courier = searchParams.get('courier') === "true";
     
 
 
@@ -186,23 +194,66 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
     };
 
 
-  const {mutate: updateOrderStatus} = deliveryService.updateOrderStatus((d)=> console.log(d.message)).useMutation();
-  const nav = useNavigate();
 
-  const handleUpdateStatus = () => {
-    if (orderId) {
-      const newStatus = OrderStatus.EN_ROUTE; // change later to change status depending on where in the workflow
-      updateOrderStatus({ orderId: orderId, status: newStatus });
-    }
-  };
-
-  const handleCancelOrder = () => {
-    if (orderId) {
-      const newStatus = OrderStatus.CANCELLED; 
-      updateOrderStatus({ orderId: orderId, status: newStatus });
-    }
-    nav('/deliveries');
-  }
+  
+    const {mutate: updateOrderStatus} = deliveryService.updateOrderStatus((d) => {
+      console.log(d.message)
+      // Courier returns to delivery page upon cancellation, customer to home page
+      nav(courier ? '/deliveries' : "/");
+    }).useMutation();
+    
+    const showNotification = (data: any) => {
+      const message = "The user has cancelled this order"
+      toast.info(message, {
+          position: "top-center",
+          autoClose: AUTO_CLOSE_TIME,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          onClose: () => {
+            nav("/deliveries");
+          }
+      });
+    };
+                                              
+    // listen to changes in the order status and show a notification
+    useEffect(() => {
+        if (orderId) {
+            const dataRef = ref(database, `orders/${orderId}/tracking/status`);
+  
+            const unsubscribeData = onValue(dataRef, (snapshot) => {
+                const data = snapshot.val();
+                // We only care for order cancellations for now
+                if (!data || data!=OrderStatus.CANCELLED || data != OrderStatus.ORDERED) return;
+                console.log("order cancelled");
+                showNotification(data);
+            });
+  
+            return () => unsubscribeData();
+        }
+    }, [orderId]);
+  
+  
+    const nav = useNavigate();
+    const handleUpdateStatus = () => {
+      if (orderId) {
+        const newStatus = OrderStatus.EN_ROUTE; // change later to change status depending on where in the workflow
+        updateOrderStatus({ orderId: orderId, status: newStatus, courierRequest: courier });
+      }
+    };
+  
+    const handleCancelOrder = () => {
+      if (orderId) {
+        const confirmed = window.confirm('Are you sure you want to cancel this order?');
+        if (confirmed) {
+          const newStatus = OrderStatus.CANCELLED;
+          /* TODO: ensure order has not been picked up. */
+          updateOrderStatus({ orderId: orderId, status: newStatus, courierRequest: courier });
+        }
+      }
+    };
 
     return (
         <div className='sidebar-container'>
@@ -224,7 +275,9 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
             </Stack>
             <div className='buttons'>
                 <Button variant="contained" sx={{ backgroundColor: 'rgba(163, 0, 0, 1)', color: 'white' }} size="large" onClick={handleCancelOrder}>Cancel Order</Button>
-                <Button variant="contained" sx={{ backgroundColor: 'rgba(0, 127, 163, 1)', color: 'white' }} size="large" onClick={handleUpdateStatus}>Notify</Button>
+                {
+                    courier ? <Button variant="contained" sx={{ backgroundColor: 'rgba(0, 127, 163, 1)', color: 'white' }} size="large" onClick={handleUpdateStatus}>Notify</Button> : null
+                }   
             </div>
         </div>
     );

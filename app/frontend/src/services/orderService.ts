@@ -49,7 +49,17 @@ type SetPickupLocationRequest = { lat: number, lng: number }
 /**
  * Response body for the setPickupLocation request.
  */
-type SetPickUpLocationResponse = {}
+type SetPickUpLocationResponse = {
+    dropOff: { lat: number, lng: number },
+    dropOffName: string,
+}
+
+/* The restaurant object, used when obtaining an active order */
+type Restaurant = {
+    location: string;
+    restaurantName: string;
+    restaurantId: number
+}
 
 /**
  * Response body for the getClientActiveOrder request.
@@ -74,7 +84,7 @@ type GetClientActiveOrderResponse = {
  * The response body for getUserActiveOrders
  */
 export type ActiveOrderResponse = { 
-    data: ActiveOrderItem[]
+    data: ActiveOrderItem
 }
 
 /**
@@ -105,7 +115,8 @@ export type ActiveOrderItem = {
         orderPlacedTime: number,
         dropOff: { lat: number, lng: number }
         status: OrderStatus
-    }
+    },
+    restaurant: Restaurant,
     orderId: string
 }
 
@@ -185,7 +196,7 @@ export default {
             },
             {
                 mutationKey: ['setPickupLocation', orderId],
-                onSuccess
+                onSuccess,
             }
         ),
     /**
@@ -237,6 +248,25 @@ export default {
             },
             {
                 queryKey: ['getUserOrders', userId],
+                enabled: !!userId,
+            }
+        ),
+
+    /**
+     * Get the array of active orders corresponding to the particular user.
+     * Also assumes that the user has multiple orders.
+     * @param userId The ID of the user to get orders for.
+     * @returns Service endpoint to get the orders for the user.
+     */
+
+    getClientActiveOrders2: (userId: string) => 
+        useGetEndpoint<ActiveOrderResponse>(
+            {
+                inputUrl: `user/${userId}/orders2`,
+                useAuth: false,
+            },
+            {
+                 queryKey: ['getUserOrders', userId],
                 enabled: !!userId,
             }
         )

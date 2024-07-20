@@ -1,32 +1,20 @@
-import { APIProvider, Map, useMap, useMapsLibrary } from '@vis.gl/react-google-maps';
+import { APIProvider, Map } from '@vis.gl/react-google-maps';
 import { useState, useEffect } from 'react';
-import * as React from 'react';
-import Button from '@mui/material/Button';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
-import './DirectionsMap.css';
+import Directions from './Directions';
 import CircularProgress from '@mui/material/CircularProgress';
 import Typography from '@mui/material/Typography';
 import { Snackbar, Alert } from '@mui/material';
-import deliveryService from '../services/deliveryService';
-import OrderStatus from '../model/OrderStatus';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { database, ref, onValue } from '../firebaseConfig';
-import { ToastContainer, toast } from 'react-toastify';
-import restaurantService from '../services/restaurantService';
-import uberMapStyle from './mapStyles.json';
 import OrderMenu from './OrderMenu'; // Import the new OrderMenu component
-
-
+import uberMapStyle from './mapStyles.json';
+import orderService from "../services/orderService"
+import restaurantService from '../services/restaurantService';
 
 interface DirectionsMapProps {
   id: string;
   getOrders: (userId: string) => any;
-  useCurrentLocation: (orderId: string | null) => { currentLocation: any, isLoading: boolean, error: any };
 }
 
-export default function DirectionsMap({ id, getOrders, useCurrentLocation }: DirectionsMapProps) {
+export default function DirectionsMap2({ id, getOrders }: DirectionsMapProps) {
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string;
   const [displayError, setDisplayError] = useState<Error | null>(null);
   const errorHandler = (err: Error) => {
@@ -38,19 +26,21 @@ export default function DirectionsMap({ id, getOrders, useCurrentLocation }: Dir
   const [orderId, setOrderId] = useState<string | null>(null);
   const [orderIds, setOrderIds] = useState<string[]>([]);
 
-  const {  data, isLoading, isSuccess, isError} = getOrders(id).useQuery();
+  const {  data, isLoading, isError} = getOrders(id).useQuery();
+
+  if (isLoading) {
+    console.log("stillloading")
+}
 
   useEffect(() => {
     console.log("isloadingggg")
-    if (isSuccess && data) {
-      console.log(data.data, "it shows")
+    if (!isLoading && data) {
+      console.log(data.data)
       try {
         console.log(data.data.map(orderItem => orderItem.orderId), "id lists ")
-        console.log("the id is set this works")
           setOrderIds(data.data.map(orderItem => orderItem.orderId));
           setOrderId(data.data.map(orderItem => orderItem.orderId)[0]); // Safely access the second item
           setLoading(false);
-
       } catch (err) {
           //setDisplayError(err);
           console.log("broken")
@@ -74,19 +64,15 @@ export default function DirectionsMap({ id, getOrders, useCurrentLocation }: Dir
       
 */
 
+  }, [isLoading, id, getOrders, data]);
 
-
-  }, [isSuccess, id, getOrders, data]
-  );
-
-  useEffect(() =>{
-    setOrderId(orderIds[0]);
-    
-  }, [orderIds, isSuccess]);
-
+  console.log(isLoading)
   if (isLoading) {
     return <div>Loading...</div>;
-  }
+}
+
+
+ 
 
   const orderMenu = <OrderMenu orderIds={orderIds} setOrderId={setOrderId} setLoading={setLoading} />;
 
@@ -95,7 +81,7 @@ export default function DirectionsMap({ id, getOrders, useCurrentLocation }: Dir
       <div style={{ width: "100%", height: "100vh" }}>
         <APIProvider apiKey={apiKey} onLoad={() => console.log('Maps API has loaded.')}>
           <div className='map-container'>
-            <Directions orderId={orderId} loadHandler={loadHandler} errorHandler={errorHandler} setLoading={setLoading} orderMenu={orderMenu} useCurrentLocation={useCurrentLocation} />
+            <Directions orderId={orderId} loadHandler={loadHandler} errorHandler={errorHandler} setLoading={setLoading} orderMenu={orderMenu} />
             <Map
               id={'map'}
               options={{
@@ -124,10 +110,9 @@ export default function DirectionsMap({ id, getOrders, useCurrentLocation }: Dir
               <Typography variant="h6">Loading...</Typography>
               <CircularProgress />
             </div>
-          </div> ) : null}
-
+          </div>
+        ) : null}
       </div>
-      <ToastContainer />
     </div>
   );
 }
