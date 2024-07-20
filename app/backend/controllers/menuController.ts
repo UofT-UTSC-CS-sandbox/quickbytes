@@ -576,6 +576,7 @@ export async function getPickupLocation(req: Request, res: Response) {
             res.status(200).json({
                 lat: trackingInfo.dropOff.lat,
                 lng: trackingInfo.dropOff.lng,
+                dropOffName: trackingInfo.dropOffName
             });
         } else {
             res.status(404).json({ error: 'Pickup location not set' });
