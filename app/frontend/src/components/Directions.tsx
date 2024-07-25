@@ -1,21 +1,18 @@
 import { useMap, useMapsLibrary } from '@vis.gl/react-google-maps';
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button, Stack } from "@mui/material";
 import './DirectionsMap.css';
 //import useCurrentLocation from '../services/currentLocationServiceCustomer';
 import OrderStatus from '../model/OrderStatus'; // Import OrderStatus
 
-import restaurantService from '../services/restaurantService';
-import orderService from '../services/orderService';
 import trackingService from '../services/trackingService';
 
 import deliveryService from '../services/deliveryService';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { useNavigate, useLocation} from 'react-router-dom';
 
 import { database, ref, onValue } from '../firebaseConfig';
 
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 
 
 interface DirectionProps {

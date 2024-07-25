@@ -4,7 +4,7 @@ import admin from '../firebase-config';
 const database = admin.database();
 
 export const getUserActiveOrder = async (req: Request, res: Response) => {
-  const userId = req.params.userId;
+  const userId = req.user!.uid;
 
   try {
     // Reference to the user's active orders
@@ -148,7 +148,6 @@ export const getUserActiveOrders2 = async (req: Request, res: Response) => {
 
 export const getUserCurrentLocation = async (req: Request, res: Response) => {
   const userId = req.params.userId;
-  console.log("entered getCurrentLocation")
 
   try {
     // Fetch user data from Firebase Realtime Database

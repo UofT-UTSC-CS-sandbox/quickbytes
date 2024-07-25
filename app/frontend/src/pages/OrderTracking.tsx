@@ -9,7 +9,6 @@ import OrderStatus from '../model/OrderStatus';
 import deliveryService from '../services/deliveryService';
 import Notification from '../components/Notification';
 import settingService from '../services/settingService';
-import restaurantService from '../services/restaurantService';
 import orderService from '../services/orderService';
 import SingleMarkerMap from '../components/SetDirectionsMap';
 import trackingService from '../services/trackingService';

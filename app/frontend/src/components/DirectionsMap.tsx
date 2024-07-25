@@ -1,20 +1,10 @@
-import { APIProvider, Map, useMap, useMapsLibrary } from '@vis.gl/react-google-maps';
+import { APIProvider, Map } from '@vis.gl/react-google-maps';
 import { useState, useEffect } from 'react';
-import * as React from 'react';
-import Button from '@mui/material/Button';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
 import './DirectionsMap.css';
 import CircularProgress from '@mui/material/CircularProgress';
 import Typography from '@mui/material/Typography';
 import { Snackbar, Alert } from '@mui/material';
-import deliveryService from '../services/deliveryService';
-import OrderStatus from '../model/OrderStatus';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { database, ref, onValue } from '../firebaseConfig';
-import { ToastContainer, toast } from 'react-toastify';
-import restaurantService from '../services/restaurantService';
+import { ToastContainer } from 'react-toastify';
 import uberMapStyle from './mapStyles.json';
 import OrderMenu from './OrderMenu'; // Import the new OrderMenu component
 
@@ -99,9 +89,7 @@ export default function DirectionsMap({ getOrders, useCurrentLocation }: Directi
             <Directions orderId={orderId} loadHandler={loadHandler} errorHandler={errorHandler} setLoading={setLoading} orderMenu={orderMenu} useCurrentLocation={useCurrentLocation} />
             <Map
               id={'map'}
-              options={{
-                styles: uberMapStyle,
-              }}
+              styles={uberMapStyle}
               defaultZoom={13}
               defaultCenter={{ lat: -33.860664, lng: 151.208138 }}
               onCameraChanged={(ev) => console.log('camera changed:', ev.detail.center, 'zoom:', ev.detail.zoom, 'zoom2:', ev.map.getZoom())}

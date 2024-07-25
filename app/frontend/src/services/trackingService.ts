@@ -47,7 +47,7 @@ export default {
      * @param orderID Unique ID of the order within the database.
      * @returns Service endpoint to fetch dropoff location.
      */
-    getOrderDropoff: (orderID: string | undefined) =>
+    getOrderDropoff: (orderID: string | null) =>
         useGetEndpoint<GetOrderDropoffResponse>(
             {
                 inputUrl: `restaurants/order/${orderID}/dropOff`,
@@ -77,7 +77,7 @@ export default {
             }
         ),
 
-    getRestaurantLocation: (orderID: string | undefined) =>
+    getRestaurantLocation: (orderID: string | null) =>
         useGetEndpoint<GetPickupLocationResponse>(
             {
                 inputUrl: `restaurants/order/${orderID}/restaurant-location`,
@@ -106,7 +106,7 @@ export default {
                 enabled: !!userId,
             }),
 
-    getCurrentLocationFromOrder: (orderId: string | undefined) =>
+    getCurrentLocationFromOrder: (orderId: string | null) =>
             useGetEndpoint<GetCurrentLocationResponse>(
                 {
                     inputUrl: `deliveries/${orderId}/courier-location`,
