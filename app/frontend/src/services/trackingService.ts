@@ -51,7 +51,7 @@ export default {
         useGetEndpoint<GetOrderDropoffResponse>(
             {
                 inputUrl: `restaurants/order/${orderID}/dropOff`,
-                useAuth: false
+                useAuth: true
             },
             {
                 queryKey: ['getOrder', orderID],
@@ -69,7 +69,7 @@ export default {
         useGetEndpoint<GetPickupLocationResponse>(
             {
                 inputUrl: `restaurants/order/${orderID}/pickup-location`,
-                useAuth: false
+                useAuth: true
             },
             {
                 queryKey: ['getPickupLocation', orderID],
@@ -81,7 +81,7 @@ export default {
         useGetEndpoint<GetPickupLocationResponse>(
             {
                 inputUrl: `restaurants/order/${orderID}/restaurant-location`,
-                useAuth: false
+                useAuth: true
             },
             {
                 queryKey: ['getRestaurantLocation', orderID],
@@ -99,7 +99,7 @@ export default {
         useGetEndpoint<GetCurrentLocationResponse>(
             {
                 inputUrl: `user/${userId}/current-location`,
-                useAuth: false,
+                useAuth: true,
             },
             {
                 queryKey: ['getCurrentLocation', userId],
@@ -110,7 +110,7 @@ export default {
             useGetEndpoint<GetCurrentLocationResponse>(
                 {
                     inputUrl: `deliveries/${orderId}/courier-location`,
-                    useAuth: false,
+                    useAuth: true,
                 },
                 {
                     queryKey: ['getCurrentLocationFromOrder', orderId],
@@ -127,7 +127,7 @@ export default {
         useGetEndpoint<GetCustomerConfirmationPinResponse>(
             {
                 inputUrl: `user/${userId}/get-confirm-pin`,
-                useAuth: false,
+                useAuth: true,
             },
             {
                 queryKey: ['getCustomerConfirmationPin', userId],

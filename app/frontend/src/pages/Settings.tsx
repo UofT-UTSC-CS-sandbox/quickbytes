@@ -30,33 +30,18 @@ function CustomTabPanel(props: TabPanelProps) {
 const drawerWidth = 240;
 
 function Settings() {
-    const [userID, setUserId] = useState('');
     const [value, setValue] = useState(0);
     const [notificationsEnabled, setNotificationsEnabled] = useState<NotificationType[]>([]);
     const [rolesEnabled, setRolesEnabled] = useState<RoleType[]>([]);
-
-    useEffect(() => {
-        const auth = getAuth();
-
-        // get current user uid from firebase
-        const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
-            if (user) {
-                setUserId(user.uid);
-            } else {
-                console.log('No user is signed in.');
-            }
-        });
-        return () => unsubscribeAuth();
-    }, []);
 
     const handleChange = (event: React.SyntheticEvent, newValue: number) => {
         setValue(newValue);
     };
 
-    const { mutate: updateNotification } = settingService.updateNotification(userID, () => console.log("Successfully updated notification")).useMutation();
-    const { mutate: updateRole } = settingService.updateRole(userID, () => console.log("Successfully updated role")).useMutation();
-    const { data: data } = settingService.getNotificationSettings(userID).useQuery();
-    const { data: roleData } = settingService.getRoleSettings(userID).useQuery();
+    const { mutate: updateNotification } = settingService.updateNotification(() => console.log("Successfully updated notification")).useMutation();
+    const { mutate: updateRole } = settingService.updateRole(() => console.log("Successfully updated role")).useMutation();
+    const { data: data } = settingService.getNotificationSettings().useQuery();
+    const { data: roleData } = settingService.getRoleSettings().useQuery();
 
     useEffect(() => {
         if (data) {

@@ -56,7 +56,6 @@ type GetDeliveriesResponse = {
  * Request body for the POST request to accept the delivery.
  */
 type AcceptDeliveryRequest = {
-    userId: string,
     orderId: string
 }
 
@@ -92,33 +91,31 @@ type UpdateOrderStatusResponse = {
  */
 export default {
     /**
-     * Get the delivery that is currently being done by a courier
-     * @param courierID ID of courier to query for.
+     * Get the delivery that is currently being done by the logged in user as a courier
      * @returns Service endpoint to get the active delivery ID of the courier.
      */
-    getCourierActiveOrder: (courierID: string) =>
+    getCourierActiveOrder: () =>
         useGetEndpoint<GetCourierActiveOrderResponse>(
             {
-                inputUrl: `deliveries/active?courierID=${courierID}`,
-                useAuth: false
-            },
-            {
-                queryKey: ['courierActiveOrder', courierID],
-            }
-        ),
-    /**
-     * Get the order that is currently being delivered to the customer
-     * @param customerID ID of current user customer to query for.
-     * @returns Service endpoint to get the active order ID of the customer.
-     */
-    getCustomerActiveOrder: (customerID: string) =>
-        useGetEndpoint<GetCustomerActiveOrderResponse>(
-            {
-                inputUrl: `deliveries/activeOrder?customerID=${customerID}`,
+                inputUrl: `deliveries/byMe`,
                 useAuth: true
             },
             {
-                queryKey: ['customerActiveOrder', customerID],
+                queryKey: ['courierActiveOrder'],
+            }
+        ),
+    /**
+     * Get the order that is currently being delivered to the user that is logged in
+     * @returns Service endpoint to get the active order ID of the customer.
+     */
+    getCustomerActiveOrder: () =>
+        useGetEndpoint<GetCustomerActiveOrderResponse>(
+            {
+                inputUrl: `deliveries/toMe`,
+                useAuth: true
+            },
+            {
+                queryKey: ['customerActiveOrder'],
             }
         ),
     /**
@@ -129,7 +126,7 @@ export default {
         useGetEndpoint<GetDeliveriesResponse, unknown>(
             {
                 inputUrl: 'deliveries/ordering',
-                useAuth: false
+                useAuth: true
             },
             {
                 queryKey: ['getDeliveries'],
@@ -144,7 +141,7 @@ export default {
         usePostEndpoint<AcceptDeliveryResponse, Error, AcceptDeliveryRequest>(
           {
             inputUrl: 'deliveries/accept',
-            useAuth: false,
+            useAuth: true,
           },
           {
             onSuccess,
@@ -159,7 +156,7 @@ export default {
         usePostEndpoint<UpdateOrderStatusResponse, Error, UpdateOrderStatusRequest>(
           {
             inputUrl: 'deliveries/updateOrderStatus',
-            useAuth: false,
+            useAuth: true,
           },
           {
             onSuccess,

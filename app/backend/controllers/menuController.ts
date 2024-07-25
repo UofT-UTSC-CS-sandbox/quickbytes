@@ -55,8 +55,7 @@ export function getOneRestaurant(req: Request, res: Response) {
 
 export async function createUserOrder(req: Request, res: Response) {
     const database = admin.database();
-    // TODO: Get unique identifier of user from auth and check user is authenticated.
-    const userId = "1"; // Replace with actual user ID logic
+    const userId = req.user!.uid;
     const restaurantId = req.params.id;
     const { menuItemId, optionSelected, addOnsSelected, quantity } = req.body;
 
@@ -152,7 +151,7 @@ export async function addToOrder(req: Request, res: Response) {
     const database = admin.database();
     const { id: restaurantId, orderId } = req.params;
     const { menuItemId, optionSelected, addOnsSelected, quantity } = req.body;
-    const userId: string = "1"; // TODO: Get unique identifier of user from auth
+    const userId = req.user!.uid;
 
     try {
         const orderRef = database.ref(`orders/${orderId}`);
@@ -278,6 +277,7 @@ export async function addItemToOrder(req: Request, res: Response, database: Data
 export function getOrder(req: Request, res: Response) {
     const database = admin.database();
     const { orderId } = req.params;
+    const userId = req.user!.uid;
 
     database.ref(`orders/${orderId}`).get()
         .then((snapshot: DataSnapshot) => {
@@ -322,7 +322,7 @@ export function getOrderDropOff(req: Request, res: Response) {
  */
 export async function getCustomerInProgressOrder(req: Request, res: Response) {
     const database = admin.database();
-    const userId = "1"; // Replace with actual user ID retrieval logic
+    const userId = req.user!.uid;
     const userOrderLocation = database.ref(`user/${userId}/ordering`);
     let orderIdSnapshot = undefined;
     try {
@@ -359,7 +359,7 @@ export async function getCustomerInProgressOrder(req: Request, res: Response) {
 // Get the only in-progress order for the user
 export async function getActiveOrder(req: Request, res: Response) {
     const database = admin.database();
-    const userId: string = "1"; // Replace with actual user ID retrieval logic
+    const userId = req.user!.uid;
     const restaurantId = req.params.id;
     const userOrderLocation = database.ref(`user/${userId}/ordering/${restaurantId}`);
     try {
@@ -391,6 +391,7 @@ export async function getActiveOrder(req: Request, res: Response) {
 export async function deleteItemFromOrder(req: Request, res: Response) {
     const { orderId, itemId } = req.params;
     const database = admin.database();
+    const userId = req.user!.uid;
 
     const itemLocation = `orders/${orderId}/order/items/${itemId}`;
 
@@ -449,9 +450,9 @@ export async function deleteItemFromOrder(req: Request, res: Response) {
 export async function placeOrder(req: Request, res: Response) {
     const database = admin.database();
     const { orderId } = req.params;
+    const userId = req.user!.uid;
     try {
         // Find the restaurant id of the order
-        const userId = "1";
         const restaurantIdLocation = database.ref(`orders/${orderId}/restaurantId`);
         const restaurantIdSnapshot = await restaurantIdLocation.get();
         if (!restaurantIdSnapshot.exists() || !restaurantIdSnapshot.val()) {

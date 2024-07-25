@@ -1,6 +1,4 @@
 import { useEffect, useState } from 'react';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { useParams } from 'react-router-dom';
 import { Typography, List, ListItem, ListItemText, Button } from '@mui/material';
 import NavBar from '../components/Navbar';
 import { ToastContainer, toast } from 'react-toastify';
@@ -24,33 +22,19 @@ import useCurrentLocation from '../services/currentLocationServiceCustomer';
 
 
 function OrderTracking() {
-    const [userId, setUserId] = useState('');
     const [updatingLocation, setUpdatingLocation] = useState(false);
     const [pickupLocation, setPickupLocation] = useState<{ lat: number, lng: number }>(DEFAULT_PICKUP_LOCATION);
     const [orderId, setOrderId] = useState<string | null>(null);
     const [directionsAvailable, setDirectionsAvailable] = useState(true);
 
-    useEffect(() => {
-        const auth = getAuth();
-
-        // Get current user uid from Firebase
-        const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
-            if (user) {
-                setUserId(user.uid);
-            } else {
-                console.log('No user is signed in.');
-            }
-        });
-        return () => unsubscribeAuth();
-    }, []);
 
     // Get the active orderId of the customer
-    const { data: orderData, error } = deliveryService.getCustomerActiveOrder(userId).useQuery();
-    const { data: order } = orderService.getClientActiveOrders(userId).useQuery();
+    const { data: orderData, error } = deliveryService.getCustomerActiveOrder().useQuery();
+    const { data: order } = orderService.getClientActiveOrders().useQuery();
 
     // get user role and notification settings
-    const { data: settingsData, isLoading: settingLoad } = settingService.getNotificationSettings(userId).useQuery();
-    const { data: roleData, isLoading: roleLoad } = settingService.getRoleSettings(userId).useQuery();
+    const { data: settingsData, isLoading: settingLoad } = settingService.getNotificationSettings().useQuery();
+    const { data: roleData, isLoading: roleLoad } = settingService.getRoleSettings().useQuery();
     // listen to changes in the order status and show a notification
     useEffect(() => {
         // only subscribe to notification if notification settings are enabled for customer
@@ -185,7 +169,7 @@ function OrderTracking() {
             //The DirectionsMap wont have the userid fixed once roles such as customer,courier,and restaurant are established
             //Additionally, the getOrders function should change to restaurantService.getRestaurantActiveOrders if the restaurant is viewing
             //And useCurrentLocation should change based on if the courier or customer/restaurant is using the view
-            return <DirectionsMap id={"1"} getOrders={orderService.getClientActiveOrders2} useCurrentLocation={useCurrentLocation} />;
+            return <DirectionsMap getOrders={orderService.getClientActiveOrders2} useCurrentLocation={useCurrentLocation} />;
         else if (updatingLocation) // If the user is attempting to change the location, display map with marker
             return <SingleMarkerMap
                     sendSetPickupLocation={sendSetPickupLocation}

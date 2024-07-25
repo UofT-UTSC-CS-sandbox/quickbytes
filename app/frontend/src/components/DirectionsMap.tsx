@@ -23,12 +23,11 @@ import Directions from './Directions';
 
 
 interface DirectionsMapProps {
-  id: string;
-  getOrders: (userId: string) => any;
+  getOrders: () => any;
   useCurrentLocation: (orderId: string | null) => { currentLocation: any, isLoading: boolean, error: any };
 }
 
-export default function DirectionsMap({ id, getOrders, useCurrentLocation }: DirectionsMapProps) {
+export default function DirectionsMap({ getOrders, useCurrentLocation }: DirectionsMapProps) {
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string;
   const [displayError, setDisplayError] = useState<Error | null>(null);
   const errorHandler = (err: Error) => {
@@ -40,7 +39,7 @@ export default function DirectionsMap({ id, getOrders, useCurrentLocation }: Dir
   const [orderId, setOrderId] = useState<string | null>(null);
   const [orderIds, setOrderIds] = useState<string[]>([]);
 
-  const {  data, isLoading, isSuccess, isError} = getOrders(id).useQuery();
+  const {  data, isLoading, isSuccess, isError} = getOrders().useQuery();
 
   useEffect(() => {
     console.log("isloadingggg")
@@ -78,7 +77,7 @@ export default function DirectionsMap({ id, getOrders, useCurrentLocation }: Dir
 
 
 
-  }, [isSuccess, id, getOrders, data]
+  }, [isSuccess, getOrders, data]
   );
 
   useEffect(() =>{

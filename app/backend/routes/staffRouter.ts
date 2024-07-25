@@ -1,7 +1,10 @@
 import { Router } from "express";
 import { getInProgressOrders, createCourierConfirmationPin, getCourierConfirmationPin, updateCourierConfirmationStatus, getCourierConfirmationStatus } from "../controllers/restaurantController";
+import verifyToken from "../middleware/verifyToken";
 
 const staffRouter = Router();
+
+staffRouter.use(verifyToken);
 
 staffRouter.get('/:restaurantId/orders', getInProgressOrders);
 staffRouter.post('/:restaurantId/:orderId/confirm-pin', createCourierConfirmationPin);

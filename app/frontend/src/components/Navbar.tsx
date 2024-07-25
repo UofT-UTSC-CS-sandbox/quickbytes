@@ -21,37 +21,22 @@ const TranslucentBadge = styled(Badge)(({ theme }) => ({
 
 export default function NavBar() {
   const { currentUser, logout } = useAuth(); // useAuth provides currentUser and logout function
-  const [userId, setUserId] = useState('');
   const [activeLink, setActiveLink] = useState('');
   const [customerdrawerOpen, setCustomerDrawerOpen] = useState(false);
   const [courierDrawerOpen, setCourierDrawerOpen] = useState(false);
   const navigate = useNavigate();
-  const { data: orders } = orderService.getUserActiveOrders(userId).useQuery();
-  const { data: deliveries } = orderService.getUserActiveDelivery(userId).useQuery();
+  const { data: orders } = orderService.getUserActiveOrders().useQuery();
+  const { data: deliveries } = orderService.getUserActiveDelivery().useQuery();
   const activeOrderCount = Array.isArray(orders?.data) ? orders.data.length : 0;
   const activeDeliveryCount = Array.isArray(deliveries?.data) ? deliveries.data.length : 0;
-
-  useEffect(() => {
-    const auth = getAuth();
-
-    // Get current user uid from Firebase
-    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUserId(user.uid);
-      } else {
-        console.log('No user is signed in.');
-      }
-    });
-    return () => unsubscribeAuth();
-  }, []);
 
   useEffect(() => {
     setActiveLink(location.pathname);
   }, [location]);
 
   // get user role settings
-  const { data: roleData } = settingService.getRoleSettings(userId).useQuery();
-  const { mutate: updateRole } = settingService.updateRole(userId, () => console.log("Successfully updated role")).useMutation();
+  const { data: roleData } = settingService.getRoleSettings().useQuery();
+  const { mutate: updateRole } = settingService.updateRole(() => console.log("Successfully updated role")).useMutation();
 
   const handleSignOut = async () => {
     try {
@@ -145,26 +130,26 @@ export default function NavBar() {
           </Link>
         )}
       </div>
-      <Drawer anchor="right" open={customerdrawerOpen} onClose={toggleCustomerDrawer(false)}>
+      <Drawer anchor="right" open={customerdrawerOpen} onClose={() => toggleCustomerDrawer(false)}>
         <Box
           sx={{ width: 350, padding: 2 }}
           role="presentation"
         >
-          <IconButton onClick={toggleCustomerDrawer(false)} style={{ float: 'right' }}>
+          <IconButton onClick={() => toggleCustomerDrawer(false)} style={{ float: 'right' }}>
             <CloseIcon />
           </IconButton>
-          <CustomerOrders isDrawer={true} onClose={toggleCustomerDrawer(false)} />
+          <CustomerOrders isDrawer={true} onClose={() => toggleCustomerDrawer(false)} />
         </Box>
       </Drawer>
-      <Drawer anchor="right" open={courierDrawerOpen} onClose={toggleCourierDrawer(false)}>
+      <Drawer anchor="right" open={courierDrawerOpen} onClose={() => toggleCourierDrawer(false)}>
         <Box
           sx={{ width: 350, padding: 2 }}
           role="presentation"
         >
-          <IconButton onClick={toggleCourierDrawer(false)} style={{ float: 'right' }}>
+          <IconButton onClick={() => toggleCourierDrawer(false)} style={{ float: 'right' }}>
             <CloseIcon />
           </IconButton>
-          <CourierDelivery isDrawer={true} onClose={toggleCourierDrawer(false)} />
+          <CourierDelivery isDrawer={true} onClose={() =>toggleCourierDrawer(false)} />
         </Box>
       </Drawer>
     </nav>
