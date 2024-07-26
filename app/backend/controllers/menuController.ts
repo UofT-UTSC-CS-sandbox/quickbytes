@@ -190,12 +190,20 @@ export async function addItemToOrder(req: Request, res: Response, database: Data
 }) {
     try {
         // Prevent items from different restaurants from being added together in the same order
-        const orderRestaurantId = `orders/${orderId}/restaurant/restaurantId`;
-        const rIdSnapshot = await database.ref(orderRestaurantId).get();
+        const order = await database.ref(`orders/${orderId}`).get();
 
-        if (!rIdSnapshot.exists() || rIdSnapshot.val() !== restaurantId) {
-            res.status(400).send({ data: "Something went wrong", error: "Invalid item combination." });
-            return;
+        if (!order.exists())
+            return res.status(400).send({ data: "Something went wrong", error: "Order does not exist" });
+        
+        const orderData = order.val();
+
+        // Only the user who placed this order can modify it
+        const userId = req.user?.uid;
+        if (orderData.userId != userId)
+            return res.status(404).send({ data: "Order not found" });
+
+        if (orderData.restaurant.restaurantId !== restaurantId) {
+            return res.status(400).send({ data: "Something went wrong", error: "Invalid item combination." });
         }
 
         // Calculate the final price information
@@ -283,6 +291,9 @@ export function getOrder(req: Request, res: Response) {
         .then((snapshot: DataSnapshot) => {
             if (snapshot.exists()) {
                 const value = snapshot.val();
+                const userId = req.user?.uid; //TODO extract this from auth
+                if (value.userId != userId && value.courierId != userId)
+                    return res.status(404).send({ data: "Order not found" });
                 const items = value.order.items ?? {};
                 res.send({ data: { ...value.order, id: orderId, items, status: value.tracking.status } });
             } else {
@@ -298,12 +309,16 @@ export function getOrder(req: Request, res: Response) {
 export function getOrderDropOff(req: Request, res: Response) {
     const database = admin.database();
     const orderId = req.params.orderId;
-    const orderRef = database.ref(`orders/${orderId}/tracking/dropOff`);
+    const orderRef = database.ref(`orders/${orderId}`);
 
     orderRef.get()
         .then((snapshot: DataSnapshot) => {
             if (snapshot.exists()) {
-                res.status(200).send({ data: snapshot.val() });
+                const orderData = snapshot.val();
+                const userId = req.user?.uid;
+                if (orderData.couriedId != userId && orderData.userId != userId)
+                    return res.status(404).send({ data: "Order not found" });
+                res.status(200).send({ data: orderData.tracking.dropOff });
             } else {
                 res.status(404).send({ data: "Something went wrong" });
             }
@@ -346,6 +361,8 @@ export async function getCustomerInProgressOrder(req: Request, res: Response) {
             return;
         } else {
             const value = orderSnapshot.val();
+            if (value.userId != userId)
+                return res.status(404).send({ data: "Order not found" });
             const items = value.order.items ?? {};
             res.send({ data: { ...value.order, items, id: orderId, status: value.tracking.status, restaurant: value.restaurant } });
             return;
@@ -378,6 +395,8 @@ export async function getActiveOrder(req: Request, res: Response) {
             return;
         } else {
             const value = orderSnapshot.val();
+            if (value.userId != userId)
+                return res.status(404).send({ data: "Order not found" });
             const items = value.order.items ?? {};
             res.send({ data: { ...value.order, items, id: orderId, status: value.tracking.status } });
             return;
@@ -400,7 +419,11 @@ export async function deleteItemFromOrder(req: Request, res: Response) {
     try {
         const snapshot = await trackingRef.get();
         if (snapshot.exists()) {
-            if (snapshot.val().status !== OrderStatus.ORDERING) {
+            const value = snapshot.val();
+            const userId = req.user?.uid; // TODO extract this from auth
+            if (value.userId != userId)
+                return res.status(404).send({ data: "Order not found" });
+            if (value.status !== OrderStatus.ORDERING) {
                 res.status(400).send({ data: "Cannot delete items from an order that has already been placed" });
                 return;
             }
@@ -537,20 +560,30 @@ export async function placeOrder(req: Request, res: Response) {
 export async function setPickupLocation(req: Request, res: Response) {
     const { orderId } = req.params;
     const { lat, lng } = req.body;
+    const userId = req.user?.uid;
 
     const database = admin.database();
+    const orderUserRef = `orders/${orderId}/userId`;
     const dropOffLocation = `orders/${orderId}/tracking/dropOff`;
 
-    const building = lookupBuilding(lat, lng);
-    const locationName = building ? building.name : "On campus";
-
-    const updates: Record<string, any> = {
-        [`${dropOffLocation}/lat`]: lat,
-        [`${dropOffLocation}/lng`]: lng,
-        [`orders/${orderId}/tracking/dropOffName`]: locationName,
-    };
-
     try {
+        // Check if the userId of the order matches the issuer of the request
+        const orderSnapshot = await database.ref(orderUserRef).once('value');
+        const orderUserId = orderSnapshot.val();
+
+        if (orderUserId !== userId) {
+            return res.status(404).send({ data: "Order not found" });
+        }
+
+        const building = lookupBuilding(lat, lng);
+        const locationName = building ? building.name : "On campus";
+
+        const updates: Record<string, any> = {
+            [`${dropOffLocation}/lat`]: lat,
+            [`${dropOffLocation}/lng`]: lng,
+            [`orders/${orderId}/tracking/dropOffName`]: locationName,
+        };
+
         await database.ref().update(updates);
         res.status(200).send({ dropOff: { lat, lng }, dropOffName: locationName });
     } catch (error) {
@@ -565,10 +598,17 @@ export async function getPickupLocation(req: Request, res: Response) {
     const database = admin.database();
 
     try {
-        const trackingSnapshot = await database.ref(`orders/${orderId}/tracking`).once('value');
+        const snapshot = await database.ref(`orders/${orderId}`).once("value");
+        
 
-        if (trackingSnapshot.exists()) {
-            const trackingInfo = trackingSnapshot.val();
+        // const trackingSnapshot = await database.ref(`orders/${orderId}/tracking`).once('value');
+
+        if (snapshot.exists()) {
+            const orderdata = snapshot.val();
+            const userId = req.user?.uid;
+            if (orderdata.userId != userId)
+                return res.status(404).send({ data: "Order not found" });
+            const trackingInfo = orderdata.tracking;
             res.status(200).json({
                 lat: trackingInfo.dropOff.lat,
                 lng: trackingInfo.dropOff.lng,
@@ -592,6 +632,9 @@ export async function getRestaurantLocation(req: Request, res: Response) {
     try {
         const snapshot = await database.ref(orderref).once("value");
         const orderdata = snapshot.val();
+        const userId = req.user?.uid;
+        if (orderdata.userId != userId)
+            return res.status(404).send({ data: "Order not found" });
 
         const restaurantId = orderdata.restaurant.restaurantId;
         console.log(restaurantId, "restaurant id")

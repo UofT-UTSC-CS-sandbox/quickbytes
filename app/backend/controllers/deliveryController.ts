@@ -120,9 +120,19 @@ export async function updateOrderStatus(req: Request, res: Response) {
 
 
   try {
+    const orderSnapshot = await orderRef.once('value');
+    const orderData = orderSnapshot.val();
+  
+    // Ensure that the issuer of this request has permission to modify this request
+    // Only the courier or customer of this request can make changes
+    const userId = 1; //TODO extract this from auth
+    if ((courierRequest && orderData.courierId !== userId) || // The request was made by the courier
+                                                              // but the courier is not delivering this order
+          (!courierRequest && orderData.userId !== userId)) // The request was made by the customer
+                                                            // but the customer did not place this order
+      return res.status(404).send({ data: "Order not found" });
+
     if (status === OrderStatus.CANCELLED) {
-      const orderSnapshot = await orderRef.once('value');
-      const orderData = orderSnapshot.val();
       if (orderData.tracking.status === OrderStatus.EN_ROUTE) {
         return res.status(400).send({ error: 'Cannot cancel order that has been picked up' });
       }
@@ -181,6 +191,12 @@ export const getDeliveryStatus = async (req: Request, res: Response) => {
     if (snapshot.exists()) {
       const deliveryData = snapshot.val();
       const courierId = deliveryData.courierId;
+
+      const userId = 1; // TOOD extract this from auth
+      // Verify that the issuer of this request is in some way associated with the order
+      if (deliveryData.courierId !== userId || deliveryData.userId !== userId)
+        return res.status(404).send({ data: "Order not found" });
+
       const courierSnapshot = await database.ref(`user/${courierId}/currentLocation`).once('value');
       const currentLocation = courierSnapshot.exists() ? courierSnapshot.val() : null;
 
@@ -221,17 +237,19 @@ export const updateDeliveryLocation = async (req: Request, res: Response) => {
 
 export const getCurrentLocationFromOrder = async (req: Request, res: Response) => {
   const orderId = req.params.orderId;
-  console.log("entered getCurrentLocation")
 
   try {
     // Fetch user data from Firebase Realtime Database
-    const snapshot = await admin.database().ref(`orders/${orderId}/courierId`).once('value');
-    const courierId = snapshot.val();
-    console.log(courierId, "the id is showing atleast")
+    const orderData = await admin.database().ref(`orders/${orderId}`).once('value');
+    const courierId = orderData.courierId;
+    const userId = 1; // TODO extract this from auth
+    // Verify that the issuer of this request is in some way associated with the order
+    if (courierId !== userId || orderData.userId !== userId)
+      return res.status(404).send({ data: "Order not found" });
+
 
     const snapshot2 = await admin.database().ref(`user/${courierId}/currentLocation`).once('value');
     const location = snapshot2.val();
-    console.log(location, "the location is showing atleast")
 
     if (location) {
       res.status(200).json({ location });
@@ -254,12 +272,15 @@ export const getOrderRestaurantLocation = async (req: Request, res: Response) =>
 
     if (orderSnapshot.exists()) {
       const orderData = orderSnapshot.val();
+      // Verify that the issuer of this request is in some way associated with the order
+      const userId = 1; // TODO extract this from auth
+      if (orderData.courierId !== userId || orderData.userId !== userId)
+        return res.status(404).send({ data: "Order not found" });
+
       const restaurantId = orderData.restaurant.restaurantId;
-      console.log("entered")
 
       // Fetch the restaurant information
       const restaurantSnapshot = await database.ref(`restaurants/${restaurantId}`).once('value');
-      console.log("the restaurant exists?",restaurantSnapshot.exists())
 
       if (restaurantSnapshot.exists()) {
         const restaurantData = restaurantSnapshot.val();
@@ -290,6 +311,9 @@ export function getOrderStatus(req: Request, res: Response) {
       .then((snapshot: any) => {
           if (snapshot.exists()) {
               const value = snapshot.val();
+              const userId = 1; // TODO extract this from auth
+              if (value.courierId == userId || value.userId == userId)
+                return res.status(404).send({ data: "Order not found" });
               const items = value.order.items ?? {};
               res.send({ status: value.tracking.status } );
           } else {
