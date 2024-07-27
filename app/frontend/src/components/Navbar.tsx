@@ -41,6 +41,7 @@ export default function NavBar() {
   const handleSignOut = async () => {
     try {
       await logout(); // Calls the logout function from useAuth (Firebase signOut method)
+      navigate('/login');
     } catch (error) {
       console.error('Error signing out:', error);
     }

@@ -563,12 +563,8 @@ export async function getPickupLocation(req: Request, res: Response) {
     const { orderId } = req.params;
 
     const database = admin.database();
-    const orderref = `orders/${orderId}`;
 
     try {
-        const snapshot = await database.ref(orderref).once("value");
-        const orderdata = snapshot.val();
-
         const trackingSnapshot = await database.ref(`orders/${orderId}/tracking`).once('value');
 
         if (trackingSnapshot.exists()) {
