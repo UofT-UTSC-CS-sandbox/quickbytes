@@ -633,7 +633,7 @@ export async function getRestaurantLocation(req: Request, res: Response) {
         const snapshot = await database.ref(orderref).once("value");
         const orderdata = snapshot.val();
         const userId = req.user?.uid;
-        if (orderdata.userId != userId)
+        if (orderdata.userId != userId && orderdata.couriedId != userId)
             return res.status(404).send({ data: "Order not found" });
 
         const restaurantId = orderdata.restaurant.restaurantId;
