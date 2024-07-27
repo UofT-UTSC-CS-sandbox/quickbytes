@@ -89,23 +89,6 @@ export default {
             }
         ),
 
-    /**
-     * Function to fetch the current location of a user.
-     * 
-     * @param userId The ID of the user whose location is to be fetched.
-     * @returns An object containing a function to trigger the query and its result.
-     */
-    getCurrentLocation: (userId: string | undefined) =>
-        useGetEndpoint<GetCurrentLocationResponse>(
-            {
-                inputUrl: `user/${userId}/current-location`,
-                useAuth: true,
-            },
-            {
-                queryKey: ['getCurrentLocation', userId],
-                enabled: !!userId,
-            }),
-
     getCurrentLocationFromOrder: (orderId: string | null) =>
             useGetEndpoint<GetCurrentLocationResponse>(
                 {
@@ -118,19 +101,18 @@ export default {
                 }),    
 
     /**
-     * Function to fetch the customer confirmation pin from the courier.
+     * Function for the customer to fetch the customer confirmation pin so
+     * they can confirm that they are the customer to the courier.
      * 
-     * @param userId The ID of the courier.
      * @returns An object containing a function to trigger the query and its result.
      */
-    getCustomerConfirmationPin: (userId: string | undefined) =>
+    getCustomerConfirmationPin: () =>
         useGetEndpoint<GetCustomerConfirmationPinResponse>(
             {
-                inputUrl: `user/${userId}/get-confirm-pin`,
+                inputUrl: `user/get-confirm-pin`,
                 useAuth: true,
             },
             {
-                queryKey: ['getCustomerConfirmationPin', userId],
-                enabled: !!userId,
+                queryKey: ['getCustomerConfirmationPin'],
             }),
 }

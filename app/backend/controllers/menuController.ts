@@ -522,7 +522,7 @@ export async function placeOrder(req: Request, res: Response) {
             await trackingLocation.update({ status: OrderStatus.ORDERED });
 
             res.send({
-                data: { ...orderInfo.order, items, id: orderId, status: orderInfo.tracking.status },
+                data: { ...orderInfo.order, restaurant: orderInfo.restaurant, items, id: orderId, status: orderInfo.tracking.status },
                 orderKey: orderId
             });
         } else {

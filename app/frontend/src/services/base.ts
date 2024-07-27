@@ -47,7 +47,7 @@ async function fetchWithAuth<Req, Res>(fetchUrl: string | ((body: Req) => string
         throw new Error("URL already contains a HTTP(s) protocol. Did you accidentally pass in the entire URL instead of a URL relative to the server backend?")
     }
 
-    const token = useAuth ? await currentUser!.getIdToken() : undefined;
+    const token = useAuth ? await currentUser?.getIdToken() : undefined;
 
     // If caller added more header options, add them to the request
     const { headers: headerOptions, ...fetchOptions } = { ...options }

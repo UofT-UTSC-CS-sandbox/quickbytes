@@ -43,7 +43,7 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
     console.log(currLoc)
     const { data: pickupLoc, isLoading: pickUpLoading } = trackingService.getRestaurantLocation(orderId).useQuery();
     const { data: dropOffLoc, isLoading: dropOffLocLoading } = trackingService.getOrderDropoff(orderId).useQuery();
-    const { data: confirmationPinData, isLoading: confirmationPinLoading } = trackingService.getCustomerConfirmationPin("7gPDsXFo8WaI9awl87qlbcJsJBx2").useQuery();
+    const { data: confirmationPinData, isLoading: confirmationPinLoading } = trackingService.getCustomerConfirmationPin().useQuery();
 
     
     const location = useLocation();
