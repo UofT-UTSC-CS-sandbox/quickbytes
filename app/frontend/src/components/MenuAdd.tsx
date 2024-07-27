@@ -187,7 +187,7 @@ const MenuAdd = ({ data, close, setOrder, order, restaurantId }: MenuAddProps) =
                     <p>{currencyFormatter.format(price)}</p>
 
                     { 
-                        order?.restaurant.restaurantId === restaurantId ?
+                        (!order || order.restaurant.restaurantId === restaurantId) ?
 
                         <Stack direction='row' justifyContent="space-between">
                             <Button disabled={isAddItemPending} variant='contained' color='success' onClick={onAddSubmit} startIcon={!isAddItemPending ? <Add /> : <CircularProgress/>}>Add To Order</Button>

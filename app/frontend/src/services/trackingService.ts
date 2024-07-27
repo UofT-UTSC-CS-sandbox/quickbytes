@@ -98,6 +98,8 @@ export default {
                 {
                     queryKey: ['getCurrentLocationFromOrder', orderId],
                     enabled: !!orderId,
+                    refetchInterval: 30000,
+                    retry: 10
                 }),    
 
     /**
