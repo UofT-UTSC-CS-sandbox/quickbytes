@@ -6,7 +6,7 @@ import MenuItem from '@mui/material/MenuItem';
 
 interface OrderMenuProps {
   orderIds: string[];
-  setOrderId: React.Dispatch<React.SetStateAction<string>>;
+  setOrderId: React.Dispatch<React.SetStateAction<string | null>>;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }
 

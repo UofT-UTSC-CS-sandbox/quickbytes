@@ -2,31 +2,15 @@ import React from 'react';
 import { CircularProgress, List, Typography, ListItem, Box, Button } from '@mui/material';
 import orderService from '../services/orderService';
 import { useState, useEffect } from 'react';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import NavBar from './Navbar';
 import OrderStatus from '../model/OrderStatus';
 import { convertOrderStatusToString } from '../model/OrderStatus';
 
 const CustomerOrders: React.FC<{ isDrawer?: boolean, onClose?: () => void }> = ({ isDrawer = false, onClose }) => {
-    const [userId, setUserId] = useState('');
     const navigate = useNavigate();
 
-    useEffect(() => {
-        const auth = getAuth();
-
-        // Get current user uid from Firebase
-        const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
-            if (user) {
-                setUserId(user.uid);
-            } else {
-                console.log('No user is signed in.');
-            }
-        });
-        return () => unsubscribeAuth();
-    }, []);
-
-    const { data: orders, isLoading, isError } = orderService.getUserActiveOrders(userId).useQuery();
+    const { data: orders, isLoading, isError } = orderService.getUserActiveOrders().useQuery();
 
     useEffect(() => {
         if (orders) {

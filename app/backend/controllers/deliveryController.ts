@@ -5,7 +5,7 @@ import { OrderStatus } from '../schema/Order';
 // Get the only in-progress delivery for the courier
 export async function getActiveDelivery(req: Request, res: Response) {
   const database = admin.database();
-  const userId = req.query.courierID as string;
+  const userId = req.user!.uid;
   const userOrderRef = database.ref(`user/${userId}/activeDelivery`);
 
   try {
@@ -41,9 +41,10 @@ export async function getAvailableDeliveries(req: Request, res: Response) {
 }
 
 export async function acceptDelivery(req: Request, res: Response) {
-  const { orderId, userId } = req.body; 
-  if (!userId || !orderId) {
-    return res.status(400).send({ error: 'userId and orderId are required fields' });
+  const userId = req.user!.uid;
+  const { orderId } = req.body; 
+  if (!orderId) {
+    return res.status(400).send({ error: 'orderId is required field' });
   }
 
   const database = admin.database();
@@ -85,7 +86,7 @@ export async function acceptDelivery(req: Request, res: Response) {
 // Get the active order for the courier
 export async function getActiveOrder(req: Request, res: Response) {
     const database = admin.database();
-    const userId = req.query.customerID as string;
+    const userId = req.user!.uid;
     const userOrderRef = database.ref(`user/${userId}/activeOrder`);
 
     try {
@@ -182,15 +183,12 @@ export const getDeliveryStatus = async (req: Request, res: Response) => {
       const courierId = deliveryData.courierId;
       const courierSnapshot = await database.ref(`user/${courierId}/currentLocation`).once('value');
       const currentLocation = courierSnapshot.exists() ? courierSnapshot.val() : null;
-      console.log("here")
 
       //restaurant location
       const restaurantId = deliveryData.restaurant.restaurantId;
       const restaurantSnapshot = await database.ref(`restaurants/${restaurantId}`).once('value');
       const restaurantData = restaurantSnapshot.val();
       const pickUp = restaurantData.information.location;
-
-      console.log("here2",  restaurantData.information.location)
 
       res.status(200).json({
         ...deliveryData,
@@ -202,7 +200,6 @@ export const getDeliveryStatus = async (req: Request, res: Response) => {
       res.status(404).json({ message: 'Order not found' });
     }
   } catch (error) {
-    console.log("fail11111")
     res.status(500).json({ message: 'Internal server error', error });
   }
 };

@@ -31,7 +31,6 @@ const ConfirmationPopup: React.FC<ConfirmationPopupProps> = ({ open, onClose, it
 
   const handleConfirm = () => {
     if (currentUser) acceptDelivery({
-      userId: currentUser.uid,
       orderId: item.id
     });
   };

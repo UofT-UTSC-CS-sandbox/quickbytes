@@ -2,6 +2,7 @@ import { DefaultError, MutationKey, QueryKey, UndefinedInitialDataOptions, UseMu
 import { apiUrl } from "../components/APIUrl";
 import { User } from "firebase/auth";
 import { useAuth as useAuthContext } from '../AuthContext';
+import { useLocation, useNavigate } from "react-router-dom";
 
 /**
  * The common set of parameters required to create a request using the
@@ -36,10 +37,12 @@ type AllowedFetchMethods = 'GET' | 'POST' | 'DELETE';
  * @param method The HTTP method of the request.
  * @param useAuth If True, currentUser will be used to add firebase auth token to the request in the header.
  * @param currentUser The firebase user whose token will be attached to the request if useAuth is True.
- * @param body Any additional arguments to give to the fetch request.
+ * @param onAuthError A function that will be called if useAuth is True but the user could not be authenticated.
+ * @param body Request body.
+ * @param options Any additional options to give to the fetch request.
  * @returns A promise that will resolve with the response JSON.
  */
-async function fetchWithAuth<Req, Res>(fetchUrl: string | ((body: Req) => string), method: AllowedFetchMethods, useAuth: boolean, currentUser?: User | null, body?: Req, options?: RequestInit): Promise<Res> {
+async function fetchWithAuth<Req, Res>(fetchUrl: string | ((body: Req) => string), method: AllowedFetchMethods, useAuth: boolean, currentUser?: User | null, onAuthError?: () => void, body?: Req, options?: RequestInit): Promise<Res> {
 
     const finalUrl: string = (typeof fetchUrl === 'string') ? fetchUrl : fetchUrl(body as Req);
 
@@ -47,7 +50,14 @@ async function fetchWithAuth<Req, Res>(fetchUrl: string | ((body: Req) => string
         throw new Error("URL already contains a HTTP(s) protocol. Did you accidentally pass in the entire URL instead of a URL relative to the server backend?")
     }
 
-    const token = useAuth ? await currentUser!.getIdToken() : undefined;
+    const token = useAuth ? await currentUser?.getIdToken() : undefined;
+
+    if (!token && useAuth) {
+        console.warn('Could not authenticate for ', finalUrl);
+        if (onAuthError) onAuthError(); 
+        else throw new Error('User is not authenticated and no fallback function was provided');
+        return Promise.reject({});
+    }
 
     // If caller added more header options, add them to the request
     const { headers: headerOptions, ...fetchOptions } = { ...options }
@@ -115,13 +125,18 @@ export function usePostEndpoint<
     UseMutationEndpointResult<TData, TError, TVariables, TContext> {
 
     const { currentUser } = useAuth ? useAuthContext() : { currentUser: undefined }
+    const navigate = useNavigate();
+    const location = useLocation();    
+    const badAuth = () => { 
+        navigate('/login', { state: { from: location, showSessionExpiredToast: true } });
+    }
 
     return {
         key: options.mutationKey,
         useMutation: () => useMutation({
             ...options,
             mutationFn: (body: TVariables): Promise<TData> => {
-                return fetchWithAuth<TVariables, TData>(inputUrl, 'POST', useAuth, currentUser, body, additionalOptions);
+                return fetchWithAuth<TVariables, TData>(inputUrl, 'POST', useAuth, currentUser, badAuth, body, additionalOptions);
             }
         })
     }
@@ -163,13 +178,18 @@ export function useDeleteEndpoint<
     UseMutationEndpointResult<TData, TError, TVariables, TContext> {
 
     const { currentUser } = useAuth ? useAuthContext() : { currentUser: undefined }
+    const navigate = useNavigate();
+    const location = useLocation();    
+    const badAuth = () => { 
+        navigate('/login', { state: { from: location, showSessionExpiredToast: true } });
+    }
 
     return {
         key: options.mutationKey,
         useMutation: () => useMutation({
             ...options,
             mutationFn: (body: TVariables): Promise<TData> => {
-                return fetchWithAuth<TVariables, TData>(inputUrl, 'DELETE', useAuth, currentUser, body, additionalOptions);
+                return fetchWithAuth<TVariables, TData>(inputUrl, 'DELETE', useAuth, currentUser, badAuth, body, additionalOptions);
             }
         })
     }
@@ -217,14 +237,19 @@ export function useGetEndpoint<
     UseQueryEndpointResult<TData, TError> {
 
     const { currentUser } = useAuth ? useAuthContext() : { currentUser: undefined }
+    const navigate = useNavigate();
+    const location = useLocation();    
+    const badAuth = () => { 
+        navigate('/login', { state: { from: location, showSessionExpiredToast: true } });
+    }
 
     return {
         key: options.queryKey,
         useQuery: () => useQuery({
             ...options,
             queryFn: () => {
-                return fetchWithAuth<void, TQueryFnData>(inputUrl, 'GET', useAuth, currentUser, undefined, additionalOptions)
-            }
+                return fetchWithAuth<void, TQueryFnData>(inputUrl, 'GET', useAuth, currentUser, badAuth, undefined, additionalOptions)
+            },
         })
     }
 };

@@ -4,7 +4,7 @@ import admin from '../firebase-config';
 const database = admin.database();
 
 export const getUserActiveOrder = async (req: Request, res: Response) => {
-  const userId = req.params.userId;
+  const userId = req.user!.uid;
 
   try {
     // Reference to the user's active orders
@@ -38,7 +38,7 @@ export const getUserActiveOrder = async (req: Request, res: Response) => {
 };
 
 export const getUserActiveDelivery = async (req: Request, res: Response) => {
-  const userId = 8;
+  const userId = req.user!.uid;
   try {
     // Reference to the user's active orders
     const userDeliveryRef = database.ref(`user/${userId}/activeDeliveries`);
@@ -74,7 +74,7 @@ export const getUserActiveDelivery = async (req: Request, res: Response) => {
 };
 
 export const getUserActiveOrders = async (req: Request, res: Response) => {
-  const userId = 1;
+  const userId = req.user!.uid;
   try {
     // Reference to the user's active orders
     const userOrdersRef = database.ref(`user/${userId}/activeOrders`);
@@ -110,8 +110,7 @@ export const getUserActiveOrders = async (req: Request, res: Response) => {
 };
 
 export const getUserActiveOrders2 = async (req: Request, res: Response) => {
-  const userId = req.params.userId;
-  console.log("entered")
+  const userId = req.user!.uid;
 
   try {
     // Reference to the user's active orders
@@ -146,28 +145,8 @@ export const getUserActiveOrders2 = async (req: Request, res: Response) => {
   }
 };
 
-
-export const getUserCurrentLocation = async (req: Request, res: Response) => {
-  const userId = req.params.userId;
-  console.log("entered getCurrentLocation")
-
-  try {
-    // Fetch user data from Firebase Realtime Database
-    const snapshot = await admin.database().ref(`user/${userId}/currentLocation`).once('value');
-    const location = snapshot.val();
-
-    if (location) {
-      res.status(200).json({ location });
-    } else {
-      res.status(404).json({ error: 'Location not found for this user' });
-    }
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch location' });
-  }
-};
-
 export const getCustomerConfirmationPin = async (req: Request, res: Response) => {
-  const userId = req.params.userId as string;
+  const userId = req.user!.uid;
 
   if (!userId) {
     return res.status(400).json({ success: false, message: 'userId is a required field' });
@@ -198,7 +177,7 @@ export const getCustomerConfirmationPin = async (req: Request, res: Response) =>
 };
 
 export const updateRole = async (req: Request, res: Response) => {
-  const { userId } = req.params;
+  const userId = req.user!.uid;
   const { role, enabled } = req.body;
   if (!userId || !role) {
     return res.status(400).json({ success: false, message: 'userId and role are required fields' });
@@ -217,7 +196,7 @@ export const updateRole = async (req: Request, res: Response) => {
 }
 
 export const getNotificationSettings = async (req: Request, res: Response) => {
-  const userId = req.params.userId;
+  const userId = req.user!.uid;
 
   try {
     // Fetch user data from Firebase Realtime Database
@@ -236,7 +215,7 @@ export const getNotificationSettings = async (req: Request, res: Response) => {
 };
 
 export const getRoleSettings = async (req: Request, res: Response) => {
-  const userId = req.params.userId;
+  const userId = req.user!.uid;
 
   try {
     // Fetch user data from Firebase Realtime Database
@@ -255,10 +234,10 @@ export const getRoleSettings = async (req: Request, res: Response) => {
 };
 
 export const updateNotification = async (req: Request, res: Response) => {
-  const { userId } = req.params;
+  const userId = req.user!.uid;
   const { role, enabled } = req.body;
   if (!userId || !role) {
-    return res.status(400).json({ success: false, message: 'userId and role are required fields' });
+    return res.status(400).json({ success: false, message: 'role is required field' });
   }
 
   const database = admin.database();

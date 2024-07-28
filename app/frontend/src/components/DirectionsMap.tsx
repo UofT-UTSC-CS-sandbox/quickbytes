@@ -1,20 +1,10 @@
-import { APIProvider, Map, useMap, useMapsLibrary } from '@vis.gl/react-google-maps';
+import { APIProvider, Map } from '@vis.gl/react-google-maps';
 import { useState, useEffect } from 'react';
-import * as React from 'react';
-import Button from '@mui/material/Button';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
 import './DirectionsMap.css';
 import CircularProgress from '@mui/material/CircularProgress';
 import Typography from '@mui/material/Typography';
 import { Snackbar, Alert } from '@mui/material';
-import deliveryService from '../services/deliveryService';
-import OrderStatus from '../model/OrderStatus';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { database, ref, onValue } from '../firebaseConfig';
-import { ToastContainer, toast } from 'react-toastify';
-import restaurantService from '../services/restaurantService';
+import { ToastContainer } from 'react-toastify';
 import uberMapStyle from './mapStyles.json';
 import OrderMenu from './OrderMenu'; // Import the new OrderMenu component
 
@@ -23,12 +13,11 @@ import Directions from './Directions';
 
 
 interface DirectionsMapProps {
-  id: string;
-  getOrders: (userId: string) => any;
+  getOrders: () => any;
   useCurrentLocation: (orderId: string | null) => { currentLocation: any, isLoading: boolean, error: any };
 }
 
-export default function DirectionsMap({ id, getOrders, useCurrentLocation }: DirectionsMapProps) {
+export default function DirectionsMap({ getOrders, useCurrentLocation }: DirectionsMapProps) {
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string;
   const [displayError, setDisplayError] = useState<Error | null>(null);
   const errorHandler = (err: Error) => {
@@ -40,7 +29,7 @@ export default function DirectionsMap({ id, getOrders, useCurrentLocation }: Dir
   const [orderId, setOrderId] = useState<string | null>(null);
   const [orderIds, setOrderIds] = useState<string[]>([]);
 
-  const {  data, isLoading, isSuccess, isError} = getOrders(id).useQuery();
+  const {  data, isLoading, isSuccess, isError} = getOrders().useQuery();
 
   useEffect(() => {
     console.log("isloadingggg")
@@ -78,7 +67,7 @@ export default function DirectionsMap({ id, getOrders, useCurrentLocation }: Dir
 
 
 
-  }, [isSuccess, id, getOrders, data]
+  }, [isSuccess, getOrders, data]
   );
 
   useEffect(() =>{
@@ -100,9 +89,7 @@ export default function DirectionsMap({ id, getOrders, useCurrentLocation }: Dir
             <Directions orderId={orderId} loadHandler={loadHandler} errorHandler={errorHandler} setLoading={setLoading} orderMenu={orderMenu} useCurrentLocation={useCurrentLocation} />
             <Map
               id={'map'}
-              options={{
-                styles: uberMapStyle,
-              }}
+              styles={uberMapStyle}
               defaultZoom={13}
               defaultCenter={{ lat: -33.860664, lng: 151.208138 }}
               onCameraChanged={(ev) => console.log('camera changed:', ev.detail.center, 'zoom:', ev.detail.zoom, 'zoom2:', ev.map.getZoom())}

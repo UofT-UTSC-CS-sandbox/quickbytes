@@ -154,7 +154,7 @@ export default {
         useGetEndpoint<ActiveOrderResponse>(
             {
                 inputUrl: `staff/${restaurantId}/orders`,
-                useAuth: false,
+                useAuth: true,
             },
             {
                 queryKey: ['getRestaurantActiveOrders', restaurantId],
@@ -176,7 +176,7 @@ export default {
         usePostEndpoint<SetCourierConfirmationPinResponse, Error, SetCourierConfirmationPinRequest>(
             {
                 inputUrl: `staff/${restaurantId}/${orderId}/confirm-pin`,
-                useAuth: false
+                useAuth: true
             },
             {
                 mutationKey: ['setCourierConfirmationPin', restaurantId, orderId],
@@ -195,7 +195,7 @@ export default {
         useGetEndpoint<GetCourierConfirmationPinResponse>(
             {
                 inputUrl: `staff/${restaurantId}/${orderId}/get-pin`,
-                useAuth: false
+                useAuth: true
             },
             {
                 queryKey: ['getCourierConfirmationPin', restaurantId, orderId],
@@ -214,7 +214,7 @@ export default {
         usePostEndpoint<UpdateCourierConfirmationStatusResponse, Error, UpdateCourierConfirmationStatusRequest>(
             {
                 inputUrl: `staff/${restaurantId}/${orderId}/update-confirm-status`,
-                useAuth: false
+                useAuth: true
             },
             {
                 mutationKey: ['updateCourierConfirmationStatus', restaurantId, orderId],
@@ -233,7 +233,7 @@ export default {
         useGetEndpoint<GetCourierConfirmationStatusResponse>(
             {
                 inputUrl: `staff/${restaurantId}/${orderId}/confirm-status`,
-                useAuth: false
+                useAuth: true
             },
             {
                 queryKey: ['getCourierConfirmationStatus', restaurantId, orderId],

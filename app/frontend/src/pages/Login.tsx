@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import './Login.css';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
+import { Alert, Snackbar } from '@mui/material';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -12,8 +13,14 @@ const Login: React.FC = () => {
   const location = useLocation();
   const from = location.state?.from?.pathname || '/';
 
+  const [showSessionExpiredToast, setShowSessionExpiredToast] = useState(false);
+  useEffect(() => {
+    setShowSessionExpiredToast(location.state?.showSessionExpiredToast || false);
+  }, [location.state?.showSessionExpiredToast])
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    setShowSessionExpiredToast(false);
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       await userCredential.user.reload();
@@ -35,7 +42,7 @@ const Login: React.FC = () => {
   return (
     <div className="login-container">
       <form onSubmit={handleSubmit} className="login-form">
-      <h2 style={{ fontSize: '24px', fontWeight: '600' }}>Sign In</h2>
+        <h2 style={{ fontSize: '24px', fontWeight: '600' }}>Sign In</h2>
         <div>
           <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="example@mail.utoronto.ca" required />
         </div>
@@ -52,16 +59,27 @@ const Login: React.FC = () => {
           style={{
             color: '#828282',
             textDecoration: 'none',
-	          background: 'none', 
-	          border: 'none',
+            background: 'none',
+            border: 'none',
             fontWeight: 'normal',
             cursor: 'pointer',
             paddingLeft: '4px',
           }}
         >
-           <strong><u>Here</u></strong>
+          <strong><u>Here</u></strong>
         </button>
       </p>
+
+      <Snackbar
+        open={showSessionExpiredToast}
+        autoHideDuration={5000}
+        onClose={() => setShowSessionExpiredToast(false)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert severity="info" sx={{ width: '100%' }}>
+          Your session has expired. Please sign in again.
+        </Alert>
+      </Snackbar>
 
     </div>
   );
