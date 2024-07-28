@@ -125,7 +125,7 @@ export async function updateOrderStatus(req: Request, res: Response) {
   
     // Ensure that the issuer of this request has permission to modify this request
     // Only the courier or customer of this request can make changes
-    const userId = 1; //TODO extract this from auth
+    const userId = req.user?.uid; //TODO extract this from auth
     if ((courierRequest && orderData.courierId !== userId) || // The request was made by the courier
                                                               // but the courier is not delivering this order
           (!courierRequest && orderData.userId !== userId)) // The request was made by the customer
@@ -192,7 +192,7 @@ export const getDeliveryStatus = async (req: Request, res: Response) => {
       const deliveryData = snapshot.val();
       const courierId = deliveryData.courierId;
 
-      const userId = 1; // TOOD extract this from auth
+      const userId = req.user?.uid; // TOOD extract this from auth
       // Verify that the issuer of this request is in some way associated with the order
       if (deliveryData.courierId !== userId || deliveryData.userId !== userId)
         return res.status(404).send({ data: "Order not found" });
@@ -242,7 +242,7 @@ export const getCurrentLocationFromOrder = async (req: Request, res: Response) =
     // Fetch user data from Firebase Realtime Database
     const orderData = await admin.database().ref(`orders/${orderId}`).once('value');
     const courierId = orderData.courierId;
-    const userId = 1; // TODO extract this from auth
+    const userId = req.user?.uid; // TODO extract this from auth
     // Verify that the issuer of this request is in some way associated with the order
     if (courierId !== userId || orderData.userId !== userId)
       return res.status(404).send({ data: "Order not found" });
@@ -273,7 +273,7 @@ export const getOrderRestaurantLocation = async (req: Request, res: Response) =>
     if (orderSnapshot.exists()) {
       const orderData = orderSnapshot.val();
       // Verify that the issuer of this request is in some way associated with the order
-      const userId = 1; // TODO extract this from auth
+      const userId = req.user?.uid; // TODO extract this from auth
       if (orderData.courierId !== userId || orderData.userId !== userId)
         return res.status(404).send({ data: "Order not found" });
 
@@ -311,7 +311,7 @@ export function getOrderStatus(req: Request, res: Response) {
       .then((snapshot: any) => {
           if (snapshot.exists()) {
               const value = snapshot.val();
-              const userId = 1; // TODO extract this from auth
+              const userId = req.user?.uid; // TODO extract this from auth
               if (value.courierId == userId || value.userId == userId)
                 return res.status(404).send({ data: "Order not found" });
               const items = value.order.items ?? {};
