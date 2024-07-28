@@ -23,6 +23,8 @@ export const getUserActiveOrder = async (req: Request, res: Response) => {
       const orderSnapshot = await orderRef.once('value');
 
       if (orderSnapshot.exists()) {
+        if (orderSnapshot.val().userId != userId)
+          return res.status(404).send({ data: "Order not found" });
         const order = orderSnapshot.val();
         res.status(200).json({ data: order });
       } else {
@@ -55,7 +57,10 @@ export const getUserActiveDelivery = async (req: Request, res: Response) => {
         // Fetch the order data
         const orderSnapshot = await deliveryRef.once('value');
         if (orderSnapshot.exists()) {
-          deliveries.push(orderSnapshot.val());
+          const orderValue = orderSnapshot.val();
+          if (orderValue.courierId != userId)
+            return res.status(404).send({ data: "Order not found" });
+          deliveries.push(orderValue);
         }
       }
 
@@ -91,7 +96,10 @@ export const getUserActiveOrders = async (req: Request, res: Response) => {
         // Fetch the order data
         const orderSnapshot = await orderRef.once('value');
         if (orderSnapshot.exists()) {
-          orders.push(orderSnapshot.val());
+          const orderValue = orderSnapshot.val();
+          if (orderValue.userId != userId)
+            return res.status(404).send({ data: "Order not found" });
+          orders.push(orderValue);
         }
       }
 
@@ -119,26 +127,48 @@ export const getUserActiveOrders2 = async (req: Request, res: Response) => {
     // Fetch the user's active orders
     const snapshot = await userOrdersRef.once('value');
 
-    if (snapshot.exists()) {
-      const activeOrders = snapshot.val();
-
-      // Extract the order IDs (keys)
-      const inProgressOrderIDs = Object.keys(activeOrders);
-
-      // Fetch all orders by ID in parallel
-      const loadOrders = await Promise.all(
-        inProgressOrderIDs.map((orderId) => {
-          const orderRef = database.ref(`orders/${orderId}`);
-          return orderRef.get()
-            .then((snapshot: any) => snapshot.exists() ? { orderId, ...snapshot.val() } : null)
-            .catch((error: Error) => null);
-        })
-      );
-
-      res.send({ data: loadOrders.filter(x => x !== null) });
-    } else {
-      res.status(404).json({ message: 'No active orders found' });
+    if (!snapshot.exists()) {
+      return res.status(404).json({ message: 'No active orders found' });
     }
+
+    const activeOrders = snapshot.val();
+
+    // Extract the order IDs (keys)
+    const inProgressOrderIDs = Object.keys(activeOrders);
+
+    if (inProgressOrderIDs.length === 0) {
+      return res.status(404).json({ message: 'No active orders found' });
+    }
+
+    // Fetch all orders by ID in parallel
+    const loadOrders = await Promise.all(
+      inProgressOrderIDs.map(async (orderId) => {
+        const orderRef = database.ref(`orders/${orderId}`);
+        try {
+          const orderSnapshot = await orderRef.get();
+          if (orderSnapshot.exists()) {
+            const orderData = orderSnapshot.val();
+            // Ensure that the order's userId matches the request userId
+            if (orderData.userId !== userId) {
+              return null;
+            }
+            return { orderId, ...orderData };
+          }
+          return null;
+        } catch (error) {
+          console.error(`Error fetching order ${orderId}:`, error);
+          return null;
+        }
+      })
+    );
+
+    const validOrders = loadOrders.filter(order => order !== null);
+
+    if (validOrders.length === 0) {
+      return res.status(404).json({ message: 'No active orders found' });
+    }
+
+    res.send({ data: validOrders });
   } catch (error) {
     console.error('Error retrieving active orders:', error);
     res.status(500).json({ message: 'Internal server error' });
