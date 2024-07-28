@@ -202,15 +202,22 @@ export const getNotificationSettings = async (req: Request, res: Response) => {
     // Fetch user data from Firebase Realtime Database
     const database = admin.database();
     const userRef = database.ref(`user/${userId}/settings/notifications`);
-    const notification_settings = await userRef.get();
+    const snapshot = await userRef.once('value');
+    let notification_settings = snapshot.val();
 
-    if (notification_settings) {
-      res.status(200).json({ notification_settings });
-    } else {
-      res.status(404).json({ error: 'Location not found for this user' });
+    // If notification_settings doesn't exist, initialize it to default values
+    if (!notification_settings) {
+      notification_settings = {
+        customerNotifications: false,
+        courierNotifications: false,
+      };
+      await userRef.set(notification_settings);
     }
+
+    res.status(200).json({ notification_settings });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch location' });
+    console.error('Error fetching notification settings:', error);
+    res.status(500).json({ error: 'Failed to fetch notification settings' });
   }
 };
 
@@ -221,15 +228,22 @@ export const getRoleSettings = async (req: Request, res: Response) => {
     // Fetch user data from Firebase Realtime Database
     const database = admin.database();
     const userRef = database.ref(`user/${userId}/settings/roles`);
-    const role_settings = await userRef.get();
+    const snapshot = await userRef.once('value');
+    let role_settings = snapshot.val();
 
-    if (role_settings) {
-      res.status(200).json({ role_settings });
-    } else {
-      res.status(404).json({ error: 'Location not found for this user' });
+    // If role_settings doesn't exist, initialize it to default values
+    if (!role_settings) {
+      role_settings = {
+        courierRole: false,
+        customerRole: true,
+      };
+      await userRef.set(role_settings);
     }
+
+    res.status(200).json({ role_settings });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch location' });
+    console.error('Error fetching role settings:', error);
+    res.status(500).json({ error: 'Failed to fetch role settings' });
   }
 };
 
