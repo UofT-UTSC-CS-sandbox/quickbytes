@@ -11,7 +11,7 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
-  const from = location.state?.from?.pathname || '/';
+  const from = location.state?.from?.pathname || '/restaurants';
 
   const [showSessionExpiredToast, setShowSessionExpiredToast] = useState(false);
   useEffect(() => {
