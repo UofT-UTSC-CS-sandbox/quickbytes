@@ -26,6 +26,10 @@ const StaffOrders = () => {
         return `Courier for Order ${orderId} has arrived`;
     };
 
+    const getNewOrderNotificationMessage = (path: string, data: any) => {
+        return 'A new order has been placed';
+    };
+
     const ordersByStatus: Record<string, ActiveOrderItem[]> = data?.data.reduce((acc: Record<string, ActiveOrderItem[]>, order: ActiveOrderItem) => {
         acc[order.tracking.status] = acc[order.tracking.status] || [];
         acc[order.tracking.status].push(order);
@@ -75,6 +79,10 @@ const StaffOrders = () => {
         <Notification
             subscribePaths={orders.map(orderId => `orders/${orderId}/tracking/status`)}
             getNotificationMessage={getNotificationMessage}
+        />
+        <Notification
+            subscribePaths={[`restaurants/${restaurantId}/activeOrders`]}
+            getNotificationMessage={getNewOrderNotificationMessage}
         />
     </>
 }
