@@ -21,30 +21,42 @@ export async function getActiveDelivery(req: Request, res: Response) {
   }
 }
 
-export async function getAvailableDeliveries(req: Request, res: Response) {
-    const database = admin.database();
-    const ordersRef = database.ref('orders');
-  
-    try {
-      const snapshot = await ordersRef.orderByChild('tracking/status').equalTo(OrderStatus.ORDERED).once('value');
-  
+export async function getAvailableDeliveries(req: Request, res: Response): Promise<void> {
+  const database = admin.database();
+  const ordersRef = database.ref('orders');
+
+  try {
+    const snapshot = await ordersRef.orderByChild('tracking/status').equalTo(OrderStatus.ORDERED).once('value');
+
       if (snapshot.exists()) {
-        const orders = snapshot.val();
-        res.status(200).send({ data: orders });
+          const ordersData = snapshot.val() as Record<string, any>;
+          const filteredOrders: Record<string, any> = {};
+
+          // A delivery is not available for a user if they
+          // are the one that placed it
+          for (const [key, order] of Object.entries(ordersData)) {
+              if (order.userId !== req.user?.uid) {
+                  filteredOrders[key] = order;
+              }
+          }
+
+          res.status(200).json({ data: filteredOrders });
       } else {
-        res.status(404).send({ data: `No orders found with status ${OrderStatus.ORDERED}` });
+          res.status(404).json({ data: `No orders found with status ${OrderStatus.ORDERED}` });
       }
-    } catch (error) {
+  } catch (error) {
       console.error("Error retrieving data:", error);
       res.status(500).send("Internal server error");
-    }
+  }
 }
 
-export async function acceptDelivery(req: Request, res: Response) {
+export async function acceptDelivery(req: Request, res: Response): Promise<void> {
   const userId = req.user!.uid;
-  const { orderId } = req.body; 
+  const { orderId } = req.body;
+
   if (!orderId) {
-    return res.status(400).send({ error: 'orderId is required field' });
+    res.status(400).send({ error: 'orderId is required field' });
+    return;
   }
 
   const database = admin.database();
@@ -52,22 +64,37 @@ export async function acceptDelivery(req: Request, res: Response) {
   const orderRef = database.ref(`orders/${orderId}`);
 
   try {
+    const orderSnapshot = await orderRef.once('value');
+    const orderData = orderSnapshot.val();
+
+    // Check if the order exists and retrieve the userId associated with the order
+    if (!orderData) {
+      res.status(404).send({ error: 'Order not found' });
+      return;
+    }
+
+    const orderUserId = orderData.userId;
+
+    // Check if the user is trying to accept their own delivery
+    if (orderUserId === userId) {
+      res.status(403).send({ error: 'You cannot accept your own delivery' });
+      return;
+    }
+
+    // Update user's active delivery
     await userRef.update({ activeDelivery: orderId });
 
-    await orderRef.update({ courierId: userId });
 
     await orderRef.update({
       courierId: userId,
       'tracking/status': OrderStatus.ACCEPTED
     });
 
-    const orderSnapshot = await orderRef.once('value');
-    const orderData = orderSnapshot.val();
     const pickupCoordinates = orderData?.tracking?.dropOff;
 
-    if (!pickupCoordinates || typeof pickupCoordinates.lat == "undefined" 
-      || typeof pickupCoordinates.lng == "undefined") {
-      return res.status(404).send({ error: 'Pickup coordinates not found' });
+    if (!pickupCoordinates || typeof pickupCoordinates.lat === "undefined" || typeof pickupCoordinates.lng === "undefined") {
+      res.status(404).send({ error: 'Pickup coordinates not found' });
+      return;
     }
 
     res.status(200).send({
