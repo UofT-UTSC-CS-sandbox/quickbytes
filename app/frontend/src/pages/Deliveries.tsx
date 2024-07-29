@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CircularProgress, List, Typography } from '@mui/material';
+import { CircularProgress, List, Typography, AppBar, CssBaseline, Box } from '@mui/material';
 import DeliveryItem, { DeliveryItemData } from '../components/DeliveryItem';
 import deliveryService from '../services/deliveryService';
 import '@turf/boolean-point-in-polygon';
@@ -51,18 +51,23 @@ const Deliveries: React.FC = () => {
 
   return (
     <>
-      <NavBar />
-      <div style={{ maxWidth: '800px', margin: '0 auto', padding: '16px' }}>
-        <Typography variant="h4" gutterBottom>
-          Available Orders
-        </Typography>
-        {renderList()}
-        {selectedItem && <ConfirmationPopup
-          open={popupOpen}
-          onClose={() => setPopupOpen(false)}
-          item={selectedItem}
-        />}
-      </div >
+      <Box sx={{ display: 'flex' }}>
+        <CssBaseline />
+        <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+          <NavBar />
+        </AppBar>
+        <div style={{ maxWidth: '800px', margin: '0 auto', padding: '110px' }}>
+          <Typography variant="h4" gutterBottom>
+            Available Orders
+          </Typography>
+          {renderList()}
+          {selectedItem && <ConfirmationPopup
+            open={popupOpen}
+            onClose={() => setPopupOpen(false)}
+            item={selectedItem}
+          />}
+        </div >
+      </Box>
     </>
   );
 };

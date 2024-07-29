@@ -42,6 +42,13 @@
 }
 
 .navbar-option.active {
-    color: rgba(0, 127, 163, 1);
-    /* Change this to the desired active color */
+    color: #646cff;
+}
+
+.icon-button:hover {
+    color: #646cff;
+}
+
+.drawer-content {
+    margin-top: 10vh;
 }

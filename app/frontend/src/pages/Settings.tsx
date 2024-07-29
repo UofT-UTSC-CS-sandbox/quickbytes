@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Box, Drawer, AppBar, CssBaseline, Toolbar, List, Divider, ListItem, ListItemText, FormGroup, FormControlLabel, Switch } from '@mui/material';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { Box, Drawer, AppBar, CssBaseline, Typography, Toolbar, List, Divider, ListItem, ListItemText, FormGroup, FormControlLabel, Switch } from '@mui/material';
 import NavBar from '../components/Navbar';
 import settingService from '../services/settingService';
 import { NOTIFICATION_LABELS, NotificationType, RoleType } from '../model/NotificationTypes';
@@ -88,19 +87,19 @@ function Settings() {
                 sx={{
                     width: drawerWidth,
                     flexShrink: 0,
-                    [`& .MuiDrawer-paper`]: { width: drawerWidth, boxSizing: 'border-box' },
+                    [`& .MuiDrawer-paper`]: { width: drawerWidth, boxSizing: 'border-box', padding: 2 },
                 }}
             >
                 <Toolbar />
                 <Box sx={{ overflow: 'auto' }}>
                     <List>
-                        <ListItem button key={0} onClick={(event) => handleChange(event, 0)}>
+                        <ListItem button key={0} selected={value === 0} onClick={(event) => handleChange(event, 0)}>
                             <ListItemText primary="Profile" />
                         </ListItem>
-                        <ListItem button key={1} onClick={(event) => handleChange(event, 1)}>
+                        <ListItem button key={1} selected={value === 1} onClick={(event) => handleChange(event, 1)}>
                             <ListItemText primary="Notification Settings" />
                         </ListItem>
-                        <ListItem button key={2} onClick={(event) => handleChange(event, 2)}>
+                        <ListItem button key={2} selected={value === 2} onClick={(event) => handleChange(event, 2)}>
                             <ListItemText primary="Orders" />
                         </ListItem>
                     </List>
@@ -111,7 +110,9 @@ function Settings() {
                 <Toolbar />
                 <CustomTabPanel value={value} index={0}>
                     <div>
-                        Profile
+                        <Typography variant="h4" gutterBottom>
+                            Profile
+                        </Typography>
                         <FormGroup>
                             <FormControlLabel
                                 control={<Switch checked={rolesEnabled.includes(RoleType.CUSTOMER_ROLE)} onChange={(e) => handleRoleChange(e, RoleType.CUSTOMER_ROLE)} />}
@@ -126,11 +127,14 @@ function Settings() {
                 </CustomTabPanel>
                 <CustomTabPanel value={value} index={1}>
                     <div>
-                        Notifications
+                        <Typography variant="h4" gutterBottom>
+                            Notifications
+                        </Typography>
                         <FormGroup>
                             {
                                 Object.values(NotificationType).map((type) => (
                                     <FormControlLabel
+                                        key={type}
                                         control={<Switch checked={notificationsEnabled.includes(type)} onChange={(e) => handleNotificationChange(e, type)} />}
                                         label={NOTIFICATION_LABELS[type]}
                                     />
@@ -141,7 +145,9 @@ function Settings() {
                 </CustomTabPanel>
                 <CustomTabPanel value={value} index={2}>
                     <div>
-                        Orders
+                        <Typography variant="h4" gutterBottom>
+                            Orders
+                        </Typography>
                     </div>
                 </CustomTabPanel>
             </Box>
