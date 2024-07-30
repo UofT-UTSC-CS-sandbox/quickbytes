@@ -7,6 +7,7 @@ import '@turf/boolean-point-in-polygon';
 import ConfirmationPopup from '../components/ConfirmationPopUp';
 import NavBar from '../components/Navbar';
 import settingService from '../services/settingService';
+import PageHead from '../components/PageHead';
 
 const Deliveries: React.FC = () => {
   const { data: deliveriesData, isSuccess, isLoading, isError } = deliveryService.getDeliveries().useQuery();
@@ -98,6 +99,7 @@ const Deliveries: React.FC = () => {
 
   return (
     <>
+      <PageHead title="Deliveries" description="View delivery requests available for acceptance" />
       <Box sx={{ display: 'flex' }}>
         <CssBaseline />
         <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>

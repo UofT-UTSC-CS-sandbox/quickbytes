@@ -18,6 +18,7 @@ const DEFAULT_PICKUP_LOCATION = { lat: 43.785171372795524, lng: -79.187481605727
 
 import DirectionsMap from '../components/DirectionsMap';
 import useCurrentLocation from '../services/currentLocationServiceCustomer';
+import PageHead from '../components/PageHead';
 
 
 function OrderTracking() {
@@ -183,6 +184,7 @@ function OrderTracking() {
 
     return (
         <div>
+            <PageHead title="Order Tracking" description="Track your order and deliveries" />
             {updatingLocation ? null : <NavBar />}
             {orderId && (
                 <Notification

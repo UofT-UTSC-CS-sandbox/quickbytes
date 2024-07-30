@@ -3,6 +3,7 @@ import { Box, Drawer, AppBar, CssBaseline, Typography, Toolbar, List, Divider, L
 import NavBar from '../components/Navbar';
 import settingService from '../services/settingService';
 import { NOTIFICATION_LABELS, NotificationType, RoleType } from '../model/NotificationTypes';
+import PageHead from '../components/PageHead';
 
 interface TabPanelProps {
     children?: React.ReactNode;
@@ -78,6 +79,7 @@ function Settings() {
 
     return (
         <Box sx={{ display: 'flex' }}>
+            <PageHead title="Settings" description="Manage your account and notification settings" />
             <CssBaseline />
             <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
                 <NavBar />

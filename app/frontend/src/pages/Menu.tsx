@@ -12,6 +12,7 @@ import MenuCategoryDrawer from "../components/MenuCategoryDrawer";
 import NavBar from "../components/Navbar";
 import orderService from "../services/orderService";
 import restaurantService from "../services/restaurantService";
+import PageHead from "../components/PageHead";
 
 type RestaurantMenuParams = {
     id: string
@@ -60,6 +61,7 @@ const RestaurantMenu = () => {
 
     if (isLoading) {
         return <div>
+            <PageHead title="Loading Menu ..." description="View the menu for this restaurant and create your order" />
             <NavBar />
             <CircularProgress/> <Typography>Loading ...</Typography>
             {renderRequestSnackbar}
@@ -68,6 +70,7 @@ const RestaurantMenu = () => {
 
     if (isMenuError || !data) {
         return <div>
+            <PageHead title="Error" description="Encountered an unexpected error" />
             <NavBar />
             <Typography>Sorry, we could not find the menu for this restaurant. Please try again later.</Typography>
             {renderRequestSnackbar}
@@ -87,6 +90,7 @@ const RestaurantMenu = () => {
 
     return (
         <div className={styles.menuContainer}>
+            <PageHead title={name} description={`Menu for ${name} (${address}) - ${description}`} />
             <NavBar/>
             <Stack spacing={1} padding={2}>
                 <Typography variant='h2' align="left">{name}</Typography>

@@ -6,6 +6,7 @@ import restaurantService from "../services/restaurantService";
 import { SearchRounded } from "@mui/icons-material";
 import { AppBar, CssBaseline, Box } from '@mui/material';
 import { useEffect, useMemo, useState } from "react";
+import PageHead from "../components/PageHead";
 
 const AllRestaurants = () => {
 
@@ -42,6 +43,7 @@ const AllRestaurants = () => {
 
     const wrapContent = (content: JSX.Element) => {
         return <>
+            <PageHead title="Restaurants" description="View all on-campus restaurants available to order from" />
             <Box sx={{ display: 'flex' }}>
                 <CssBaseline />
                 <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
