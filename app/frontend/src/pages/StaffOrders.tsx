@@ -67,7 +67,7 @@ const StaffOrders = () => {
 
     return <>
         <NavBar />
-        <div style={{ width: '100%' }}>
+        <div style={{ width: '100%', paddingTop: '100px' }}>
             <Container sx={{ textAlign: 'left', fontSize: '1.8rem', padding: '16px' }} maxWidth="lg">
                 <Typography sx={{ textAlign: 'left', fontSize: '2.5rem' }} variant="h1" gutterBottom>
                     Active Orders for Your Restaurant

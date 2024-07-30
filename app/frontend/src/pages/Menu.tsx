@@ -5,7 +5,7 @@ import styles from './Menu.module.css'
 import { MenuCategory, MenuItem } from "../model/Menu";
 import MenuAdd from "../components/MenuAdd";
 import { OrderCart } from "../model/OrderCart";
-import { ListItem, Dialog, Stack, Tab, Tabs, Typography, Divider, CircularProgress, Snackbar, Alert } from "@mui/material";
+import { ListItem, Dialog, Stack, Tab, Tabs, Typography, Divider, CircularProgress, Snackbar, Alert, AppBar, CssBaseline, Box } from "@mui/material";
 import CheckoutCart from "../components/CheckoutCart";
 import { Place } from "@mui/icons-material";
 import MenuCategoryDrawer from "../components/MenuCategoryDrawer";
@@ -61,7 +61,7 @@ const RestaurantMenu = () => {
     if (isLoading) {
         return <div>
             <NavBar />
-            <CircularProgress/> <Typography>Loading ...</Typography>
+            <CircularProgress /> <Typography>Loading ...</Typography>
             {renderRequestSnackbar}
         </div>
     }
@@ -87,11 +87,11 @@ const RestaurantMenu = () => {
 
     return (
         <div className={styles.menuContainer}>
-            <NavBar/>
-            <Stack spacing={1} padding={2}>
+            <NavBar />
+            <Stack spacing={1} sx={{ pt: 10, pb: 2, px: 2 }}>
                 <Typography variant='h2' align="left">{name}</Typography>
                 <Typography align="left">{description}</Typography>
-                <Typography align="left"><Place/> {address}</Typography>
+                <Typography align="left"><Place /> {address}</Typography>
             </Stack>
             <Divider />
             <Stack direction={{ xs: 'column', sm: 'row' }} className={styles.menuLayout} padding={2}>
@@ -119,7 +119,7 @@ const RestaurantMenu = () => {
                             <Typography>Choose a menu category to start browsing.</Typography>
                     }
                 </Stack>
-                { order && id && <CheckoutCart order={order} setOrder={setOrder} pageRestaurantId={id} /> }
+                {order && id && <CheckoutCart order={order} setOrder={setOrder} pageRestaurantId={id} />}
             </Stack>
             {(item && id) &&
                 <Dialog open={!!item} onClose={() => setItem(null)} fullWidth maxWidth="sm">

@@ -93,20 +93,6 @@ export type ActiveOrderResponse = {
 }
 
 /**
- * The response body for getUserActiveOrders
- */
-export type ActiveOrdersResponse = {
-    data: ActiveOrderItem[]
-}
-
-/**
- * The response body for getUserActiveOrders
- */
-export type ActiveDeliveryResponse = {
-    data: ActiveOrderItem[]
-}
-
-/**
  * Represents a menu item in an order returned in the 
  * getUserActiveOrders response body.
  */
@@ -237,29 +223,12 @@ export default {
         ),
 
     /**
-    * Get the array of active orders corresponding to the particular user.
-    * @returns Service endpoint to get the orders for the user.
-    */
-
-    getClientActiveOrders: () =>
-        useGetEndpoint<ActiveOrderResponse>(
-            {
-                inputUrl: `user/orders`,
-                useAuth: true,
-            },
-            {
-                queryKey: ['getUserOrders'],
-            }
-        ),
-
-
-    /**
      * Get the array of active orders corresponding to the logged in user.
      * Also assumes that the user has multiple orders.
      * @returns Service endpoint to get the orders for the user.
      */
 
-    getClientActiveOrders2: () => 
+    getClientActiveOrders2: () =>
         useGetEndpoint<ActiveOrderResponse>(
             {
                 inputUrl: `user/orders2`,
@@ -284,36 +253,5 @@ export default {
             {
                 queryKey: ['getSingleClientActiveOrder'],
             }
-        ),
-
-    /**
-    * Get the array of active orders corresponding to the logged in user.
-    * @returns Service endpoint to get the orders for the user.
-    */
-    getUserActiveOrders: () =>
-        useGetEndpoint<ActiveOrdersResponse>(
-            {
-                inputUrl: `user/activeOrders`,
-                useAuth: true,
-            },
-            {
-                queryKey: ['getUserActiveOrders'],
-            }
-        ),
-
-    /**
-    * Get the array of active orders corresponding to the logged in user.
-    * @returns Service endpoint to get the orders for the user.
-    */
-
-    getUserActiveDelivery: () =>
-        useGetEndpoint<ActiveDeliveryResponse>(
-            {
-                inputUrl: `user/activeDelivery`,
-                useAuth: true,
-            },
-            {
-                queryKey: ['getUserActiveDelivery'],
-            }
-        ),
+        )
 }

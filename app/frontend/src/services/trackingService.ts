@@ -4,16 +4,16 @@ import { useGetEndpoint } from "./base"
  * Response body for the getOrderDropoff request.
  */
 type GetOrderDropoffResponse = {
-    data: {
-        lat: number,
-        lng: number
-    }
+    data: { lat: number, lng: number },
+    lat: number,
+    lng: number,
+    dropOffName: string
 }
 
 /**
- * Response body for the getPickupLocation request.
+ * Response body for the getRestaurantLocation request.
  */
-type GetPickupLocationResponse = {
+type GetRestaurantLocationResponse = {
     lat: number,
     lng: number,
     dropOffName: string
@@ -30,7 +30,7 @@ interface GetCurrentLocationResponse {
 }
 
 /**
- * Response body for the getPickupLocation request.
+ * Response body for the getCustomerConfirmationPin request.
  */
 type GetCustomerConfirmationPinResponse = {
     customerConfirmationPin: string
@@ -59,26 +59,8 @@ export default {
             }
         ),
 
-    /**
-     * Get the pickup location of the given order. Only send a request if
-     * the orderID is not falsy and if pickup location is already set .
-     * @param orderID Unique ID of the order within the database.
-     * @returns Service endpoint to fetch pickup location.
-     */
-    getPickupLocation: (orderID: string | undefined) =>
-        useGetEndpoint<GetPickupLocationResponse>(
-            {
-                inputUrl: `restaurants/order/${orderID}/pickup-location`,
-                useAuth: true
-            },
-            {
-                queryKey: ['getPickupLocation', orderID],
-                enabled: !!orderID,
-            }
-        ),
-
     getRestaurantLocation: (orderID: string | null) =>
-        useGetEndpoint<GetPickupLocationResponse>(
+        useGetEndpoint<GetRestaurantLocationResponse>(
             {
                 inputUrl: `restaurants/order/${orderID}/restaurant-location`,
                 useAuth: true
@@ -90,17 +72,17 @@ export default {
         ),
 
     getCurrentLocationFromOrder: (orderId: string | null) =>
-            useGetEndpoint<GetCurrentLocationResponse>(
-                {
-                    inputUrl: `deliveries/${orderId}/courier-location`,
-                    useAuth: true,
-                },
-                {
-                    queryKey: ['getCurrentLocationFromOrder', orderId],
-                    enabled: !!orderId,
-                    refetchInterval: 30000,
-                    retry: 10
-                }),    
+        useGetEndpoint<GetCurrentLocationResponse>(
+            {
+                inputUrl: `deliveries/${orderId}/courier-location`,
+                useAuth: true,
+            },
+            {
+                queryKey: ['getCurrentLocationFromOrder', orderId],
+                enabled: !!orderId,
+                refetchInterval: 30000,
+                retry: 10
+            }),
 
     /**
      * Function for the customer to fetch the customer confirmation pin so
