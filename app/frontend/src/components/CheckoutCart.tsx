@@ -28,22 +28,22 @@ const CheckoutCart = ({ order, setOrder, pageRestaurantId }: CheckoutCartProps) 
     const nav = useNavigate();
 
     // Fetch the pickup location using trackingService
-    const { data: pickupData, error: pickupError, isError: isPickupError } = trackingService.getPickupLocation(order?.id).useQuery();
+    const { data: dropOffData, error: dropOffError, isError: isDropOffError } = trackingService.getOrderDropoff(order.id).useQuery();
 
     useEffect(() => {
-        if (pickupData) {
-            if (pickupData.lat === 0 && pickupData.lng === 0) {
+        if (dropOffData) {
+            if (dropOffData.lat === 0 && dropOffData.lng === 0) {
                 setPickupLocation(DEFAULT_PICKUP_LOCATION);
                 setPickupLocationName("On Campus");
             } else {
-                setPickupLocation({ lat: pickupData.lat, lng: pickupData.lng });
-                setPickupLocationName(pickupData.dropOffName);
+                setPickupLocation({ lat: dropOffData.lat, lng: dropOffData.lng });
+                setPickupLocationName(dropOffData.dropOffName);
             }
             setPickupLocationSet(true);
-        } else if (isPickupError) {
-            console.error("Error fetching pickup location:", pickupError);
+        } else if (isDropOffError) {
+            console.error("Error fetching drop-off location:", dropOffError);
         }
-    }, [pickupData, isPickupError, pickupError]);
+    }, [dropOffData, isDropOffError, dropOffError]);
 
     const deleteItemMutation = orderService.deleteItem(
         order?.id.toString() || "",
@@ -114,13 +114,13 @@ const CheckoutCart = ({ order, setOrder, pageRestaurantId }: CheckoutCartProps) 
             <Divider />
             <Stack spacing={2}>
                 <Typography>
-                    {pickupLocationSet ?
+                    {(pickupLocation.lat === DEFAULT_PICKUP_LOCATION.lat && pickupLocation.lng === DEFAULT_PICKUP_LOCATION.lng) ?
+                        "You have not set a pick-up location yet." :
                         <span style={{ color: 'green' }}>
                             &#10003; You have a pick-up location set.
                             <br />
                             <em style={{ fontWeight: 'bold' }}>{pickupLocationName}</em>
-                        </span> :
-                        "You have not set a pick-up location yet."
+                        </span>
                     }
                 </Typography>
                 {order.status === OrderStatus.ORDERING && (
@@ -163,7 +163,7 @@ const CheckoutCart = ({ order, setOrder, pageRestaurantId }: CheckoutCartProps) 
             )}
             {
                 order.status !== OrderStatus.CANCELLED && order.status !== OrderStatus.ORDERING &&
-                <Alert severity="success" sx={{ maxWidth: { sm: '100%', lg: '300px'} }}>
+                <Alert severity="success" sx={{ maxWidth: { sm: '100%', lg: '300px' } }}>
                     This order has been placed.<br />
                     {convertOrderStatusToStringCustomerFriendly(order.status)}
                 </Alert>

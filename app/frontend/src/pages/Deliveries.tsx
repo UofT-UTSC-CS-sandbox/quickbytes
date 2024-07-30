@@ -56,7 +56,7 @@ const Deliveries: React.FC = () => {
         if (items.length > previousItems.length) {
           const newItem = items[items.length - 1];
           const distance = parseDistanceText(newItem.distanceText);
-          
+
           // notify if distance is less than 100m
           if (distance <= 100) {
             setSnackbars((prev) => [
@@ -103,32 +103,32 @@ const Deliveries: React.FC = () => {
         <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
           <NavBar />
         </AppBar>
-      <div style={{ maxWidth: '800px', margin: '0 auto', padding: '110px' }}>
-        <Typography variant="h4" gutterBottom>
-          Available Orders
-        </Typography>
-        {renderList()}
-        {selectedItem && <ConfirmationPopup
-          open={popupOpen}
-          onClose={() => setPopupOpen(false)}
-          item={selectedItem}
-        />}
-        {snackbars.map((snackbar, index) => (
-          <Snackbar
-            key={snackbar.key}
-            open={true}
-            autoHideDuration={5000}
-            onClose={handleClose(snackbar.key)}
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-            sx={{ top: `${index * 100}px` }}
-          >
-            <Alert onClose={handleClose(snackbar.key)} severity="info" sx={{ width: '100%' }}>
-              {snackbar.message}
-            </Alert>
-          </Snackbar>
-        ))}
-      </div >
-        </Box>
+        <div style={{ maxWidth: '800px', margin: '0 auto', padding: '110px' }}>
+          <Typography variant="h4" gutterBottom>
+            Available Orders
+          </Typography>
+          {renderList()}
+          {selectedItem && <ConfirmationPopup
+            open={popupOpen}
+            onClose={() => setPopupOpen(false)}
+            item={selectedItem}
+          />}
+          {snackbars.map((snackbar, index) => (
+            <Snackbar
+              key={snackbar.key}
+              open={true}
+              autoHideDuration={5000}
+              onClose={handleClose(snackbar.key)}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+              sx={{ top: `${index * 100}px` }}
+            >
+              <Alert onClose={handleClose(snackbar.key)} severity="info" sx={{ width: '100%' }}>
+                {snackbar.message}
+              </Alert>
+            </Snackbar>
+          ))}
+        </div >
+      </Box>
     </>
   );
 };

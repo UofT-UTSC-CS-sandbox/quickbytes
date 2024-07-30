@@ -1,18 +1,50 @@
 import OrderStatus from "../model/OrderStatus";
 import { useGetEndpoint, usePostEndpoint } from "./base";
 
+type Restaurant = {
+    location: string;
+    restaurantName: string;
+    restaurantId: number
+}
+
+export type ItemsOrdered = Record<string, {
+    menuItemId: string,
+    optionSelected: string,
+    addOnsSelected?: Record<string, string>,
+    quantity: number
+}>
+
+export type ActiveOrderItem = {
+    courierId: string,
+    courierSplit: number,
+    order: {
+        items: ItemsOrdered,
+        price: number,
+    },
+    tracking: {
+        courierAcceptedTime: false | number,
+        courierDropoffTime: false | number,
+        courierPickupTime: false | number,
+        orderPlacedTime: number,
+        dropOff: { lat: number, lng: number }
+        status: OrderStatus
+    },
+    restaurant: Restaurant,
+    orderId: string
+}
+
 /**
  * Response body for getCourierActiveOrder request
  */
 type GetCourierActiveOrderResponse = {
-    data: string
+    data: ActiveOrderItem
 }
 
 /**
  * Response body for getCourierActiveOrder request
  */
 type GetCustomerActiveOrderResponse = {
-    data: string
+    data: ActiveOrderItem
 }
 
 /**
@@ -139,13 +171,13 @@ export default {
      */
     acceptDelivery: (onSuccess: (data: AcceptDeliveryResponse) => void) =>
         usePostEndpoint<AcceptDeliveryResponse, Error, AcceptDeliveryRequest>(
-          {
-            inputUrl: 'deliveries/accept',
-            useAuth: true,
-          },
-          {
-            onSuccess,
-          }
+            {
+                inputUrl: 'deliveries/accept',
+                useAuth: true,
+            },
+            {
+                onSuccess,
+            }
         ),
     /**
      * Send the request by a user to update an order status.
@@ -154,12 +186,12 @@ export default {
      */
     updateOrderStatus: (onSuccess: (data: UpdateOrderStatusResponse) => void) =>
         usePostEndpoint<UpdateOrderStatusResponse, Error, UpdateOrderStatusRequest>(
-          {
-            inputUrl: 'deliveries/updateOrderStatus',
-            useAuth: true,
-          },
-          {
-            onSuccess,
-          }
+            {
+                inputUrl: 'deliveries/updateOrderStatus',
+                useAuth: true,
+            },
+            {
+                onSuccess,
+            }
         )
 }

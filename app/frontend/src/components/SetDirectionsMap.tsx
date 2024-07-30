@@ -26,7 +26,7 @@ export default function SingleMarkerMap({ sendSetPickupLocation, rejectLocationC
 
     return (
         <APIProvider apiKey={apiKey} onLoad={() => console.log('Maps API has loaded.')}>
-            <div className={styles.locationMapLayout}>
+            <div className={styles.locationMapLayout} style={{ paddingTop: '160px' }}>
                 <div className={styles.leftSideLayout}>
                     <div className={styles.markerDescrip}>
                         <Typography>Drag the red marker to the desired pickup location.</Typography>
@@ -60,7 +60,7 @@ export default function SingleMarkerMap({ sendSetPickupLocation, rejectLocationC
                         <MarkerAtCenter setMarkerPosition={setMarkerPosition} initialPosition={initialPosition} />
                     </Map>
                 </div>
-                <Fab sx={{ position: 'absolute', top: 8, right: 8 }} color='error' onClick={() => setShowConfirmCloseMap(true)}>
+                <Fab sx={{ position: 'absolute', top: 90, right: 20 }} color='error' onClick={() => setShowConfirmCloseMap(true)}>
                     <Close />
                 </Fab>
                 <Dialog
