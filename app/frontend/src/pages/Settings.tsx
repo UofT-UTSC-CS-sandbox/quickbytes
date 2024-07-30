@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Box, Drawer, AppBar, CssBaseline, Typography, Toolbar, List, Divider, ListItem, ListItemText, FormGroup, FormControlLabel, Switch } from '@mui/material';
 import NavBar from '../components/Navbar';
 import settingService from '../services/settingService';
+import { getAuth } from 'firebase/auth';
 import { NOTIFICATION_LABELS, NotificationType, RoleType } from '../model/NotificationTypes';
 import PageHead from '../components/PageHead';
 
@@ -33,6 +34,7 @@ function Settings() {
     const [value, setValue] = useState(0);
     const [notificationsEnabled, setNotificationsEnabled] = useState<NotificationType[]>([]);
     const [rolesEnabled, setRolesEnabled] = useState<RoleType[]>([]);
+    const userName = getAuth().currentUser?.email?.split("@")[0];
 
     const handleChange = (event: React.SyntheticEvent, newValue: number) => {
         setValue(newValue);
@@ -114,6 +116,9 @@ function Settings() {
                     <div>
                         <Typography variant="h4" gutterBottom>
                             Profile
+                        </Typography>
+                        <Typography variant="h6" sx={{ color: 'rgba(0, 114, 147, 1)' }} gutterBottom>
+                            {userName}
                         </Typography>
                         <FormGroup>
                             <FormControlLabel

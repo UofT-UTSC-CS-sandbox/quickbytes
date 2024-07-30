@@ -7,9 +7,9 @@ import { Badge, IconButton, Tooltip, styled, Drawer, Box, AppBar, CssBaseline } 
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import CloseIcon from '@mui/icons-material/Close';
-import orderService from '../services/orderService';
 import CustomerOrders from './CustomerOrders';
 import CourierDelivery from './CourierDelivery';
+import deliveryService from '../services/deliveryService';
 
 const TranslucentBadge = styled(Badge)(({ theme }) => ({
   '& .MuiBadge-badge': {
@@ -24,10 +24,10 @@ export default function NavBar() {
   const [customerdrawerOpen, setCustomerDrawerOpen] = useState(false);
   const [courierDrawerOpen, setCourierDrawerOpen] = useState(false);
   const navigate = useNavigate();
-  const { data: orders } = orderService.getUserActiveOrders().useQuery();
-  const { data: deliveries } = orderService.getUserActiveDelivery().useQuery();
-  const activeOrderCount = Array.isArray(orders?.data) ? orders.data.length : 0;
-  const activeDeliveryCount = Array.isArray(deliveries?.data) ? deliveries.data.length : 0;
+  const { data: order } = deliveryService.getCustomerActiveOrder().useQuery();
+  const { data: delivery } = deliveryService.getCourierActiveOrder().useQuery();
+  const activeOrderCount = order && order.data ? 1 : 0;
+  const activeDeliveryCount = delivery && delivery.data ? (Array.isArray(delivery.data) ? delivery.data.length : 1) : 0;
 
   useEffect(() => {
     setActiveLink(window.location.pathname);
@@ -80,6 +80,8 @@ export default function NavBar() {
     setCourierDrawerOpen(open);
   };
 
+  const customerLinkIsActive = activeLink === '/restaurants' || /^\/restaurant\/\d+$/.test(activeLink);
+
   // customer path is temporary, replace with actual path
   return (
     <Box sx={{ display: 'flex' }}>
@@ -100,7 +102,7 @@ export default function NavBar() {
             {currentUser ? (
               <>
                 <a
-                  className={`navbar-option ${activeLink === '/restaurants' ? 'active' : ''}`}
+                  className={`navbar-option ${customerLinkIsActive ? 'active' : ''}`}
                   style={{ cursor: 'pointer' }}
                   onClick={() => handleRoleConfirmation(roleData?.role_settings.customerRole, 'customerRole', '/restaurants')}
                 >

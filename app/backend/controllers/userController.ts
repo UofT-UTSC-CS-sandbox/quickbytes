@@ -3,7 +3,7 @@ import admin from '../firebase-config';
 
 const database = admin.database();
 
-export const getUserActiveOrder = async (req: Request, res: Response) => {
+export const getUserActiveOrders2 = async (req: Request, res: Response) => {
   const userId = req.user!.uid;
 
   try {
@@ -13,128 +13,14 @@ export const getUserActiveOrder = async (req: Request, res: Response) => {
     // Fetch the user's active orders
     const snapshot = await userOrdersRef.once('value');
 
-    if (snapshot.exists()) {
-      const activeOrder = snapshot.val();
-
-      // Reference to the specific order
-      const orderRef = database.ref(`orders/${activeOrder}`);
-
-      // Fetch the order data
-      const orderSnapshot = await orderRef.once('value');
-
-      if (orderSnapshot.exists()) {
-        if (orderSnapshot.val().userId != userId)
-          return res.status(404).send({ data: "Order not found" });
-        const order = orderSnapshot.val();
-        res.status(200).json({ data: order });
-      } else {
-        res.status(404).json({ message: 'Order not found' });
-      }
-    } else {
-      res.status(404).json({ message: 'No active orders found' });
-    }
-  } catch (error) {
-    console.error('Error retrieving active orders:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-};
-
-export const getUserActiveDelivery = async (req: Request, res: Response) => {
-  const userId = req.user!.uid;
-  try {
-    // Reference to the user's active orders
-    const userDeliveryRef = database.ref(`user/${userId}/activeDeliveries`);
-    const snapshot = await userDeliveryRef.once('value');
-
-    if (snapshot.exists()) {
-      const activeDeliveries = snapshot.val();
-      const deliveries = [];
-
-      // Iterate through each active order ID
-      for (const orderId of Object.values(activeDeliveries)) {
-        // Reference to the specific order
-        const deliveryRef = database.ref(`orders/${orderId}`);
-        // Fetch the order data
-        const orderSnapshot = await deliveryRef.once('value');
-        if (orderSnapshot.exists()) {
-          const orderValue = orderSnapshot.val();
-          if (orderValue.courierId != userId)
-            return res.status(404).send({ data: "Order not found" });
-          deliveries.push(orderValue);
-        }
-      }
-
-      if (deliveries.length > 0) {
-        res.status(200).json({ data: deliveries });
-      } else {
-        res.status(404).json({ message: 'No active deliveries found' });
-      }
-    } else {
-      res.status(404).json({ message: 'No active deliveries found' });
-    }
-  } catch (error) {
-    console.error('Error retrieving active deliveries:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-};
-
-export const getUserActiveOrders = async (req: Request, res: Response) => {
-  const userId = req.user!.uid;
-  try {
-    // Reference to the user's active orders
-    const userOrdersRef = database.ref(`user/${userId}/activeOrders`);
-    const snapshot = await userOrdersRef.once('value');
-
-    if (snapshot.exists()) {
-      const activeOrders = snapshot.val();
-      const orders = [];
-
-      // Iterate through each active order ID
-      for (const orderId of Object.values(activeOrders)) {
-        // Reference to the specific order
-        const orderRef = database.ref(`orders/${orderId}`);
-        // Fetch the order data
-        const orderSnapshot = await orderRef.once('value');
-        if (orderSnapshot.exists()) {
-          const orderValue = orderSnapshot.val();
-          if (orderValue.userId != userId)
-            return res.status(404).send({ data: "Order not found" });
-          orders.push(orderValue);
-        }
-      }
-
-      if (orders.length > 0) {
-        res.status(200).json({ data: orders });
-      } else {
-        res.status(404).json({ message: 'No active orders found' });
-      }
-    } else {
-      res.status(404).json({ message: 'No active orders found' });
-    }
-  } catch (error) {
-    console.error('Error retrieving active orders:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-};
-
-export const getUserActiveOrders2 = async (req: Request, res: Response) => {
-  const userId = req.user!.uid;
-
-  try {
-    // Reference to the user's active orders
-    const userOrdersRef = database.ref(`user/${userId}/activeOrders`);
-
-    // Fetch the user's active orders
-    const snapshot = await userOrdersRef.once('value');
-
     if (!snapshot.exists()) {
       return res.status(404).json({ message: 'No active orders found' });
     }
 
-    const activeOrders = snapshot.val();
+    const activeOrder = snapshot.val();
 
     // Extract the order IDs (keys)
-    const inProgressOrderIDs = Object.keys(activeOrders);
+    const inProgressOrderIDs = Object.keys(activeOrder);
 
     if (inProgressOrderIDs.length === 0) {
       return res.status(404).json({ message: 'No active orders found' });
