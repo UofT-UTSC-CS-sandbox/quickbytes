@@ -274,7 +274,7 @@ export const getDeliveryStatus = async (req: Request, res: Response) => {
 
       const userId = req.user?.uid; // TOOD extract this from auth
       // Verify that the issuer of this request is in some way associated with the order
-      if (deliveryData.courierId !== userId || deliveryData.userId !== userId)
+      if (deliveryData.courierId !== userId && deliveryData.userId !== userId)
         return res.status(404).send({ data: "Order not found" });
 
       const courierSnapshot = await database.ref(`user/${courierId}/currentLocation`).get();
@@ -363,7 +363,7 @@ export const getOrderRestaurantLocation = async (req: Request, res: Response) =>
       const orderData = orderSnapshot.val();
       // Verify that the issuer of this request is in some way associated with the order
       const userId = req.user?.uid; // TODO extract this from auth
-      if (orderData.courierId !== userId || orderData.userId !== userId)
+      if (orderData.courierId !== userId && orderData.userId !== userId)
         return res.status(404).send({ data: "Order not found" });
 
       const restaurantId = orderData.restaurant.restaurantId;
@@ -376,7 +376,7 @@ export const getOrderRestaurantLocation = async (req: Request, res: Response) =>
         const restaurantLocation = {
           restaurantId,
           restaurantName: restaurantData.information.name,
-          location: restaurantData.information.location,
+          location: { lat: restaurantData.information.coordinateX, lng: restaurantData.information.coordinateY}
         };
         res.status(200).json({ restaurant: restaurantLocation });
       } else {
@@ -401,7 +401,7 @@ export function getOrderStatus(req: Request, res: Response) {
       if (snapshot.exists()) {
         const value = snapshot.val();
         const userId = req.user?.uid; // TODO extract this from auth
-        if (value.courierId == userId || value.userId == userId)
+        if (value.courierId !== userId && value.userId !== userId)
           return res.status(404).send({ data: "Order not found" });
         const items = value.order.items ?? {};
         res.send({ status: value.tracking.status });
