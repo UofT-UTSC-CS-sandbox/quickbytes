@@ -39,7 +39,7 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
     const initialOrderIdRef = useRef<string | null>(null);
     //const { data: currLoc, isLoading: currLoading, refetch } = trackingService.getCurrentLocationFromOrder(orderId).useQuery();
     console.log("this is the orderid thats being used to grab location111:", orderId)
-    const { currentLocation: currLoc, isLoading: currLoading, error } = useCurrentLocation(orderId);
+    const { currentLocation: currLoc, isLoading: currLoading} = useCurrentLocation(orderId);
     console.log(currLoc)
     const { data: restaurantInfo, isLoading: pickUpLoading } = trackingService.getRestaurantLocation(orderId).useQuery();
     const { data: dropOffLoc, isLoading: dropOffLocLoading } = trackingService.getOrderDropoff(orderId).useQuery();
@@ -257,9 +257,9 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
     };
 
     return (
-        <div className='sidebar-container'>
+        <div className='sidebar-container' style={{ paddingTop: '80px' }}>
             <div className='header'>
-                <h3>"placeholder"</h3>
+                <h3>"placeholder hello"</h3>
                 {orderMenu}
             </div>
             <div className='status'>
