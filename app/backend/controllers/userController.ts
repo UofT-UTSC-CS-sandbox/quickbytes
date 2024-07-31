@@ -11,7 +11,7 @@ export const getUserActiveOrders2 = async (req: Request, res: Response) => {
     const userOrdersRef = database.ref(`user/${userId}/activeOrder`);
 
     // Fetch the user's active orders
-    const snapshot = await userOrdersRef.once('value');
+    const snapshot = await userOrdersRef.get();
 
     if (!snapshot.exists()) {
       return res.status(404).json({ message: 'No active orders found' });
@@ -118,7 +118,7 @@ export const getNotificationSettings = async (req: Request, res: Response) => {
     // Fetch user data from Firebase Realtime Database
     const database = admin.database();
     const userRef = database.ref(`user/${userId}/settings/notifications`);
-    const snapshot = await userRef.once('value');
+    const snapshot = await userRef.get();
     let notification_settings = snapshot.val();
 
     // If notification_settings doesn't exist, initialize it to default values
@@ -144,7 +144,7 @@ export const getRoleSettings = async (req: Request, res: Response) => {
     // Fetch user data from Firebase Realtime Database
     const database = admin.database();
     const userRef = database.ref(`user/${userId}/settings/roles`);
-    const snapshot = await userRef.once('value');
+    const snapshot = await userRef.get();
     let role_settings = snapshot.val();
 
     // If role_settings doesn't exist, initialize it to default values

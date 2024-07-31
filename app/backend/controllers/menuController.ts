@@ -9,7 +9,7 @@ export function getAllRestaurants(req: Request, res: Response) {
     const database = admin.database();
     const restaurantsRef = database.ref('restaurants');
 
-    restaurantsRef.once('value')
+    restaurantsRef.get()
         .then((snapshot: DataSnapshot) => {
             if (snapshot.exists()) {
                 const restaurants = snapshot.val();
@@ -39,7 +39,7 @@ export function getOneRestaurant(req: Request, res: Response) {
     const restaurantId = req.params.id;
     const restaurantRef = database.ref(`restaurants/${restaurantId}/information`);
 
-    restaurantRef.once('value')
+    restaurantRef.get()
         .then((snapshot: DataSnapshot) => {
             if (snapshot.exists()) {
                 res.send({ data: snapshot.val() });
@@ -540,7 +540,7 @@ export async function setPickupLocation(req: Request, res: Response) {
 
     try {
         // Check if the userId of the order matches the issuer of the request
-        const orderSnapshot = await database.ref(orderUserRef).once('value');
+        const orderSnapshot = await database.ref(orderUserRef).get();
         const orderUserId = orderSnapshot.val();
 
         if (orderUserId !== userId) {
@@ -571,7 +571,7 @@ export async function getRestaurantLocation(req: Request, res: Response) {
     const orderref = `orders/${orderId}`;
 
     try {
-        const snapshot = await database.ref(orderref).once("value");
+        const snapshot = await database.ref(orderref).get();
         const orderdata = snapshot.val();
         const userId = req.user?.uid;
         if (orderdata.userId != userId && orderdata.couriedId != userId)
@@ -580,7 +580,7 @@ export async function getRestaurantLocation(req: Request, res: Response) {
         const restaurantId = orderdata.restaurant.restaurantId;
         console.log(restaurantId, "restaurant id")
 
-        const restaurantSnapshot = await database.ref(`restaurants/${restaurantId}/information/location`).once('value');
+        const restaurantSnapshot = await database.ref(`restaurants/${restaurantId}/information/location`).get();
         const location = restaurantSnapshot.val();
         if (location) {
             res.status(200).json(location);
@@ -598,7 +598,7 @@ export const getActiveRestaurantorders = async (req: Request, res: Response) => 
     const db = admin.database();
     try {
         const ref = db.ref(`restaurants/${restaurantId}/activeOrders`);
-        const snapshot = await ref.once('value');
+        const snapshot = await ref.get();
 
         if (!snapshot.exists()) {
             return res.status(404).json({ error: 'Restaurant not found or no active orders' });

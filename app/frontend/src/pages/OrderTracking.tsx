@@ -33,7 +33,7 @@ function OrderTracking() {
   // Get the active orderId of the customer
   //const { data: orderData, error } = deliveryService.getCustomerActiveOrder().useQuery();
   //const { data: order } = orderService.getClientActiveOrders().useQuery();
-  const { data: order, isSuccess: orderSuccess } = deliveryService.getCustomerActiveOrder().useQuery();
+  const { data: order, isSuccess: orderSuccess, isLoading: orderLoading } = deliveryService.getCustomerActiveOrder().useQuery();
 
   // get user role and notification settings
   const { data: settingsData, isLoading: settingLoad } = settingService.getNotificationSettings().useQuery();
@@ -182,11 +182,27 @@ function OrderTracking() {
     console.log(orderSuccess, "it should be successful (orderSuccess)")
   }, [orderSuccess]);
 
+  useEffect(() => {
+    // Function to be triggered every few seconds
+        const triggerFunction = () => {
+      console.log("the order is loading", orderLoading);
+    };
 
-    if(!orderSuccess){
+    // Set up the interval
+    const intervalId = setInterval(triggerFunction, 3000); // 3000ms = 3 seconds
+
+    // Cleanup the interval on component unmount
+    return () => clearInterval(intervalId);
+  });
+
+
+    if(orderLoading){
       console.log('should work')
       return <div>Loading3...</div>;
     }
+
+
+    
 
 
   console.log("it was successful22:  ", orderIds)
