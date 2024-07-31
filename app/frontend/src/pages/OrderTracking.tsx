@@ -178,22 +178,7 @@ function OrderTracking() {
   }
 
   /* if the order id hasn't been recieved yet via the query, then it should show that its still loading*/
-  useEffect(() =>{
-    console.log(orderSuccess, "it should be successful (orderSuccess)")
-  }, [orderSuccess]);
-
-  useEffect(() => {
-    // Function to be triggered every few seconds
-        const triggerFunction = () => {
-      console.log("the order is loading", orderLoading);
-    };
-
-    // Set up the interval
-    const intervalId = setInterval(triggerFunction, 3000); // 3000ms = 3 seconds
-
-    // Cleanup the interval on component unmount
-    return () => clearInterval(intervalId);
-  });
+  
 
 
     if(orderLoading){
