@@ -7,6 +7,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import NavBar from '../components/Navbar';
+import PageHead from '../components/PageHead';
 
 const UserPage: React.FC = () => {
   const [confidentialData, setConfidentialData] = useState<string>('');
@@ -40,6 +41,7 @@ const UserPage: React.FC = () => {
 
   return (
     <div>
+      <PageHead title="User Page" description="This is a user page for testing purposes" />
       <NavBar />
       <div style={{ height: '5rem' }}></div>
     
