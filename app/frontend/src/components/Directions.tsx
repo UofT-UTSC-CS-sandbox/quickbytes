@@ -38,7 +38,7 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
     //const [restaurantName, setRestaurantName] = useState<string | null>(null);
     const initialOrderIdRef = useRef<string | null>(null);
     //const { data: currLoc, isLoading: currLoading, refetch } = trackingService.getCurrentLocationFromOrder(orderId).useQuery();
-
+    console.log("this is the orderid thats being used to grab location111:", orderId)
     const { currentLocation: currLoc, isLoading: currLoading, error } = useCurrentLocation(orderId);
     console.log(currLoc)
     const { data: pickupLoc, isLoading: pickUpLoading } = trackingService.getRestaurantLocation(orderId).useQuery();

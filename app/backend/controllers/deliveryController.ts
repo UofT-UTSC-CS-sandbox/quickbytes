@@ -139,6 +139,7 @@ export async function acceptDelivery(req: Request, res: Response): Promise<void>
 export async function getActiveOrder(req: Request, res: Response) {
   const database = admin.database();
   const userId = req.user!.uid;
+  console.log(userId, "THIS IS THE USERID!!!")
 
   try {
     // Reference to the user's active order
@@ -166,6 +167,8 @@ export async function getActiveOrder(req: Request, res: Response) {
           return res.status(404).send({ data: "Order not found" });
         }
         const order = orderSnapshot.val();
+        order.orderId = orderId;
+        
         res.status(200).json({ data: order });
       } else {
         res.status(404).json({ message: 'Order not found' });

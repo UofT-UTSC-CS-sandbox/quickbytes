@@ -13,11 +13,12 @@ import Directions from './Directions';
 
 
 interface DirectionsMapProps {
-  getOrders: () => any;
+  //getOrders: () => any;
   useCurrentLocation: (orderId: string | null) => { currentLocation: any, isLoading: boolean, error: any };
+  orderIds: string[];
 }
 
-export default function DirectionsMap({ getOrders, useCurrentLocation }: DirectionsMapProps) {
+export default function DirectionsMap({ orderIds, useCurrentLocation }: DirectionsMapProps) {
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string;
   const [displayError, setDisplayError] = useState<Error | null>(null);
   const errorHandler = (err: Error) => {
@@ -27,8 +28,9 @@ export default function DirectionsMap({ getOrders, useCurrentLocation }: Directi
   const [loading, setLoading] = useState(true);
   const loadHandler = (loadVal: boolean) => setLoading(loadVal);
   const [orderId, setOrderId] = useState<string | null>(null);
-  const [orderIds, setOrderIds] = useState<string[]>([]);
+  //const [orderIds, setOrderIds] = useState<string[]>([]);
 
+  /*
   const {  data, isLoading, isSuccess, isError} = getOrders().useQuery();
 
   useEffect(() => {
@@ -49,7 +51,7 @@ export default function DirectionsMap({ getOrders, useCurrentLocation }: Directi
       }
   }
 
-    /*
+    
 
     getOrders(id)
       .then(data => {
@@ -63,21 +65,25 @@ export default function DirectionsMap({ getOrders, useCurrentLocation }: Directi
         setLoading(false);
       });
       
-*/
+
 
 
 
   }, [isSuccess, getOrders, data]
   );
+  */
 
   useEffect(() =>{
+    console.log("the initial id is set:", orderIds)
     setOrderId(orderIds[0]);
     
-  }, [orderIds, isSuccess]);
+  }, [orderIds]);
 
+  /*
   if (isLoading) {
     return <div>Loading...</div>;
   }
+    */
 
   const orderMenu = <OrderMenu orderIds={orderIds} setOrderId={setOrderId} setLoading={setLoading} />;
 
@@ -110,7 +116,7 @@ export default function DirectionsMap({ getOrders, useCurrentLocation }: Directi
         {loading ? (
           <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <Typography variant="h6">Loading...</Typography>
+              <Typography variant="h6">Loading2...</Typography>
               <CircularProgress />
             </div>
           </div> ) : null}

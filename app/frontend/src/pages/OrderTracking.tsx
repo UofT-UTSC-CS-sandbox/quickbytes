@@ -26,11 +26,14 @@ function OrderTracking() {
   const [orderId, setOrderId] = useState<string | null>(null);
   const [directionsAvailable, setDirectionsAvailable] = useState(true);
 
+  /* Restaurants may have several orders that are made to them, additionally customers might have multiple possible orders
+  in the future of the app, this variable will be passed to the DirectionsMap */
+  const [orderIds, setOrderIds] = useState<string[]>([]);
 
   // Get the active orderId of the customer
   //const { data: orderData, error } = deliveryService.getCustomerActiveOrder().useQuery();
   //const { data: order } = orderService.getClientActiveOrders().useQuery();
-  const { data: order } = deliveryService.getCustomerActiveOrder().useQuery();
+  const { data: order, isSuccess: orderSuccess } = deliveryService.getCustomerActiveOrder().useQuery();
 
   // get user role and notification settings
   const { data: settingsData, isLoading: settingLoad } = settingService.getNotificationSettings().useQuery();
@@ -41,11 +44,19 @@ function OrderTracking() {
     if (settingLoad || roleLoad) {
       return;
     }
+    
     if (order && settingsData?.notification_settings?.customerNotifications && roleData?.role_settings?.customerRole) {
       const orderId = order.data.orderId;
+      console.log("triggered once")
+      console.log("this is the orderid that is being used", orderId, orderSuccess, order)
       setOrderId(orderId);
+      /*This temporarily fixes the list of ids to be the single item (in the case of the customer), but for 
+      the restaurant worker tracking page this should be replaced with the list of orders corresponding to the 
+      given restaurant*/
+      setOrderIds([orderId]);
       const dataRef = ref(database, `orders/${orderId}/tracking/status`);
 
+      
       const unsubscribeData = onValue(dataRef, (snapshot) => {
         const data = snapshot.val();
         // can only have either one active delivery or order at one time, if no active order then don't show any notifications
@@ -56,8 +67,9 @@ function OrderTracking() {
       });
 
       return () => unsubscribeData();
+      
     }
-  }, [order]);
+  }, [order, orderSuccess]);
 
   const getNotificationMessage = (path: string, data: any) => {
     switch (data) {
@@ -164,6 +176,21 @@ function OrderTracking() {
       </div>
     );
   }
+
+  /* if the order id hasn't been recieved yet via the query, then it should show that its still loading*/
+  useEffect(() =>{
+    console.log(orderSuccess, "it should be successful (orderSuccess)")
+  }, [orderSuccess]);
+
+
+    if(!orderSuccess){
+      console.log('should work')
+      return <div>Loading3...</div>;
+    }
+
+
+  console.log("it was successful22:  ", orderIds)
+
   /* The main component of the page */
   const MainView = () => {
     if (directionsAvailable) /* If tracking is available, display on map */
@@ -171,7 +198,7 @@ function OrderTracking() {
       //The DirectionsMap wont have the userid fixed once roles such as customer,courier,and restaurant are established
       //Additionally, the getOrders function should change to restaurantService.getRestaurantActiveOrders if the restaurant is viewing
       //And useCurrentLocation should change based on if the courier or customer/restaurant is using the view
-      return <DirectionsMap getOrders={orderService.getClientActiveOrders2} useCurrentLocation={useCurrentLocation} />;
+      return <DirectionsMap useCurrentLocation={useCurrentLocation} orderIds={orderIds} />;
     else if (updatingLocation) // If the user is attempting to change the location, display map with marker
       return <SingleMarkerMap
         sendSetPickupLocation={sendSetPickupLocation}
