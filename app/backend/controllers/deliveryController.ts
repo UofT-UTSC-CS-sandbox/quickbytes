@@ -320,16 +320,25 @@ export const getCurrentLocationFromOrder = async (req: Request, res: Response) =
 
   try {
     // Fetch user data from Firebase Realtime Database
-    const orderData = await admin.database().ref(`orders/${orderId}`).get();
+    console.log("this is the orderid: ", orderId)
+    const orderDataSnap = await admin.database().ref(`orders/${orderId}`).get();
+    const orderData = orderDataSnap.exists() ? orderDataSnap.val() : null;
+
+    
     const courierId = orderData.courierId;
+    console.log("this is the orderdata:", orderData)
+    console.log("this is the courierid: ", courierId)
     const userId = req.user?.uid; // TODO extract this from auth
     // Verify that the issuer of this request is in some way associated with the order
-    if (courierId !== userId || orderData.userId !== userId)
+    if (courierId !== userId && orderData.userId !== userId){
+      console.log("the order is not found")
       return res.status(404).send({ data: "Order not found" });
+    }
 
 
     const snapshot2 = await admin.database().ref(`user/${courierId}/currentLocation`).get();
     const location = snapshot2.val();
+    console.log("this is the location: ", location)
 
     if (location) {
       res.status(200).json({ location });
