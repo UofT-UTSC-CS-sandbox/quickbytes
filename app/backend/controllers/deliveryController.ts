@@ -139,7 +139,6 @@ export async function acceptDelivery(req: Request, res: Response): Promise<void>
 export async function getActiveOrder(req: Request, res: Response) {
   const database = admin.database();
   const userId = req.user!.uid;
-  console.log(userId, "THIS IS THE USERID!!!")
 
   try {
     // Reference to the user's active order
@@ -177,7 +176,7 @@ export async function getActiveOrder(req: Request, res: Response) {
       res.status(200).send({ data: null }); // Send null to indicate no active order
     }
   } catch (error) {
-    console.error('Error retrieving active orders:', error);
+    console.error(`Error retrieving active order for user ${userId} :`, error);
     res.status(500).json({ message: 'Internal server error' });
   }
 }
