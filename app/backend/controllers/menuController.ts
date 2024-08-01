@@ -127,8 +127,6 @@ export async function createUserOrder(req: Request, res: Response) {
         const updates = {
             // Order object with all tracking and order information
             [`orders/${newOrderRef.key}`]: newOrderObject,
-            // Record order under the restaurant for easy querying
-            [`restaurants/${restaurantId}/ordering/${newOrderRef.key}`]: true,
             // Record order under the user for easy querying
             [`user/${userId}/activeOrder`]: newOrderRef.key
         };
