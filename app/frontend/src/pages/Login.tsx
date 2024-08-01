@@ -5,6 +5,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
 import { Alert, Snackbar } from '@mui/material';
+import PageHead from '../components/PageHead';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -41,6 +42,7 @@ const Login: React.FC = () => {
 
   return (
     <div className="login-container">
+      <PageHead title="Sign In" description="Sign in back into your QuickBytes account" />
       <form onSubmit={handleSubmit} className="login-form">
         <h2 style={{ fontSize: '24px', fontWeight: '600' }}>Sign In</h2>
         <div>

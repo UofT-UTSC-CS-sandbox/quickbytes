@@ -18,6 +18,7 @@ const DEFAULT_PICKUP_LOCATION = { lat: 43.785171372795524, lng: -79.187481605727
 
 import DirectionsMap from '../components/DirectionsMap';
 import useCurrentLocation from '../services/currentLocationServiceCustomer';
+import PageHead from '../components/PageHead';
 
 
 function OrderTracking() {
@@ -58,6 +59,8 @@ function OrderTracking() {
     
     if (order && settingsData?.notification_settings?.customerNotifications && roleData?.role_settings?.customerRole) {
       const orderId = order.data.orderId;
+      console.log("triggered once")
+      console.log("this is the orderid that is being used", orderId, orderSuccess, order)
       setOrderId(orderId);
       /*This temporarily fixes the list of ids to be the single item (in the case of the customer), but for 
       the restaurant worker tracking page this should be replaced with the list of orders corresponding to the 
@@ -290,6 +293,7 @@ function OrderTracking() {
 
   return (
     <div>
+      <PageHead title="Order Tracking" description="Track your order and deliveries" />
       {updatingLocation ? null : <NavBar />}
       {orderId && (
         <Notification

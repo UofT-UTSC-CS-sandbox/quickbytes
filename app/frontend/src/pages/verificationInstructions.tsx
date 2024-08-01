@@ -5,6 +5,7 @@ Still needs to be styled and equiped with a logout button.
 import React, { useState } from 'react';
 import { useAuth } from '../AuthContext';
 import { sendEmailVerification } from 'firebase/auth';
+import PageHead from '../components/PageHead';
 
 const VerificationInstructions: React.FC = () => {
   const { currentUser } = useAuth();
@@ -24,6 +25,7 @@ const VerificationInstructions: React.FC = () => {
 
   return (
     <div>
+      <PageHead title="Verify Your Email Address" description="To access QuickBytes, please verify your email address using the verification link sent to your email." />
       <h1>Verify Your Email Address</h1>
       <p>To access this page, please verify your email address.</p>
       <p>We have sent a verification email to your registered email address. Please check your inbox and follow the instructions to verify your email.</p>

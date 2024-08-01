@@ -7,6 +7,7 @@ import OrderStatus, { convertOrderStatusToString } from "../model/OrderStatus";
 import { ArrowDropDown } from "@mui/icons-material";
 import restaurantService, { ActiveOrderItem } from "../services/restaurantService";
 import Notification from "../components/Notification";
+import PageHead from "../components/PageHead";
 
 const StaffOrders = () => {
     const { restaurantId } = useParams();
@@ -67,6 +68,7 @@ const StaffOrders = () => {
 
     return <>
         <NavBar />
+        <PageHead title="Customer Orders" description="View your active orders" />
         <div style={{ width: '100%', paddingTop: '100px' }}>
             <Container sx={{ textAlign: 'left', fontSize: '1.8rem', padding: '16px' }} maxWidth="lg">
                 <Typography sx={{ textAlign: 'left', fontSize: '2.5rem' }} variant="h1" gutterBottom>
