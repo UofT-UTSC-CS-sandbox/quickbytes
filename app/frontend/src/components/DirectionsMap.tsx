@@ -15,10 +15,11 @@ import Directions from './Directions';
 interface DirectionsMapProps {
   //getOrders: () => any;
   useCurrentLocation: (orderId: string | null) => { currentLocation: any, isLoading: boolean, error: any };
+  orderInformation: React.ReactNode;
   orderIds: string[];
 }
 
-export default function DirectionsMap({ orderIds, useCurrentLocation }: DirectionsMapProps) {
+export default function DirectionsMap({ orderIds, useCurrentLocation,orderInformation}: DirectionsMapProps) {
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string;
   const [displayError, setDisplayError] = useState<Error | null>(null);
   const errorHandler = (err: Error) => {
@@ -92,7 +93,8 @@ export default function DirectionsMap({ orderIds, useCurrentLocation }: Directio
       <div style={{ width: "100%", height: "100vh" }}>
         <APIProvider apiKey={apiKey} onLoad={() => console.log('Maps API has loaded.')}>
           <div className='map-container'>
-            <Directions orderId={orderId} loadHandler={loadHandler} errorHandler={errorHandler} setLoading={setLoading} orderMenu={orderMenu} useCurrentLocation={useCurrentLocation} />
+            <Directions orderId={orderId} loadHandler={loadHandler} errorHandler={errorHandler} setLoading={setLoading} orderMenu={orderMenu} 
+            useCurrentLocation={useCurrentLocation} orderInformation={orderInformation} />
             <Map
               id={'map'}
               styles={uberMapStyle}
