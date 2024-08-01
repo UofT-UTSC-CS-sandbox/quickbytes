@@ -19,12 +19,13 @@ interface DirectionProps {
     errorHandler: (error: Error) => void;
     loadHandler: (loadVal: boolean) => void;
     setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+    orderInformation: React.ReactNode
     orderId: string | null;
     orderMenu: React.ReactNode;
     useCurrentLocation: (orderId: string | null) => { currentLocation: any, isLoading: boolean, error: any };
 }
 
-export default function Directions({ errorHandler, loadHandler, orderId, orderMenu, setLoading, useCurrentLocation }: DirectionProps) {
+export default function Directions({ errorHandler, loadHandler, orderId, orderMenu, setLoading, useCurrentLocation, orderInformation }: DirectionProps) {
     const map = useMap("map");
     const routesLibrary = useMapsLibrary("routes");
     const [directionsService, setDirectionsService] = useState<google.maps.DirectionsService>();
@@ -32,7 +33,6 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
     const [courierMarker, setCourierMarker] = useState<google.maps.Marker | null>(null);
     const [destinationMarker, setDestinationMarker] = useState<google.maps.Marker | null>(null);
     const [routeInfo, setRouteInfo] = useState<{ distance: string, duration: string } | null>(null);
-    const [confirmationPin, setConfirmationPin] = useState<string | null>(null);
 
     //const [dropOffCoord, setDropOffCoord] = useState<google.maps.LatLngLiteral | null>(null);
     //const [restaurantName, setRestaurantName] = useState<string | null>(null);
@@ -43,20 +43,10 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
     console.log(currLoc)
     const { data: restaurantInfo, isLoading: pickUpLoading } = trackingService.getRestaurantLocation(orderId).useQuery();
     const { data: dropOffLoc, isLoading: dropOffLocLoading } = trackingService.getOrderDropoff(orderId).useQuery();
-    const { data: confirmationPinData, isLoading: confirmationPinLoading } = trackingService.getCustomerConfirmationPin().useQuery();
-
     
     const location = useLocation();
     const searchParams = new URLSearchParams(location.search);
     const courier = searchParams.get('courier') === "true";
-    
-
-
-    useEffect(() => {
-        if (confirmationPinData) {
-            setConfirmationPin(confirmationPinData.customerConfirmationPin);
-        }
-    }, [confirmationPinData]);
 
     useEffect(() => {
         if (!orderId) return ;
@@ -187,74 +177,12 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
         //console.log("should be executing and showing every second")
 
        // return () => clearInterval(intervalId);
-    }, [courierMarker, directionsService, directionsRenderer, orderId, errorHandler, currLoc,currLoading, pickUpLoading, dropOffLocLoading, currLoading, confirmationPinLoading]);
-
-    const handleConfirmationPinClick = () => {
-        // Show the customer confirmation pin in the alert message
-        alert(`This is your 4 digit confirmation pin: ${confirmationPin}`);
-    };
+    }, [courierMarker, directionsService, directionsRenderer, orderId, errorHandler, currLoc,currLoading, pickUpLoading, dropOffLocLoading, currLoading]);
 
 
 
-  
-    const {mutate: updateOrderStatus} = deliveryService.updateOrderStatus((d) => {
-      console.log(d.message)
-      // Courier returns to delivery page upon cancellation, customer to home page
-      nav(courier ? '/deliveries' : "/");
-    }).useMutation();
     
-    const showNotification = (data: any) => {
-      const message = "The user has cancelled this order"
-      toast.info(message, {
-          position: "top-center",
-          autoClose: AUTO_CLOSE_TIME,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          onClose: () => {
-            nav("/deliveries");
-          }
-      });
-    };
-                                              
-    // listen to changes in the order status and show a notification
-    useEffect(() => {
-        if (orderId) {
-            const dataRef = ref(database, `orders/${orderId}/tracking/status`);
-  
-            const unsubscribeData = onValue(dataRef, (snapshot) => {
-                const data = snapshot.val();
-                // We only care for order cancellations for now
-                if (!data || data!=OrderStatus.CANCELLED || data != OrderStatus.ORDERED) return;
-                console.log("order cancelled");
-                showNotification(data);
-            });
-  
-            return () => unsubscribeData();
-        }
-    }, [orderId]);
-  
-  
-    const nav = useNavigate();
-    const handleUpdateStatus = () => {
-      if (orderId) {
-        const newStatus = OrderStatus.EN_ROUTE; // change later to change status depending on where in the workflow
-        updateOrderStatus({ orderId: orderId, status: newStatus, courierRequest: courier });
-      }
-    };
-  
-    const handleCancelOrder = () => {
-      if (orderId) {
-        const confirmed = window.confirm('Are you sure you want to cancel this order?');
-        if (confirmed) {
-          const newStatus = OrderStatus.CANCELLED;
-          /* TODO: ensure order has not been picked up. */
-          updateOrderStatus({ orderId: orderId, status: newStatus, courierRequest: courier });
-        }
-      }
-    };
+
 
     return (
         <div className='sidebar-container' style={{ paddingTop: '80px' }}>
@@ -271,15 +199,7 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
                     <p>Loading route information...</p>
                 )}
             </div>
-            <Stack direction="row" justifyContent="center">
-                <Button variant="contained" color="primary" size="large" onClick={handleConfirmationPinClick}>Confirmation Pin</Button>
-            </Stack>
-            <div className='buttons'>
-                <Button variant="contained" sx={{ backgroundColor: 'rgba(163, 0, 0, 1)', color: 'white' }} size="large" onClick={handleCancelOrder}>Cancel Order</Button>
-                {
-                    courier ? <Button variant="contained" sx={{ backgroundColor: 'rgba(0, 127, 163, 1)', color: 'white' }} size="large" onClick={handleUpdateStatus}>Notify</Button> : null
-                }   
-            </div>
+            {orderInformation}
         </div>
     );
 }

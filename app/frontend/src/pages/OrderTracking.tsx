@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Typography, List, ListItem, ListItemText, Button } from '@mui/material';
+import { Typography, List, ListItem, ListItemText, Button, Stack } from '@mui/material';
 import NavBar from '../components/Navbar';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -26,6 +26,17 @@ function OrderTracking() {
   const [pickupLocation, setPickupLocation] = useState<{ lat: number, lng: number }>(DEFAULT_PICKUP_LOCATION);
   const [orderId, setOrderId] = useState<string | null>(null);
   const [directionsAvailable, setDirectionsAvailable] = useState(true);
+
+  const [confirmationPin, setConfirmationPin] = useState<string | null>(null);
+
+  const { data: confirmationPinData, isLoading: confirmationPinLoading } = trackingService.getCustomerConfirmationPin().useQuery();
+
+
+  useEffect(() => {
+    if (confirmationPinData) {
+        setConfirmationPin(confirmationPinData.customerConfirmationPin);
+    }
+  }, [confirmationPinData]);
 
   /* Restaurants may have several orders that are made to them, additionally customers might have multiple possible orders
   in the future of the app, this variable will be passed to the DirectionsMap */
@@ -64,7 +75,6 @@ function OrderTracking() {
         if (!data || data == OrderStatus.ORDERING) return;
         showNotification(data);
         setDirectionsAvailable(data != OrderStatus.CANCELLED && data != OrderStatus.ORDERING && data != OrderStatus.ORDERED);
-        console.log('Data from Firebase:', data);
       });
 
       return () => unsubscribeData();
@@ -106,7 +116,6 @@ function OrderTracking() {
 
   const nav = useNavigate();
   const { mutate: updateOrderStatus } = deliveryService.updateOrderStatus((d) => {
-    console.log(d.message)
     // Courier returns to delivery page upon cancellation, customer to home page
     nav("/");
   }).useMutation();
@@ -178,20 +187,89 @@ function OrderTracking() {
     );
   }
 
-  /* if the order id hasn't been recieved yet via the query, then it should show that its still loading*/
-  
+  /* This is the information that was moved from Directions to this file, it should be changed according to if its the customer, courier, or restaurant owner*/
 
+  const courier=1;
 
-    if(orderLoading){
-      console.log('should work')
-      return <div>Loading3...</div>;
+  const handleUpdateStatus = () => {
+    if (orderId) {
+      const newStatus = OrderStatus.EN_ROUTE; // change later to change status depending on where in the workflow
+      updateOrderStatus({ orderId: orderId, status: newStatus, courierRequest: courier });
     }
+  };
+
+  const handleConfirmationPinClick = () => {
+    // Show the customer confirmation pin in the alert message
+    alert(`This is your 4 digit confirmation pin: ${confirmationPin}`);
+};
 
 
+
+  const orderInformation = () =>{
+    return (
+        <>
+            <Stack direction="row" justifyContent="center">
+                <Button variant="contained" color="primary" size="large" onClick={handleConfirmationPinClick}>Confirmation Pin</Button>
+            </Stack>
+            <div className='buttons'>
+                <Button variant="contained" sx={{ backgroundColor: 'rgba(163, 0, 0, 1)', color: 'white' }} size="large" onClick={handleCancelOrder}>Cancel Order</Button>
+                {
+                    courier ? <Button variant="contained" sx={{ backgroundColor: 'rgba(0, 127, 163, 1)', color: 'white' }} size="large" onClick={handleUpdateStatus}>Notify</Button> : null
+                }   
+            </div>
+        </>
+            );
+        
+    };
+
+    /*This was originally called showNotification and was in Directions,
+     it was then moved here which required the name to be changed since theres already another showNotification function in OrderTracking*/ 
+    const showNotification2 = (data: any) => {
+      const message = "The user has cancelled this order"
+      toast.info(message, {
+          position: "top-center",
+          autoClose: AUTO_CLOSE_TIME,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          onClose: () => {
+            nav("/deliveries");
+          }
+      });
+    };
     
 
+            // listen to changes in the order status and show a notification
+            useEffect(() => {
+              if (orderId) {
+                  const dataRef = ref(database, `orders/${orderId}/tracking/status`);
+        
+                  const unsubscribeData = onValue(dataRef, (snapshot) => {
+                      const data = snapshot.val();
+                      // We only care for order cancellations for now
+                      if (!data || data!=OrderStatus.CANCELLED || data != OrderStatus.ORDERED) return;
+                      console.log("order cancelled");
+                      showNotification2(data);
+                  });
+        
+                  return () => unsubscribeData();
+              }
+          }, [orderId]);
+    
 
-  console.log("it was successful22:  ", orderIds)
+                                              
+    
+  
+  
+    //const nav = useNavigate();
+
+
+  /* if the order id hasn't been recieved yet via the query, then it should show that its still loading*/
+    if(orderLoading){
+      return <div>Loading3...</div>;
+    }
 
   /* The main component of the page */
   const MainView = () => {
@@ -200,7 +278,7 @@ function OrderTracking() {
       //The DirectionsMap wont have the userid fixed once roles such as customer,courier,and restaurant are established
       //Additionally, the getOrders function should change to restaurantService.getRestaurantActiveOrders if the restaurant is viewing
       //And useCurrentLocation should change based on if the courier or customer/restaurant is using the view
-      return <DirectionsMap useCurrentLocation={useCurrentLocation} orderIds={orderIds} />;
+      return <DirectionsMap useCurrentLocation={useCurrentLocation} orderIds={orderIds} orderInformation={orderInformation()}/>;
     else if (updatingLocation) // If the user is attempting to change the location, display map with marker
       return <SingleMarkerMap
         sendSetPickupLocation={sendSetPickupLocation}
