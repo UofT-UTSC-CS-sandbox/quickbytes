@@ -38,10 +38,10 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
     //const [restaurantName, setRestaurantName] = useState<string | null>(null);
     const initialOrderIdRef = useRef<string | null>(null);
     //const { data: currLoc, isLoading: currLoading, refetch } = trackingService.getCurrentLocationFromOrder(orderId).useQuery();
-
-    const { currentLocation: currLoc, isLoading: currLoading, error } = useCurrentLocation(orderId);
+    console.log("this is the orderid thats being used to grab location111:", orderId)
+    const { currentLocation: currLoc, isLoading: currLoading} = useCurrentLocation(orderId);
     console.log(currLoc)
-    const { data: pickupLoc, isLoading: pickUpLoading } = trackingService.getRestaurantLocation(orderId).useQuery();
+    const { data: restaurantInfo, isLoading: pickUpLoading } = trackingService.getRestaurantLocation(orderId).useQuery();
     const { data: dropOffLoc, isLoading: dropOffLocLoading } = trackingService.getOrderDropoff(orderId).useQuery();
     const { data: confirmationPinData, isLoading: confirmationPinLoading } = trackingService.getCustomerConfirmationPin().useQuery();
 
@@ -123,7 +123,7 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
 
 
 
-                let destination = pickupLoc;
+                let destination = restaurantInfo.restaurant.location;
                 console.log(currLoc, "its logged")
 
                 /*
@@ -137,6 +137,8 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
                 */
                     
                 destinationMarker?.setPosition(new google.maps.LatLng(destination));
+                console.log("this is the destination, could be incorrect:", destination);
+                console.log("this is the current location ", currLoc)
 
                 directionsService.route({
                     origin: currLoc.location,
@@ -255,9 +257,9 @@ export default function Directions({ errorHandler, loadHandler, orderId, orderMe
     };
 
     return (
-        <div className='sidebar-container'>
+        <div className='sidebar-container' style={{ paddingTop: '80px' }}>
             <div className='header'>
-                <h3>"placeholder"</h3>
+                <h3>"placeholder hello"</h3>
                 {orderMenu}
             </div>
             <div className='status'>

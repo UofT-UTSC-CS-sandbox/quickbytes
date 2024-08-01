@@ -62,7 +62,7 @@ export default {
     getRestaurantLocation: (orderID: string | null) =>
         useGetEndpoint<GetRestaurantLocationResponse>(
             {
-                inputUrl: `restaurants/order/${orderID}/restaurant-location`,
+                inputUrl: `deliveries/${orderID}/restaurant-location`,
                 useAuth: true
             },
             {
