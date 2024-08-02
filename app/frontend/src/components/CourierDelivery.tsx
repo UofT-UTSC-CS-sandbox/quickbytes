@@ -23,6 +23,8 @@ const CourierDelivery: React.FC<{ isDrawer?: boolean, onClose?: () => void }> = 
         return date.toLocaleString();
     };
 
+    const nav = useNavigate();
+
     const renderList = () => {
         if (isLoading) {
             return (
@@ -66,6 +68,14 @@ const CourierDelivery: React.FC<{ isDrawer?: boolean, onClose?: () => void }> = 
                             </Typography>
                         </ListItem>
                     ))}
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        style={{ marginTop: '16px' }}
+                        onClick={() => nav("/courier_tracking")} // Replace this with your desired action
+                    >
+                        Track Delivery
+                    </Button>
                 </Box>
             );
         }

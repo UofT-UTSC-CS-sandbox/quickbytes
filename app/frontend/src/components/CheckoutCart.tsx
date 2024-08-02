@@ -56,7 +56,7 @@ const CheckoutCart = ({ order, setOrder, pageRestaurantId }: CheckoutCartProps) 
             setOrder(data.data);
             setShowSuccess(true);
             if (pickupLocation) {
-                nav(`/tracking/${pickupLocation.lng}_${pickupLocation.lat}?courier=false`);
+                nav(`/customer_tracking`);
             }
         }).useMutation();
 
