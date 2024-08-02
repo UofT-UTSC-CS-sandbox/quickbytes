@@ -65,7 +65,7 @@ export async function createUserOrder(req: Request, res: Response) {
     const checkIfOrdering = await checkIfOrderingRef.get();
     if (checkIfOrdering.exists()) {
         // Reject if there is any order IDs being kept under active orders or ordering
-        if (!!checkIfOrdering.activeOrder || !!checkIfOrdering.ordering) {
+        if (!!checkIfOrdering.activeOrder) {
             // Send ambiguous error message
             res.status(404).send({ data: "Cannot create user order." });
             return;
@@ -127,10 +127,8 @@ export async function createUserOrder(req: Request, res: Response) {
         const updates = {
             // Order object with all tracking and order information
             [`orders/${newOrderRef.key}`]: newOrderObject,
-            // Record order under the restaurant for easy querying
-            [`restaurants/${restaurantId}/ordering/${newOrderRef.key}`]: true,
-            // Record order under the user ordering
-            [`user/${userId}/ordering/${restaurantId}`]: newOrderRef.key
+            // Record order under the user for easy querying
+            [`user/${userId}/activeOrder`]: newOrderRef.key
         };
 
         // Perform the database update
@@ -344,21 +342,16 @@ export function getOrderDropOff(req: Request, res: Response) {
 export async function getCustomerInProgressOrder(req: Request, res: Response) {
     const database = admin.database();
     const userId = req.user!.uid;
-    const userOrderLocation = database.ref(`user/${userId}/ordering`);
-    let orderIdSnapshot = undefined;
+
     try {
-        orderIdSnapshot = await userOrderLocation.get();
+        const userOrderLocation = database.ref(`user/${userId}/activeOrder`);
+        const orderIdSnapshot = await userOrderLocation.get();
+
         if (!orderIdSnapshot.exists()) {
-
-            const userActiveLocation = database.ref(`user/${userId}/activeOrder`);
-            orderIdSnapshot = await userActiveLocation.get();
-
-            if (!orderIdSnapshot.exists()) {
-                res.send({ data: null });
-                return;
-            }
+            return res.send({ data: null });
         }
-        const orderId = Object.values(orderIdSnapshot.val()).at(0);
+        
+        const orderId = orderIdSnapshot.val();
         const orderLocation = database.ref(`orders/${orderId}`);
         const orderSnapshot = await orderLocation.get();
 
@@ -374,7 +367,7 @@ export async function getCustomerInProgressOrder(req: Request, res: Response) {
             return;
         }
     } catch (error) {
-        console.log("getCurrentlyEditingOrder error:", error);
+        console.log(`getCustomerInProgressOrder error for user ${userId}:`, error);
         res.status(500).send({ data: null });
     }
 }
@@ -447,28 +440,27 @@ export async function placeOrder(req: Request, res: Response) {
     const { orderId } = req.params;
     const userId = req.user!.uid;
     try {
-        // Find the restaurant id of the order
-        const restaurantIdLocation = database.ref(`orders/${orderId}/restaurantId`);
-        const restaurantIdSnapshot = await restaurantIdLocation.get();
-        if (!restaurantIdSnapshot.exists() || !restaurantIdSnapshot.val()) {
-            res.status(500).send("Internal server error");
-            return;
-        }
-
-        const restaurantId = restaurantIdSnapshot.val();
-        // Remove this order from the list of in-progress (not yet placed) orders under the user and the restaurant.
-        const orderingLocation = database.ref(`user/${userId}/ordering/${restaurantId}`);
-        await orderingLocation.remove();
-        await database.ref(`restaurants/${restaurantId}/ordering/${orderId}`).remove();
-
-        // Add this order as the active order saved under the user and the restaurant
-        const activeOrderLocation = database.ref(`user/${userId}`);
-        await activeOrderLocation.update({ activeOrder: orderId });
-        await database.ref(`restaurants/${restaurantId}/activeOrders/`).update({ [orderId]: true });
-
-        // Get the order information to update tracking
+        // Get the entire order data for validation, and update tracking later
         const orderLocation = database.ref(`orders/${orderId}`);
         const orderSnapshot = await orderLocation.get();
+        if (!orderSnapshot.exists()) {
+            return res.status(404).send({ data: "Order not found" });
+        }
+        const orderInfo = orderSnapshot.val();
+        // Only the customer can place their own order
+        if (orderInfo.userId != userId) {
+            return res.status(404).send({ data: "Order not found" });
+        }
+        const restaurantId = orderInfo.restaurant.restaurantId;
+
+        // Check that the restaurant exists
+        const restaurantIdSnapshot = await database.ref(`orders/${orderId}/restaurantId`).get();
+        if (!restaurantIdSnapshot.exists() || !restaurantIdSnapshot.val()) {
+            return res.status(500).send("Internal server error");
+        }
+
+        // Add this order as the active order saved under the restaurant
+        await database.ref(`restaurants/${restaurantId}/activeOrders/`).update({ [orderId]: true });
 
         if (orderSnapshot.exists()) {
             const orderInfo = orderSnapshot.val();
