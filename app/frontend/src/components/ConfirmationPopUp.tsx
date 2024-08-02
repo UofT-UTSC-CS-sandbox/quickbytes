@@ -27,12 +27,13 @@ const ConfirmationPopup: React.FC<ConfirmationPopupProps> = ({ open, onClose, it
     onClose();
   };
   
-  const { mutate: acceptDelivery, isPending, isError, isSuccess } = deliveryService.acceptDelivery((d) => onSuccess(d.pickupCoordinates)).useMutation();
+  const { mutate: acceptDelivery, isPending, isError, isSuccess, error } = deliveryService.acceptDelivery((d) => onSuccess(d.pickupCoordinates)).useMutation();
 
   const handleConfirm = () => {
     if (currentUser) acceptDelivery({
       orderId: item.id
     });
+    nav('/courier_tracking');
   };
 
   const onSuccess = (d: Coordinates) => {
@@ -42,7 +43,7 @@ const ConfirmationPopup: React.FC<ConfirmationPopupProps> = ({ open, onClose, it
       });
 
     // Close the confirmation popup
-    nav('/tracking/' + String(d.lng) + "_" + String(d.lat) + "?courier=true");
+    nav('/courier_tracking');
   }
 
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string;
