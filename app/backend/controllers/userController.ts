@@ -233,4 +233,3 @@ export async function getCustomerConfirmationStatus(req: Request, res: Response)
     res.status(500).send({ success: false, message: "Internal server error." });
   }
 }
-
