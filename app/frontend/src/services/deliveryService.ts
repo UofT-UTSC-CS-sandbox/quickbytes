@@ -1,18 +1,50 @@
 import OrderStatus from "../model/OrderStatus";
 import { useGetEndpoint, usePostEndpoint } from "./base";
 
+type Restaurant = {
+    location: string;
+    restaurantName: string;
+    restaurantId: number
+}
+
+export type ItemsOrdered = Record<string, {
+    menuItemId: string,
+    optionSelected: string,
+    addOnsSelected?: Record<string, string>,
+    quantity: number
+}>
+
+export type ActiveOrderItem = {
+    courierId: string,
+    courierSplit: number,
+    order: {
+        items: ItemsOrdered,
+        price: number,
+    },
+    tracking: {
+        courierAcceptedTime: false | number,
+        courierDropoffTime: false | number,
+        courierPickupTime: false | number,
+        orderPlacedTime: number,
+        dropOff: { lat: number, lng: number }
+        status: OrderStatus
+    },
+    restaurant: Restaurant,
+    orderId: string
+}
+
 /**
  * Response body for getCourierActiveOrder request
  */
 type GetCourierActiveOrderResponse = {
-    data: string
+    data: ActiveOrderItem
 }
 
 /**
  * Response body for getCourierActiveOrder request
  */
 type GetCustomerActiveOrderResponse = {
-    data: string
+    data: ActiveOrderItem
 }
 
 /**
@@ -56,7 +88,6 @@ type GetDeliveriesResponse = {
  * Request body for the POST request to accept the delivery.
  */
 type AcceptDeliveryRequest = {
-    userId: string,
     orderId: string
 }
 
@@ -92,33 +123,31 @@ type UpdateOrderStatusResponse = {
  */
 export default {
     /**
-     * Get the delivery that is currently being done by a courier
-     * @param courierID ID of courier to query for.
+     * Get the delivery that is currently being done by the logged in user as a courier
      * @returns Service endpoint to get the active delivery ID of the courier.
      */
-    getCourierActiveOrder: (courierID: string) =>
+    getCourierActiveOrder: () =>
         useGetEndpoint<GetCourierActiveOrderResponse>(
             {
-                inputUrl: `deliveries/active?courierID=${courierID}`,
-                useAuth: false
-            },
-            {
-                queryKey: ['courierActiveOrder', courierID],
-            }
-        ),
-    /**
-     * Get the order that is currently being delivered to the customer
-     * @param customerID ID of current user customer to query for.
-     * @returns Service endpoint to get the active order ID of the customer.
-     */
-    getCustomerActiveOrder: (customerID: string) =>
-        useGetEndpoint<GetCustomerActiveOrderResponse>(
-            {
-                inputUrl: `deliveries/activeOrder?customerID=${customerID}`,
+                inputUrl: `deliveries/byMe`,
                 useAuth: true
             },
             {
-                queryKey: ['customerActiveOrder', customerID],
+                queryKey: ['courierActiveOrder'],
+            }
+        ),
+    /**
+     * Get the order that is currently being delivered to the user that is logged in
+     * @returns Service endpoint to get the active order ID of the customer.
+     */
+    getCustomerActiveOrder: () =>
+        useGetEndpoint<GetCustomerActiveOrderResponse>(
+            {
+                inputUrl: `deliveries/toMe`,
+                useAuth: true
+            },
+            {
+                queryKey: ['customerActiveOrder'],
             }
         ),
     /**
@@ -129,7 +158,7 @@ export default {
         useGetEndpoint<GetDeliveriesResponse, unknown>(
             {
                 inputUrl: 'deliveries/ordering',
-                useAuth: false
+                useAuth: true
             },
             {
                 queryKey: ['getDeliveries'],
@@ -142,13 +171,13 @@ export default {
      */
     acceptDelivery: (onSuccess: (data: AcceptDeliveryResponse) => void) =>
         usePostEndpoint<AcceptDeliveryResponse, Error, AcceptDeliveryRequest>(
-          {
-            inputUrl: 'deliveries/accept',
-            useAuth: false,
-          },
-          {
-            onSuccess,
-          }
+            {
+                inputUrl: 'deliveries/accept',
+                useAuth: true,
+            },
+            {
+                onSuccess,
+            }
         ),
     /**
      * Send the request by a user to update an order status.
@@ -157,12 +186,12 @@ export default {
      */
     updateOrderStatus: (onSuccess: (data: UpdateOrderStatusResponse) => void) =>
         usePostEndpoint<UpdateOrderStatusResponse, Error, UpdateOrderStatusRequest>(
-          {
-            inputUrl: 'deliveries/updateOrderStatus',
-            useAuth: false,
-          },
-          {
-            onSuccess,
-          }
+            {
+                inputUrl: 'deliveries/updateOrderStatus',
+                useAuth: true,
+            },
+            {
+                onSuccess,
+            }
         )
 }

@@ -8,6 +8,7 @@ import ViewIcon from '@mui/icons-material/Visibility';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { getAuth } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
+import PageHead from '../components/PageHead';
 
 const WelcomePage: React.FC = () => {
     const userName = getAuth().currentUser?.email?.split("@")[0];
@@ -15,6 +16,7 @@ const WelcomePage: React.FC = () => {
     return (
     <>
         <NavBar />
+        <PageHead title="Welcome" description="View your deliveries and orders dashboard" />
         <div style={{ height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center', padding: '16px' }}>
             <div>
             <Typography variant="h1" className="welcome-text" style={{ fontSize: '4rem', marginBottom: '24px' }}>

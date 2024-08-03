@@ -1,32 +1,15 @@
 import React from 'react';
-import { CircularProgress, List, Typography, ListItem, Box, Button } from '@mui/material';
-import orderService from '../services/orderService';
-import { useState, useEffect } from 'react';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { CircularProgress, Typography, ListItem, Box, Button } from '@mui/material';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavBar from './Navbar';
 import OrderStatus from '../model/OrderStatus';
 import { convertOrderStatusToString } from '../model/OrderStatus';
+import deliveryService from '../services/deliveryService';
 
 const CustomerOrders: React.FC<{ isDrawer?: boolean, onClose?: () => void }> = ({ isDrawer = false, onClose }) => {
-    const [userId, setUserId] = useState('');
     const navigate = useNavigate();
-
-    useEffect(() => {
-        const auth = getAuth();
-
-        // Get current user uid from Firebase
-        const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
-            if (user) {
-                setUserId(user.uid);
-            } else {
-                console.log('No user is signed in.');
-            }
-        });
-        return () => unsubscribeAuth();
-    }, []);
-
-    const { data: orders, isLoading, isError } = orderService.getUserActiveOrders(userId).useQuery();
+    const { data: orders, isLoading, isError } = deliveryService.getCustomerActiveOrder().useQuery();
 
     useEffect(() => {
         if (orders) {
@@ -38,6 +21,8 @@ const CustomerOrders: React.FC<{ isDrawer?: boolean, onClose?: () => void }> = (
         const date = new Date(dateTime);
         return date.toLocaleString();
     };
+
+    const nav = useNavigate();
 
     const renderList = () => {
         if (isLoading) {
@@ -51,50 +36,48 @@ const CustomerOrders: React.FC<{ isDrawer?: boolean, onClose?: () => void }> = (
             return (
                 <Typography align="center">Encountered error getting orders. Please try again.</Typography>
             );
-        } else if (orders && orders.data) {
-            const orderItems = Array.isArray(orders.data) ? orders.data : [orders.data];
+        } else if (!orders || !orders.data) {
             return (
-                <List>
-                    {orderItems.map((order) => (
-                        <Box
-                            key={order.orderId}
-                            display="flex"
-                            flexDirection="column"
-                            alignItems="flex-start"
-                            justifyContent="center"
-                            mb={2}
-                            p={2}
-                            border={1}
-                            borderColor="grey.300"
-                            borderRadius={4}
-                        >
-                            <Typography variant="body1">
-                                <span style={{ fontWeight: 'bold' }}>Order Placed:</span> {formatDateTime(order.tracking.orderPlacedTime)}
-                            </Typography>
-                            <Typography variant="body2">
-                                <span style={{ fontWeight: 'bold' }}>Status:</span> {convertOrderStatusToString(order.tracking?.status as OrderStatus)}
-                            </Typography>
-                            <Typography variant="body2">
-                                <span style={{ fontWeight: 'bold' }}>Restaurant:</span> {order.restaurant.restaurantName ?? 'N/A'}
-                            </Typography>
-                            <List>
-                                {order.order?.items && Object.keys(order.order.items).map((itemId) => (
-                                    <ListItem key={itemId} style={{ paddingLeft: 0 }}>
-                                        <Typography variant="body2">
-                                            <span style={{ fontWeight: 'bold' }}>Item:</span> {`${order.order.items[itemId].menuItemId}, Quantity: ${order.order.items[itemId].quantity}`}
-                                        </Typography>
-                                    </ListItem>
-                                ))}
-                            </List>
-                        </Box>
-                    ))}
-                </List>
+                <Typography align="center">There are no active orders.</Typography>
             );
         } else {
+            const order = orders.data;
             return (
-                <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center">
-                    <CircularProgress />
-                    <Typography>Retrieving orders data ...</Typography>
+                <Box
+                    display="flex"
+                    flexDirection="column"
+                    alignItems="flex-start"
+                    justifyContent="center"
+                    mb={2}
+                    p={2}
+                    border={1}
+                    borderColor="grey.300"
+                    borderRadius={4}
+                >
+                    <Typography variant="body1">
+                        <span style={{ fontWeight: 'bold' }}>Order Placed:</span> {formatDateTime(order.tracking.orderPlacedTime)}
+                    </Typography>
+                    <Typography variant="body2">
+                        <span style={{ fontWeight: 'bold' }}>Status:</span> {convertOrderStatusToString(order.tracking?.status as OrderStatus)}
+                    </Typography>
+                    <Typography variant="body2">
+                        <span style={{ fontWeight: 'bold' }}>Restaurant:</span> {order.restaurant.restaurantName ?? 'N/A'}
+                    </Typography>
+                    {order.order?.items && Object.keys(order.order.items).map((itemId) => (
+                        <ListItem key={itemId} style={{ paddingLeft: 0 }}>
+                            <Typography variant="body2">
+                                <span style={{ fontWeight: 'bold' }}>Item:</span> {`${order.order.items[itemId].menuItemId}, Quantity: ${order.order.items[itemId].quantity}`}
+                            </Typography>
+                        </ListItem>
+                    ))}
+                <Button
+                    variant="contained"
+                    color="primary"
+                    style={{ marginTop: '16px' }}
+                    onClick={() => nav("/customer_tracking")} // Replace this with your desired action
+                >
+                    Track Order
+                </Button>
                 </Box>
             );
         }

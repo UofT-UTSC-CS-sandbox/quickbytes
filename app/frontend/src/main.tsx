@@ -4,7 +4,7 @@ import { BrowserRouter, Routes, Route, useParams } from 'react-router-dom';
 import SignUp from './pages/SignUp';
 import Login from './pages/Login';
 import UserPage from './pages/UserPage';
-import OrderTracking from './pages/OrderTracking.tsx';
+import OrderTracking from './pages/CustomerOrderTracking.tsx';
 import Settings from './pages/Settings.tsx';
 import Menu from './pages/Menu.tsx';
 import VerificationInstructions from './pages/verificationInstructions';
@@ -15,17 +15,14 @@ import PrivateRoute from './privateRoute';
 import './index.css'
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import DirectionsMap2 from './components/DirectionsMap2.tsx'
-
-import orderService from './services/orderService.ts';
-import restaurantService from './services/restaurantService.ts';
-import DirectionsMap from './components/DirectionsMap.tsx';
 
 import WelcomePage from './pages/WelcomePage.tsx';
 import Deliveries from './pages/Deliveries.tsx';
 import StaffOrders from './pages/StaffOrders.tsx';
 import AllRestaurants from './pages/AllRestaurants.tsx';
- 
+import CustomerOrderTracking from './pages/CustomerOrderTracking.tsx';
+import CourierOrderTracking from './pages/CourierOrderTracking.tsx';
+
 
 const queryClient = new QueryClient();
 const theme = createTheme({
@@ -55,7 +52,6 @@ const theme = createTheme({
 
 //
 
-
 /*
 const RestaurantTracking = () => {
   const { coord } = useParams();
@@ -67,22 +63,24 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <ThemeProvider theme={theme}>
-      <AuthProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<PrivateRoute> <WelcomePage /> </PrivateRoute>}/>
-            <Route path="/user-page" element={<PrivateRoute> <WelcomePage /> </PrivateRoute>} />
-            <Route path="/staff/:restaurantId" element={<PrivateRoute> <StaffOrders /> </PrivateRoute>} />
-            <Route path="/deliveries" element={<PrivateRoute> <Deliveries /> </PrivateRoute>} />
-            <Route path="/restaurants" element={<PrivateRoute> <AllRestaurants /> </PrivateRoute>} />
-            <Route path="/tracking" element={<PrivateRoute><OrderTracking /></PrivateRoute>} />
-            <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
-            <Route path="/sign-up" element={<SignUp />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/user-pagee" element={<PrivateRoute><UserPage /></PrivateRoute>} />
-            <Route path="/verification-instructions" element={<VerificationInstructions />} />
-          </Routes>
-        </BrowserRouter>
+        <AuthProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<PrivateRoute> <WelcomePage /> </PrivateRoute>} />
+              <Route path="/user-page" element={<PrivateRoute> <WelcomePage /> </PrivateRoute>} />
+              <Route path="/staff/:restaurantId" element={<PrivateRoute> <StaffOrders /> </PrivateRoute>} />
+              <Route path="/deliveries" element={<PrivateRoute> <Deliveries /> </PrivateRoute>} />
+              <Route path="/restaurants" element={<PrivateRoute> <AllRestaurants /> </PrivateRoute>} />
+              <Route path="/restaurant/:id" element={<PrivateRoute> <Menu /> </PrivateRoute>} />
+              <Route path="/customer_tracking" element={<PrivateRoute><CustomerOrderTracking /></PrivateRoute>} />
+              <Route path="/courier_tracking" element={<PrivateRoute><CourierOrderTracking /></PrivateRoute>} />
+              <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
+              <Route path="/sign-up" element={<SignUp />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/user-pagee" element={<PrivateRoute><UserPage /></PrivateRoute>} />
+              <Route path="/verification-instructions" element={<VerificationInstructions />} />
+            </Routes>
+          </BrowserRouter>
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>

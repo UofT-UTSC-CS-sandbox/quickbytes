@@ -5,45 +5,83 @@ import { OrderStatus } from '../schema/Order';
 // Get the only in-progress delivery for the courier
 export async function getActiveDelivery(req: Request, res: Response) {
   const database = admin.database();
-  const userId = req.query.courierID as string;
-  const userOrderRef = database.ref(`user/${userId}/activeDelivery`);
+  const userId = req.user!.uid;
 
   try {
-      const snapshot = await userOrderRef.get();
-      if (snapshot.exists()) {
-          res.status(200).send({ data: snapshot.val() });
-      } else {
-          res.status(404).send({ data: "No active order found" });
+    // Reference to the user's active delivery
+    const userDeliveriesRef = database.ref(`user/${userId}/activeDelivery`);
+
+    // Fetch the user's active delivery
+    const snapshot = await userDeliveriesRef.get();
+
+    if (snapshot.exists()) {
+      const deliveryId = snapshot.val();
+
+      if (typeof deliveryId !== 'string') {
+        console.error('Invalid activeDelivery value:', deliveryId);
+        return res.status(500).json({ message: 'Invalid active delivery format' });
       }
+
+      // Reference to the specific delivery
+      const deliveryRef = database.ref(`orders/${deliveryId}`);
+
+      // Fetch the delivery data
+      const deliverySnapshot = await deliveryRef.get();
+
+      if (deliverySnapshot.exists()) {
+        if (deliverySnapshot.val().courierId !== userId) {
+          return res.status(404).send({ data: "Order not found" });
+        }
+        const delivery = deliverySnapshot.val();
+        res.status(200).json({ data: delivery });
+      } else {
+        res.status(404).json({ message: 'Delivery not found' });
+      }
+    } else {
+      res.status(200).send({ data: null }); // Send null to indicate no active delivery
+    }
   } catch (error) {
-      console.error("Error retrieving data:", error);
-      res.status(500).send("Internal server error");
+    console.error('Error retrieving active deliveries:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 }
 
-export async function getAvailableDeliveries(req: Request, res: Response) {
-    const database = admin.database();
-    const ordersRef = database.ref('orders');
-  
-    try {
-      const snapshot = await ordersRef.orderByChild('tracking/status').equalTo(OrderStatus.ORDERED).once('value');
-  
-      if (snapshot.exists()) {
-        const orders = snapshot.val();
-        res.status(200).send({ data: orders });
-      } else {
-        res.status(404).send({ data: `No orders found with status ${OrderStatus.ORDERED}` });
+export async function getAvailableDeliveries(req: Request, res: Response): Promise<void> {
+  const database = admin.database();
+  const ordersRef = database.ref('orders');
+
+  try {
+    const snapshot = await ordersRef.orderByChild('tracking/status').equalTo(OrderStatus.ORDERED).get();
+
+    if (snapshot.exists()) {
+      const ordersData = snapshot.val() as Record<string, any>;
+      const filteredOrders: Record<string, any> = {};
+
+      // A delivery is not available for a user if they
+      // are the one that placed it
+      for (const [key, order] of Object.entries(ordersData)) {
+        if (order.userId !== req.user?.uid) {
+          filteredOrders[key] = order;
+        }
       }
-    } catch (error) {
-      console.error("Error retrieving data:", error);
-      res.status(500).send("Internal server error");
+
+      res.status(200).json({ data: filteredOrders });
+    } else {
+      res.status(404).json({ data: `No orders found with status ${OrderStatus.ORDERED}` });
     }
+  } catch (error) {
+    console.error("Error retrieving data:", error);
+    res.status(500).send("Internal server error");
+  }
 }
 
-export async function acceptDelivery(req: Request, res: Response) {
-  const { orderId, userId } = req.body; 
-  if (!userId || !orderId) {
-    return res.status(400).send({ error: 'userId and orderId are required fields' });
+export async function acceptDelivery(req: Request, res: Response): Promise<void> {
+  const userId = req.user!.uid;
+  const { orderId } = req.body;
+
+  if (!orderId) {
+    res.status(400).send({ error: 'orderId is required field' });
+    return;
   }
 
   const database = admin.database();
@@ -51,22 +89,37 @@ export async function acceptDelivery(req: Request, res: Response) {
   const orderRef = database.ref(`orders/${orderId}`);
 
   try {
+    const orderSnapshot = await orderRef.get();
+    const orderData = orderSnapshot.val();
+
+    // Check if the order exists and retrieve the userId associated with the order
+    if (!orderData) {
+      res.status(404).send({ error: 'Order not found' });
+      return;
+    }
+
+    const orderUserId = orderData.userId;
+
+    // Check if the user is trying to accept their own delivery
+    if (orderUserId === userId) {
+      res.status(403).send({ error: 'You cannot accept your own delivery' });
+      return;
+    }
+
+    // Update user's active delivery
     await userRef.update({ activeDelivery: orderId });
 
-    await orderRef.update({ courierId: userId });
 
     await orderRef.update({
       courierId: userId,
       'tracking/status': OrderStatus.ACCEPTED
     });
 
-    const orderSnapshot = await orderRef.once('value');
-    const orderData = orderSnapshot.val();
     const pickupCoordinates = orderData?.tracking?.dropOff;
 
-    if (!pickupCoordinates || typeof pickupCoordinates.lat == "undefined" 
-      || typeof pickupCoordinates.lng == "undefined") {
-      return res.status(404).send({ error: 'Pickup coordinates not found' });
+    if (!pickupCoordinates || typeof pickupCoordinates.lat === "undefined" || typeof pickupCoordinates.lng === "undefined") {
+      res.status(404).send({ error: 'Pickup coordinates not found' });
+      return;
     }
 
     res.status(200).send({
@@ -84,29 +137,56 @@ export async function acceptDelivery(req: Request, res: Response) {
 
 // Get the active order for the courier
 export async function getActiveOrder(req: Request, res: Response) {
-    const database = admin.database();
-    const userId = req.query.customerID as string;
-    const userOrderRef = database.ref(`user/${userId}/activeOrder`);
+  const database = admin.database();
+  const userId = req.user!.uid;
 
-    try {
-        const snapshot = await userOrderRef.get();
-        if (snapshot.exists()) {
-            res.status(200).send({ data: snapshot.val() });
-        } else {
-            res.status(404).send({ data: "No active order found" });
+  try {
+    // Reference to the user's active order
+    const userOrdersRef = database.ref(`user/${userId}/activeOrder`);
+
+    // Fetch the user's active order
+    const snapshot = await userOrdersRef.get();
+
+    if (snapshot.exists()) {
+      const orderId = snapshot.val();
+
+      if (typeof orderId !== 'string') {
+        console.error('Invalid activeOrder value:', orderId);
+        return res.status(500).json({ message: 'Invalid active order format' });
+      }
+
+      // Reference to the specific order
+      const orderRef = database.ref(`orders/${orderId}`);
+
+      // Fetch the order data
+      const orderSnapshot = await orderRef.get();
+
+      if (orderSnapshot.exists()) {
+        if (orderSnapshot.val().userId !== userId) {
+          return res.status(404).send({ data: "Order not found" });
         }
-    } catch (error) {
-        console.error("Error retrieving data:", error);
-        res.status(500).send("Internal server error");
+        const order = orderSnapshot.val();
+        order.orderId = orderId;
+        
+        res.status(200).json({ data: order });
+      } else {
+        res.status(404).json({ message: 'Order not found' });
+      }
+    } else {
+      res.status(200).send({ data: null }); // Send null to indicate no active order
     }
+  } catch (error) {
+    console.error(`Error retrieving active order for user ${userId} :`, error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
 }
 
 export async function updateOrderStatus(req: Request, res: Response) {
-  const { orderId, status, courierRequest } = req.body; 
+  const { orderId, status, courierRequest } = req.body;
   const isValidOrderStatus = (status: any): status is OrderStatus => {
     return Object.values(OrderStatus).includes(status);
   };
-  
+
   if (!orderId || !status) {
     return res.status(400).send({ error: 'orderId and status are required fields' });
   }
@@ -119,9 +199,19 @@ export async function updateOrderStatus(req: Request, res: Response) {
 
 
   try {
+    const orderSnapshot = await orderRef.get();
+    const orderData = orderSnapshot.val();
+
+    // Ensure that the issuer of this request has permission to modify this request
+    // Only the courier or customer of this request can make changes
+    const userId = req.user?.uid; //TODO extract this from auth
+    if ((courierRequest && orderData.courierId !== userId) || // The request was made by the courier
+      // but the courier is not delivering this order
+      (!courierRequest && orderData.userId !== userId)) // The request was made by the customer
+      // but the customer did not place this order
+      return res.status(404).send({ data: "Order not found" });
+
     if (status === OrderStatus.CANCELLED) {
-      const orderSnapshot = await orderRef.once('value');
-      const orderData = orderSnapshot.val();
       if (orderData.tracking.status === OrderStatus.EN_ROUTE) {
         return res.status(400).send({ error: 'Cannot cancel order that has been picked up' });
       }
@@ -176,21 +266,24 @@ export const getDeliveryStatus = async (req: Request, res: Response) => {
   const orderId = req.params.id;
   const database = admin.database();
   try {
-    const snapshot = await database.ref(`orders/${orderId}`).once('value');
+    const snapshot = await database.ref(`orders/${orderId}`).get();
     if (snapshot.exists()) {
       const deliveryData = snapshot.val();
       const courierId = deliveryData.courierId;
-      const courierSnapshot = await database.ref(`user/${courierId}/currentLocation`).once('value');
+
+      const userId = req.user?.uid; // TOOD extract this from auth
+      // Verify that the issuer of this request is in some way associated with the order
+      if (deliveryData.courierId !== userId && deliveryData.userId !== userId)
+        return res.status(404).send({ data: "Order not found" });
+
+      const courierSnapshot = await database.ref(`user/${courierId}/currentLocation`).get();
       const currentLocation = courierSnapshot.exists() ? courierSnapshot.val() : null;
-      console.log("here")
 
       //restaurant location
       const restaurantId = deliveryData.restaurant.restaurantId;
-      const restaurantSnapshot = await database.ref(`restaurants/${restaurantId}`).once('value');
+      const restaurantSnapshot = await database.ref(`restaurants/${restaurantId}`).get();
       const restaurantData = restaurantSnapshot.val();
       const pickUp = restaurantData.information.location;
-
-      console.log("here2",  restaurantData.information.location)
 
       res.status(200).json({
         ...deliveryData,
@@ -202,7 +295,6 @@ export const getDeliveryStatus = async (req: Request, res: Response) => {
       res.status(404).json({ message: 'Order not found' });
     }
   } catch (error) {
-    console.log("fail11111")
     res.status(500).json({ message: 'Internal server error', error });
   }
 };
@@ -224,17 +316,28 @@ export const updateDeliveryLocation = async (req: Request, res: Response) => {
 
 export const getCurrentLocationFromOrder = async (req: Request, res: Response) => {
   const orderId = req.params.orderId;
-  console.log("entered getCurrentLocation")
 
   try {
     // Fetch user data from Firebase Realtime Database
-    const snapshot = await admin.database().ref(`orders/${orderId}/courierId`).once('value');
-    const courierId = snapshot.val();
-    console.log(courierId, "the id is showing atleast")
+    console.log("this is the orderid: ", orderId)
+    const orderDataSnap = await admin.database().ref(`orders/${orderId}`).get();
+    const orderData = orderDataSnap.exists() ? orderDataSnap.val() : null;
 
-    const snapshot2 = await admin.database().ref(`user/${courierId}/currentLocation`).once('value');
+    
+    const courierId = orderData.courierId;
+    console.log("this is the orderdata:", orderData)
+    console.log("this is the courierid: ", courierId)
+    const userId = req.user?.uid; // TODO extract this from auth
+    // Verify that the issuer of this request is in some way associated with the order
+    if (courierId !== userId && orderData.userId !== userId){
+      console.log("the order is not found")
+      return res.status(404).send({ data: "Order not found" });
+    }
+
+
+    const snapshot2 = await admin.database().ref(`user/${courierId}/currentLocation`).get();
     const location = snapshot2.val();
-    console.log(location, "the location is showing atleast")
+    console.log("this is the location: ", location)
 
     if (location) {
       res.status(200).json({ location });
@@ -253,23 +356,26 @@ export const getOrderRestaurantLocation = async (req: Request, res: Response) =>
 
   try {
     // Fetch the order
-    const orderSnapshot = await database.ref(`orders/${orderId}`).once('value');
+    const orderSnapshot = await database.ref(`orders/${orderId}`).get();
 
     if (orderSnapshot.exists()) {
       const orderData = orderSnapshot.val();
+      // Verify that the issuer of this request is in some way associated with the order
+      const userId = req.user?.uid; // TODO extract this from auth
+      if (orderData.courierId !== userId && orderData.userId !== userId)
+        return res.status(404).send({ data: "Order not found" });
+
       const restaurantId = orderData.restaurant.restaurantId;
-      console.log("entered")
 
       // Fetch the restaurant information
-      const restaurantSnapshot = await database.ref(`restaurants/${restaurantId}`).once('value');
-      console.log("the restaurant exists?",restaurantSnapshot.exists())
+      const restaurantSnapshot = await database.ref(`restaurants/${restaurantId}`).get();
 
       if (restaurantSnapshot.exists()) {
         const restaurantData = restaurantSnapshot.val();
         const restaurantLocation = {
           restaurantId,
           restaurantName: restaurantData.information.name,
-          location: restaurantData.information.location,
+          location: { lat: restaurantData.information.coordinateX, lng: restaurantData.information.coordinateY}
         };
         res.status(200).json({ restaurant: restaurantLocation });
       } else {
@@ -290,17 +396,20 @@ export function getOrderStatus(req: Request, res: Response) {
   const { orderId } = req.params;
 
   admin.database().ref(`orders/${orderId}`).get()
-      .then((snapshot: any) => {
-          if (snapshot.exists()) {
-              const value = snapshot.val();
-              const items = value.order.items ?? {};
-              res.send({ status: value.tracking.status } );
-          } else {
-              res.status(404).send({ data: "Something went wrong" });
-          }
-      })
-      .catch((error: Error) => {
-          console.error("Error retrieving data:", error);
-          res.status(500).send("Internal server error");
-      });
+    .then((snapshot: any) => {
+      if (snapshot.exists()) {
+        const value = snapshot.val();
+        const userId = req.user?.uid; // TODO extract this from auth
+        if (value.courierId !== userId && value.userId !== userId)
+          return res.status(404).send({ data: "Order not found" });
+        const items = value.order.items ?? {};
+        res.send({ status: value.tracking.status });
+      } else {
+        res.status(404).send({ data: "Something went wrong" });
+      }
+    })
+    .catch((error: Error) => {
+      console.error("Error retrieving data:", error);
+      res.status(500).send("Internal server error");
+    });
 }

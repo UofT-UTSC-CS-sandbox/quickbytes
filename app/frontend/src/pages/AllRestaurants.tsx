@@ -4,7 +4,9 @@ import { useNavigate } from "react-router-dom";
 import RestaurantItem, { RestaurantInfo } from "../components/RestaurantItem";
 import restaurantService from "../services/restaurantService";
 import { SearchRounded } from "@mui/icons-material";
+import { AppBar, CssBaseline, Box } from '@mui/material';
 import { useEffect, useMemo, useState } from "react";
+import PageHead from "../components/PageHead";
 
 const AllRestaurants = () => {
 
@@ -31,7 +33,7 @@ const AllRestaurants = () => {
             return []
         }
         return data.data.filter((restaurant) => {
-            const searchFilter = !search || restaurant.name.toLowerCase().includes(search.toLowerCase()) || 
+            const searchFilter = !search || restaurant.name.toLowerCase().includes(search.toLowerCase()) ||
                 restaurant.address.toLowerCase().includes(search.toLowerCase()) ||
                 restaurant.description.toLowerCase().includes(search.toLowerCase());
             const locationFilter = !selectedLocations.length || selectedLocations.includes(restaurant.address);
@@ -41,11 +43,17 @@ const AllRestaurants = () => {
 
     const wrapContent = (content: JSX.Element) => {
         return <>
-            <NavBar />
-            <Container>
-                <h1 style={{ textAlign: 'left' }}>All Restaurants</h1>
-                {content}
-            </Container>
+            <PageHead title="Restaurants" description="View all on-campus restaurants available to order from" />
+            <Box sx={{ display: 'flex' }}>
+                <CssBaseline />
+                <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+                    <NavBar />
+                </AppBar>
+                <Container sx={{ padding: '70px' }}>
+                    <h1 style={{ textAlign: 'left' }}>All Restaurants</h1>
+                    {content}
+                </Container>
+            </Box>
         </>
     }
 
@@ -65,18 +73,18 @@ const AllRestaurants = () => {
         <Stack>
             <Grid container spacing={1}>
                 <Grid item xs={12} md={6} >
-                <FormControl variant="outlined" sx={{ width: '100%' }}>
-                    <OutlinedInput
-                        id="input-with-icon-adornment"
-                        startAdornment={
-                            <InputAdornment position="start">
-                            <SearchRounded />
-                            </InputAdornment>
-                        }
-                        placeholder="Search restaurants"
-                        onChange={(event) => setSearch(event.target.value)}
-                    />
-                </FormControl>
+                    <FormControl variant="outlined" sx={{ width: '100%' }}>
+                        <OutlinedInput
+                            id="input-with-icon-adornment"
+                            startAdornment={
+                                <InputAdornment position="start">
+                                    <SearchRounded />
+                                </InputAdornment>
+                            }
+                            placeholder="Search restaurants"
+                            onChange={(event) => setSearch(event.target.value)}
+                        />
+                    </FormControl>
                 </Grid>
 
                 <Grid item xs={12} md={6} >

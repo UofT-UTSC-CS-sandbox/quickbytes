@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Box, Drawer, AppBar, CssBaseline, Toolbar, List, Divider, ListItem, ListItemText, FormGroup, FormControlLabel, Switch } from '@mui/material';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { Box, Drawer, AppBar, CssBaseline, Typography, Toolbar, List, Divider, ListItem, ListItemText, FormGroup, FormControlLabel, Switch } from '@mui/material';
 import NavBar from '../components/Navbar';
 import settingService from '../services/settingService';
+import { getAuth } from 'firebase/auth';
 import { NOTIFICATION_LABELS, NotificationType, RoleType } from '../model/NotificationTypes';
+import PageHead from '../components/PageHead';
 
 interface TabPanelProps {
     children?: React.ReactNode;
@@ -30,33 +31,19 @@ function CustomTabPanel(props: TabPanelProps) {
 const drawerWidth = 240;
 
 function Settings() {
-    const [userID, setUserId] = useState('');
     const [value, setValue] = useState(0);
     const [notificationsEnabled, setNotificationsEnabled] = useState<NotificationType[]>([]);
     const [rolesEnabled, setRolesEnabled] = useState<RoleType[]>([]);
-
-    useEffect(() => {
-        const auth = getAuth();
-
-        // get current user uid from firebase
-        const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
-            if (user) {
-                setUserId(user.uid);
-            } else {
-                console.log('No user is signed in.');
-            }
-        });
-        return () => unsubscribeAuth();
-    }, []);
+    const userName = getAuth().currentUser?.email?.split("@")[0];
 
     const handleChange = (event: React.SyntheticEvent, newValue: number) => {
         setValue(newValue);
     };
 
-    const { mutate: updateNotification } = settingService.updateNotification(userID, () => console.log("Successfully updated notification")).useMutation();
-    const { mutate: updateRole } = settingService.updateRole(userID, () => console.log("Successfully updated role")).useMutation();
-    const { data: data } = settingService.getNotificationSettings(userID).useQuery();
-    const { data: roleData } = settingService.getRoleSettings(userID).useQuery();
+    const { mutate: updateNotification } = settingService.updateNotification(() => console.log("Successfully updated notification")).useMutation();
+    const { mutate: updateRole } = settingService.updateRole(() => console.log("Successfully updated role")).useMutation();
+    const { data: data } = settingService.getNotificationSettings().useQuery();
+    const { data: roleData } = settingService.getRoleSettings().useQuery();
 
     useEffect(() => {
         if (data) {
@@ -94,6 +81,7 @@ function Settings() {
 
     return (
         <Box sx={{ display: 'flex' }}>
+            <PageHead title="Settings" description="Manage your account and notification settings" />
             <CssBaseline />
             <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
                 <NavBar />
@@ -103,19 +91,19 @@ function Settings() {
                 sx={{
                     width: drawerWidth,
                     flexShrink: 0,
-                    [`& .MuiDrawer-paper`]: { width: drawerWidth, boxSizing: 'border-box' },
+                    [`& .MuiDrawer-paper`]: { width: drawerWidth, boxSizing: 'border-box', padding: 2 },
                 }}
             >
                 <Toolbar />
                 <Box sx={{ overflow: 'auto' }}>
                     <List>
-                        <ListItem button key={0} onClick={(event) => handleChange(event, 0)}>
+                        <ListItem button key={0} selected={value === 0} onClick={(event) => handleChange(event, 0)}>
                             <ListItemText primary="Profile" />
                         </ListItem>
-                        <ListItem button key={1} onClick={(event) => handleChange(event, 1)}>
+                        <ListItem button key={1} selected={value === 1} onClick={(event) => handleChange(event, 1)}>
                             <ListItemText primary="Notification Settings" />
                         </ListItem>
-                        <ListItem button key={2} onClick={(event) => handleChange(event, 2)}>
+                        <ListItem button key={2} selected={value === 2} onClick={(event) => handleChange(event, 2)}>
                             <ListItemText primary="Orders" />
                         </ListItem>
                     </List>
@@ -126,7 +114,12 @@ function Settings() {
                 <Toolbar />
                 <CustomTabPanel value={value} index={0}>
                     <div>
-                        Profile
+                        <Typography variant="h4" gutterBottom>
+                            Profile
+                        </Typography>
+                        <Typography variant="h6" sx={{ color: 'rgba(0, 114, 147, 1)' }} gutterBottom>
+                            {userName}
+                        </Typography>
                         <FormGroup>
                             <FormControlLabel
                                 control={<Switch checked={rolesEnabled.includes(RoleType.CUSTOMER_ROLE)} onChange={(e) => handleRoleChange(e, RoleType.CUSTOMER_ROLE)} />}
@@ -141,11 +134,14 @@ function Settings() {
                 </CustomTabPanel>
                 <CustomTabPanel value={value} index={1}>
                     <div>
-                        Notifications
+                        <Typography variant="h4" gutterBottom>
+                            Notifications
+                        </Typography>
                         <FormGroup>
                             {
                                 Object.values(NotificationType).map((type) => (
                                     <FormControlLabel
+                                        key={type}
                                         control={<Switch checked={notificationsEnabled.includes(type)} onChange={(e) => handleNotificationChange(e, type)} />}
                                         label={NOTIFICATION_LABELS[type]}
                                     />
@@ -156,7 +152,9 @@ function Settings() {
                 </CustomTabPanel>
                 <CustomTabPanel value={value} index={2}>
                     <div>
-                        Orders
+                        <Typography variant="h4" gutterBottom>
+                            Orders
+                        </Typography>
                     </div>
                 </CustomTabPanel>
             </Box>

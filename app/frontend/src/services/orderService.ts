@@ -93,20 +93,6 @@ export type ActiveOrderResponse = {
 }
 
 /**
- * The response body for getUserActiveOrders
- */
-export type ActiveOrdersResponse = {
-    data: ActiveOrderItem[]
-}
-
-/**
- * The response body for getUserActiveOrders
- */
-export type ActiveDeliveryResponse = {
-    data: ActiveOrderItem[]
-}
-
-/**
  * Represents a menu item in an order returned in the 
  * getUserActiveOrders response body.
  */
@@ -154,7 +140,7 @@ export default {
         usePostEndpoint<CreateOrderResponse, Error, CreateOrderRequest>(
             {
                 inputUrl: `restaurants/${restaurantId}/order`,
-                useAuth: false,
+                useAuth: true,
             },
             {
                 mutationKey: ['createOrder', restaurantId],
@@ -190,7 +176,7 @@ export default {
         useDeleteEndpoint<ItemDeleteResponse, Error, { id: string }>(
             {
                 inputUrl: ({ id }) => `restaurants/order/${orderId}/items/${id}`,
-                useAuth: false
+                useAuth: true
             },
             {
                 mutationKey: ['deleteItem', orderId],
@@ -211,7 +197,7 @@ export default {
         usePostEndpoint<SetPickUpLocationResponse, Error, SetPickupLocationRequest>(
             {
                 inputUrl: `restaurants/order/${orderId}/pickup-location`,
-                useAuth: false
+                useAuth: true
             },
             {
                 mutationKey: ['setPickupLocation', orderId],
@@ -228,66 +214,28 @@ export default {
         usePostEndpoint<PlaceOrderResponse>(
             {
                 inputUrl: `restaurants/order/${orderId}/place`,
-                useAuth: false
+                useAuth: true
             },
             {
                 mutationKey: ['placeOrder', orderId],
                 onSuccess
             }
         ),
-    /**
-     * Get the order that is in-progress and has not been placed, which
-     * belongs to the current user at the given restaurant
-     * @param restaurantId The ID of the restaurant to check for in-progress orders.
-     * @returns Service endpoint to get the current non-placed order for the user.
-     */
-    getClientActiveOrder: (restaurantId: string | undefined) =>
-        useGetEndpoint<GetClientActiveOrderResponse>(
-            {
-                inputUrl: `restaurants/${restaurantId}/order`,
-                useAuth: false,
-            },
-            {
-                queryKey: ['getClientActiveOrder', restaurantId],
-                enabled: !!restaurantId,
-            }
-        ),
 
     /**
-    * Get the array of active orders corresponding to the particular user.
-    * @param userId The ID of the user to get orders for.
-    * @returns Service endpoint to get the orders for the user.
-    */
-
-    getClientActiveOrders: (userId: string) =>
-        useGetEndpoint<ActiveOrderResponse>(
-            {
-                inputUrl: `user/${userId}/orders`,
-                useAuth: false,
-            },
-            {
-                queryKey: ['getUserOrders', userId],
-                enabled: !!userId,
-            }
-        ),
-
-
-    /**
-     * Get the array of active orders corresponding to the particular user.
+     * Get the array of active orders corresponding to the logged in user.
      * Also assumes that the user has multiple orders.
-     * @param userId The ID of the user to get orders for.
      * @returns Service endpoint to get the orders for the user.
      */
 
-    getClientActiveOrders2: (userId: string) => 
+    getClientActiveOrders2: () =>
         useGetEndpoint<ActiveOrderResponse>(
             {
-                inputUrl: `user/${userId}/orders2`,
-                useAuth: false,
+                inputUrl: `user/orders2`,
+                useAuth: true,
             },
             {
-                 queryKey: ['getUserOrders', userId],
-                enabled: !!userId,
+                queryKey: ['getUserOrders'],
             }
         ),
     /**
@@ -300,45 +248,10 @@ export default {
         useGetEndpoint<GetClientActiveOrderResponse>(
             {
                 inputUrl: `restaurants/my-order`,
-                useAuth: false,
+                useAuth: true,
             },
             {
                 queryKey: ['getSingleClientActiveOrder'],
             }
-        ),
-
-    /**
-    * Get the array of active orders corresponding to the particular user.
-    * @param userId The ID of the user to get orders for.
-    * @returns Service endpoint to get the orders for the user.
-    */
-    getUserActiveOrders: (userId: string) =>
-        useGetEndpoint<ActiveOrdersResponse>(
-            {
-                inputUrl: `user/${userId}/activeOrders`,
-                useAuth: false,
-            },
-            {
-                queryKey: ['getUserActiveOrders', userId],
-                enabled: !!userId,
-            }
-        ),
-
-    /**
-    * Get the array of active orders corresponding to the particular user.
-    * @param userId The ID of the user to get orders for.
-    * @returns Service endpoint to get the orders for the user.
-    */
-
-    getUserActiveDelivery: (userId: string) =>
-        useGetEndpoint<ActiveDeliveryResponse>(
-            {
-                inputUrl: `user/${userId}/activeDelivery`,
-                useAuth: false,
-            },
-            {
-                queryKey: ['getUserActiveDelivery', userId],
-                enabled: !!userId,
-            }
-        ),
+        )
 }

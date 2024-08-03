@@ -17,7 +17,7 @@ export enum OrderStatus {
 }
 
 export type Order = {
-    userId: number;
+    userId: string;
     orderId: number;
     restaurantId: number;
     status: OrderStatus;

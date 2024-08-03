@@ -3,6 +3,7 @@ import { auth } from '../firebaseConfig';
 import { useNavigate } from 'react-router-dom';
 import { createUserWithEmailAndPassword, sendEmailVerification, signOut} from 'firebase/auth';
 import './SignUp.css';
+import PageHead from '../components/PageHead';
 
 const SignUp: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -34,6 +35,7 @@ const SignUp: React.FC = () => {
 
   return (
     <div className="login-container">
+      <PageHead title="Sign Up" description="Unlock on-campus food delivery convenience with QuickBytes by signing up" />
       <form onSubmit={handleSubmit} className="login-form">
       <h1 className="sign-up-header">Create an account</h1>
       <p className="sign-up-text">Enter your email to sign up</p>

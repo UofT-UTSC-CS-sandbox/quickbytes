@@ -7,6 +7,7 @@ import OrderStatus, { convertOrderStatusToString } from "../model/OrderStatus";
 import { ArrowDropDown } from "@mui/icons-material";
 import restaurantService, { ActiveOrderItem } from "../services/restaurantService";
 import Notification from "../components/Notification";
+import PageHead from "../components/PageHead";
 
 const StaffOrders = () => {
     const { restaurantId } = useParams();
@@ -24,6 +25,10 @@ const StaffOrders = () => {
         const orderId = path.split('/')[1];
         if (data !== OrderStatus.ARRIVED) return '';
         return `Courier for Order ${orderId} has arrived`;
+    };
+
+    const getNewOrderNotificationMessage = (path: string, data: any) => {
+        return 'A new order has been placed';
     };
 
     const ordersByStatus: Record<string, ActiveOrderItem[]> = data?.data.reduce((acc: Record<string, ActiveOrderItem[]>, order: ActiveOrderItem) => {
@@ -63,7 +68,8 @@ const StaffOrders = () => {
 
     return <>
         <NavBar />
-        <div style={{ width: '100%' }}>
+        <PageHead title="Customer Orders" description="View your active orders" />
+        <div style={{ width: '100%', paddingTop: '100px' }}>
             <Container sx={{ textAlign: 'left', fontSize: '1.8rem', padding: '16px' }} maxWidth="lg">
                 <Typography sx={{ textAlign: 'left', fontSize: '2.5rem' }} variant="h1" gutterBottom>
                     Active Orders for Your Restaurant
@@ -75,6 +81,10 @@ const StaffOrders = () => {
         <Notification
             subscribePaths={orders.map(orderId => `orders/${orderId}/tracking/status`)}
             getNotificationMessage={getNotificationMessage}
+        />
+        <Notification
+            subscribePaths={[`restaurants/${restaurantId}/activeOrders`]}
+            getNotificationMessage={getNewOrderNotificationMessage}
         />
     </>
 }
