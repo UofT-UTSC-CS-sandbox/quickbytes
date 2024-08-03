@@ -61,37 +61,6 @@ export const getUserActiveOrders2 = async (req: Request, res: Response) => {
   }
 };
 
-export const getCustomerConfirmationPin = async (req: Request, res: Response) => {
-  const userId = req.user!.uid;
-
-  if (!userId) {
-    return res.status(400).json({ success: false, message: 'userId is a required field' });
-  }
-
-  const database = admin.database();
-  const userRef = database.ref(`user/${userId}`);
-
-  try {
-    const snapshot = await userRef.get();
-
-    if (snapshot.exists()) {
-      const userData = snapshot.val();
-      const customerPin = userData.customerConfirmationPin;
-
-      if (customerPin) {
-        res.status(200).json({ customerConfirmationPin: customerPin });
-      } else {
-        res.status(404).json({ success: false, message: 'Customer confirmation pin not found' });
-      }
-    } else {
-      res.status(404).json({ success: false, message: 'User not found' });
-    }
-  } catch (error) {
-    console.error('Error retrieving customer confirmation pin:', error);
-    res.status(500).json({ success: false, message: 'Internal server error' });
-  }
-};
-
 export const updateRole = async (req: Request, res: Response) => {
   const userId = req.user!.uid;
   const { role, enabled } = req.body;
@@ -179,6 +148,89 @@ export const updateNotification = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error updating notification setting:', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+}
+
+export async function createCustomerConfirmationPin(req: Request, res: Response) {
+  const userId = req.user!.uid;
+  const { customerPin } = req.body;
+
+  if (!customerPin || typeof customerPin !== 'string' || customerPin.length !== 4) {
+    return res.status(400).send({ message: "Invalid PIN format. It should be a 4-digit string." });
+  }
+
+  const database = admin.database();
+  const orderRef = database.ref(`user/${userId}`);
+
+  try {
+    await orderRef.update({ confirmationPin: customerPin });
+    res.status(200).send({ success: true, message: "Customer confirmation pin added successfully.", customerPin: customerPin });
+  } catch (error) {
+    console.error('Error updating confirmation pin:', error);
+    res.status(500).send({ success: false, message: "Internal server error." });
+  }
+}
+
+export async function getCustomerConfirmationPin(req: Request, res: Response) {
+  const userId = req.params.courierId || req.user!.uid;
+
+  const database = admin.database();
+  const userRef = database.ref(`user/${userId}`);
+
+  try {
+    const snapshot = await userRef.get();
+    if (!snapshot.exists()) {
+      return res.status(404).send({ success: false, message: "User not found." });
+    }
+
+    const userData = snapshot.val();
+    if (userData && userData.confirmationPin) {
+      return res.status(200).send({ success: true, customerPin: userData.confirmationPin });
+    } else {
+      return res.status(404).send({ success: false, message: userId });
+    }
+  } catch (error) {
+    console.error('Error fetching confirmation PIN:', error);
+    res.status(500).send({ success: false, message: "Internal server error." });
+  }
+}
+
+export async function updateCustomerConfirmationStatus(req: Request, res: Response) {
+  const userId = req.user!.uid;
+
+  const database = admin.database();
+  const userRef = database.ref(`user/${userId}`);
+
+  try {
+    await userRef.update({ isCustomerConfirmed: true });
+    res.status(200).send({ success: true, message: "Customer confirmation status updated successfully." });
+  } catch (error) {
+    console.error('Error updating customer confirmation status:', error);
+    res.status(500).send({ success: false, message: "Internal server error." });
+  }
+}
+
+export async function getCustomerConfirmationStatus(req: Request, res: Response) {
+  const userId = req.user!.uid;
+
+  const database = admin.database();
+  const userRef = database.ref(`user/${userId}`);
+
+  try {
+    const snapshot = await userRef.get();
+    if (!snapshot.exists()) {
+      return res.status(404).send({ success: false, message: "User not found." });
+    }
+
+    const userData = snapshot.val();
+    if (userData && userData.isCustomerConfirmed) {
+      return res.status(200).send({ success: true, isConfirmed: true, customerPin: userData.confirmationPin || null });
+    } else {
+      return res.status(200).send({ success: true, isConfirmed: false, customerPin: userData.confirmationPin || null });
+    }
+  } catch (error) {
+    console.error('Error fetching confirmation status:', error);
+    res.status(500).send({ success: false, message: "Internal server error." });
   }
 }
 

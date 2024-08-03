@@ -118,6 +118,52 @@ type UpdateOrderStatusResponse = {
 }
 
 /**
+ * Request body for the setCustomerConfirmationPin request.
+ */
+type SetCustomerConfirmationPinRequest = {
+    customerPin: string;
+}
+
+/**
+ * Response body for the setCourierConfirmationPin request.
+ */
+type SetCustomerConfirmationPinResponse = {
+    success: boolean;
+    message: string;
+    customerPin: string;
+}
+
+/**
+ * Response body for the getCourierConfirmationPin request.
+ */
+type GetCustomerConfirmationPinResponse = {
+    customerPin: string;
+    message: string;
+}
+
+/**
+ * Request body for the updateCourierConfirmationStatus request.
+ */
+type UpdateCustomerConfirmationStatusRequest = {}
+
+/**
+ * Response body for the updateCourierConfirmationStatus request.
+ */
+type UpdateCustomerConfirmationStatusResponse = {
+    success: boolean;
+    message: string;
+}
+
+/**
+ * Response body for the getCourierConfirmationStatus request.
+ */
+type GetCustomerConfirmationStatusResponse = {
+    isConfirmed: boolean;
+    customerPin: string;
+    message: string;
+}
+
+/**
  * All API endpoints related to retrieving and updating delivery information 
  * for a courier.
  */
@@ -192,6 +238,78 @@ export default {
             },
             {
                 onSuccess,
+            }
+        ),
+
+    /**
+     * Set the customer confirmation pin for the given active order.
+     * 
+     * When calling mutate() on the useMutation, supply the customer confirmation pin as
+     * an object with customerPin.
+     * 
+     * @param onSuccess Success callback for the request, with the response body.
+     * @returns Service endpoint to set the customer confirmation pin of the active order.
+     */
+    setCustomerConfirmationPin: (onSuccess: (data: SetCustomerConfirmationPinResponse) => void) =>
+        usePostEndpoint<SetCustomerConfirmationPinResponse, Error, SetCustomerConfirmationPinRequest>(
+            {
+                inputUrl: `user/create-customer-confirm-pin`,
+                useAuth: true
+            },
+            {
+                mutationKey: ['setCustomerConfirmationPin'],
+                onSuccess
+            }
+        ),
+
+    /**
+     * Get the customer confirmation pin for the given active order.
+     * 
+     * @returns Service endpoint to get the customer confirmation pin of the active order.
+     */
+    getCustomerConfirmationPin: (courierId?: string, enabled: boolean) =>
+        useGetEndpoint<GetCustomerConfirmationPinResponse>(
+            {
+                inputUrl: `user/${courierId}/get-customer-confirm-pin`,
+                useAuth: true
+            },
+            {
+                queryKey: ['getCustomerConfirmationPin', courierId],
+                enabled, // This will control whether the query is executed or not
+            }
+        ),
+
+    /**
+     * Update the customer confirmation status for the given active order.
+     * 
+     * @param onSuccess Success callback for the request, with the response body.
+     * @returns Service endpoint to update the customer confirmation status of the active order.
+     */
+    updateCustomerConfirmationStatus: (onSuccess: (data: UpdateCustomerConfirmationStatusResponse) => void) =>
+        usePostEndpoint<UpdateCustomerConfirmationStatusResponse, Error, UpdateCustomerConfirmationStatusRequest>(
+            {
+                inputUrl: `user/update-customer-confirm-status`,
+                useAuth: true
+            },
+            {
+                mutationKey: ['updateCustomerConfirmationStatus'],
+                onSuccess
+            }
+        ),
+
+    /**
+     * Get the customer confirmation status for the given active order.
+     * 
+     * @returns Service endpoint to get the customer confirmation status of the active order.
+     */
+    getCustomerConfirmationStatus: () =>
+        useGetEndpoint<GetCustomerConfirmationStatusResponse>(
+            {
+                inputUrl: `user/get-customer-confirm-status`,
+                useAuth: true
+            },
+            {
+                queryKey: ['getCustomerConfirmationStatus'],
             }
         )
 }

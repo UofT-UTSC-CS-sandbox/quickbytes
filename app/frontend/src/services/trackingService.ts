@@ -89,7 +89,7 @@ export default {
      * they can confirm that they are the customer to the courier.
      * 
      * @returns An object containing a function to trigger the query and its result.
-     */
+     
     getCustomerConfirmationPin: () =>
         useGetEndpoint<GetCustomerConfirmationPinResponse>(
             {
@@ -98,5 +98,5 @@ export default {
             },
             {
                 queryKey: ['getCustomerConfirmationPin'],
-            }),
+            }), */
 }

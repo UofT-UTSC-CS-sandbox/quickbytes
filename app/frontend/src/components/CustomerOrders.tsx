@@ -1,6 +1,6 @@
 import React from 'react';
 import { CircularProgress, Typography, ListItem, Box, Button } from '@mui/material';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavBar from './Navbar';
 import OrderStatus from '../model/OrderStatus';
@@ -10,6 +10,17 @@ import deliveryService from '../services/deliveryService';
 const CustomerOrders: React.FC<{ isDrawer?: boolean, onClose?: () => void }> = ({ isDrawer = false, onClose }) => {
     const navigate = useNavigate();
     const { data: orders, isLoading, isError } = deliveryService.getCustomerActiveOrder().useQuery();
+    const [customerPin, setCustomerPin] = useState<string | null>(null);
+    const { data: customerPinData, error: customerPinError, isLoading: isCustomerPinLoading, refetch: refetchPin } = deliveryService.getCustomerConfirmationPin(orders?.data?.courierId, (orders?.data?.tracking.status === OrderStatus.EN_ROUTE)).useQuery();
+
+    useEffect(() => {
+        if (customerPinData?.customerPin) {
+            setCustomerPin(customerPinData.customerPin);
+        } else if (!customerPin && orders?.data?.tracking.status === OrderStatus.EN_ROUTE) {
+            // Refetch the pin if it's not set yet
+            refetchPin();
+        }
+    }, [customerPinData, orders, customerPin, refetchPin]);
 
     useEffect(() => {
         if (orders) {
@@ -70,14 +81,19 @@ const CustomerOrders: React.FC<{ isDrawer?: boolean, onClose?: () => void }> = (
                             </Typography>
                         </ListItem>
                     ))}
-                <Button
-                    variant="contained"
-                    color="primary"
-                    style={{ marginTop: '16px' }}
-                    onClick={() => nav("/customer_tracking")} // Replace this with your desired action
-                >
-                    Track Order
-                </Button>
+                    {customerPin && (
+                        <Typography variant="body2" style={{ marginTop: '8px' }}>
+                            <span style={{ fontWeight: 'bold' }}>Courier Confirmation Pin:</span> {customerPin}
+                        </Typography>
+                    )}
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        style={{ marginTop: '16px' }}
+                        onClick={() => nav("/customer_tracking")} // Replace this with your desired action
+                    >
+                        Track Order
+                    </Button>
                 </Box>
             );
         }
