@@ -181,4 +181,3 @@ export const updateNotification = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 }
-
