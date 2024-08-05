@@ -13,6 +13,7 @@ import NavBar from "../components/Navbar";
 import orderService from "../services/orderService";
 import restaurantService from "../services/restaurantService";
 import PageHead from "../components/PageHead";
+import Layout from "../components/Layout";
 
 type RestaurantMenuParams = {
     id: string
@@ -89,62 +90,52 @@ const RestaurantMenu = () => {
     }
 
     return (
-        <>
-            <PageHead title={name} description={`Menu for ${name} (${address}) - ${description}`} />
-            <Box sx={{ display: 'flex' }}>
-                <CssBaseline />
-                <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
-                    <NavBar />
-                </AppBar>
-                <NavBar />
-                <Container sx={{ padding: '70px' }}>
-                    <Stack spacing={1} sx={{ pb: 2, px: 2 }}>
-                        <Typography variant='h2' align="left">{name}</Typography>
-                        <Typography align="left">{description}</Typography>
-                        <Typography align="left"><Place /> {address}</Typography>
-                    </Stack>
-                    <Divider />
-                    <Stack direction={{ xs: 'column', sm: 'row' }} className={styles.menuLayout} padding={2}>
-                        <MenuCategoryDrawer category={category} categories={categories}>
-                            <Tabs value={category?.name || categories[0].name} onChange={handleChange} orientation="vertical">
-                                {
-                                    categories.map((data) =>
-                                        <Tab
-                                            sx={{ textTransform: 'none', fontWeight: 'bold' }}
-                                            label={data.name}
-                                            key={data.name}
-                                            value={data.name} />
-                                    )
-                                }
-                            </Tabs>
-                        </MenuCategoryDrawer>
-                        <Stack className={styles.itemList} padding={0}>
-                            {
-                                category ?
-                                    category.options.map((menuItem) =>
-                                        <ListItem key={menuItem.name}>
-                                            <MenuItemCard onClick={onClickItem} data={menuItem} />
-                                        </ListItem>)
-                                    :
-                                    <Typography>Choose a menu category to start browsing.</Typography>
-                            }
-                        </Stack>
-                        {order && id && <CheckoutCart order={order} setOrder={setOrder} pageRestaurantId={id} />}
-                    </Stack>
-                    {(item && id) &&
-                        <Dialog open={!!item} onClose={() => setItem(null)} fullWidth maxWidth="sm">
-                            <MenuAdd data={item}
-                                close={() => setItem(null)}
-                                order={order}
-                                setOrder={setOrder}
-                                restaurantId={id}
-                            />
-                        </Dialog>
+        <Layout pageHeader={<PageHead title={name} description={`Menu for ${name} (${address}) - ${description}`} />}>
+            <Stack spacing={1} sx={{ pb: 2, px: 2 }}>
+                <Typography variant='h2' align="left">{name}</Typography>
+                <Typography align="left">{description}</Typography>
+                <Typography align="left"><Place /> {address}</Typography>
+            </Stack>
+            <Divider />
+            <Stack direction={{ xs: 'column', sm: 'row' }} className={styles.menuLayout} padding={2}>
+                <MenuCategoryDrawer category={category} categories={categories}>
+                    <Tabs value={category?.name || categories[0].name} onChange={handleChange} orientation="vertical">
+                        {
+                            categories.map((data) =>
+                                <Tab
+                                    sx={{ textTransform: 'none', fontWeight: 'bold' }}
+                                    label={data.name}
+                                    key={data.name}
+                                    value={data.name} />
+                            )
+                        }
+                    </Tabs>
+                </MenuCategoryDrawer>
+                <Stack className={styles.itemList} padding={0}>
+                    {
+                        category ?
+                            category.options.map((menuItem) =>
+                                <ListItem key={menuItem.name}>
+                                    <MenuItemCard onClick={onClickItem} data={menuItem} />
+                                </ListItem>)
+                            :
+                            <Typography>Choose a menu category to start browsing.</Typography>
                     }
-                    {renderRequestSnackbar}
-                </Container>
-            </Box>
-        </>
+                </Stack>
+                {order && id && <CheckoutCart order={order} setOrder={setOrder} pageRestaurantId={id} />}
+            </Stack>
+            {(item && id) &&
+                <Dialog open={!!item} onClose={() => setItem(null)} fullWidth maxWidth="sm">
+                    <MenuAdd data={item}
+                        close={() => setItem(null)}
+                        order={order}
+                        setOrder={setOrder}
+                        restaurantId={id}
+                    />
+                </Dialog>
+            }
+            {renderRequestSnackbar}
+        </Layout>
     )
 }
 

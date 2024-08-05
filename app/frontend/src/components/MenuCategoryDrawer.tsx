@@ -37,7 +37,7 @@ const MenuCategoryDrawer = ({ children, category }: MenuCategoryDrawerProps) => 
                 aria-label="open drawer"
                 variant='contained'
                 onClick={handleDrawerToggle}
-                sx={{ display: { sm: 'none' }, position: { sm: 'absolute'}, textTransform: 'none' }}
+                sx={{ display: { sm: 'none' }, position: { sm: 'absolute'}, textTransform: 'none', width: '100%', }}
                 size='large'
                 startIcon={<Menu />}
             >
@@ -54,9 +54,11 @@ const MenuCategoryDrawer = ({ children, category }: MenuCategoryDrawerProps) => 
                 }}
                 sx={{
                     display: { xs: 'block', sm: 'none' },
+                    zIndex: (theme) => theme.zIndex.drawer + 1,
                     '& .MuiDrawer-paper': { boxSizing: 'border-box', width: 200 },
                 }}
             >
+                <Typography variant="body1" color="primary" sx={{ fontSize: '1.5em', margin: '20px' }}>Menu Categories</Typography>
                 {children}
             </Drawer>
             {/* The menu for desktop / larger screens */}

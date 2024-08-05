@@ -3,13 +3,14 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext'; // Import AuthContext for Firebase authentication
 import { useState, useEffect } from 'react';
 import settingService from '../services/settingService';
-import { Badge, IconButton, Tooltip, styled, Drawer, Box, AppBar, CssBaseline } from '@mui/material';
+import { Badge, IconButton, Tooltip, styled, Drawer, Box, AppBar, CssBaseline, Stack, List, ListItem, Divider } from '@mui/material';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import CloseIcon from '@mui/icons-material/Close';
 import CustomerOrders from './CustomerOrders';
 import CourierDelivery from './CourierDelivery';
 import deliveryService from '../services/deliveryService';
+import { Menu } from '@mui/icons-material';
 
 const TranslucentBadge = styled(Badge)(({ theme }) => ({
   '& .MuiBadge-badge': {
@@ -60,34 +61,142 @@ export default function NavBar() {
     }
   };
 
-  const toggleCustomerDrawer = (open) => (event) => {
+  const toggleCustomerDrawer = (open: boolean) => (event) => {
     if (
       event.type === 'keydown' &&
       ((event.key === 'Tab' || event.key === 'Shift'))
     ) {
       return;
     }
+    if (open) setMobileOpen(false);
     setCustomerDrawerOpen(open);
   };
 
-  const toggleCourierDrawer = (open) => (event) => {
+  const toggleCourierDrawer = (open: boolean) => (event) => {
     if (
       event.type === 'keydown' &&
       ((event.key === 'Tab' || event.key === 'Shift'))
     ) {
       return;
     }
+    if (open) setMobileOpen(false);
     setCourierDrawerOpen(open);
   };
 
+  // Mobile nav bar functionality
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const container = window !== undefined ? () => window.document.body : undefined;
+  const handleDrawerToggle = () => {
+    setMobileOpen((prevState) => !prevState);
+  };
+  const styleOnlyShowOnDesktop = { display: { xs: 'none', sm: 'block' } };
+  const styleOnlyShowOnMobile = { display: { xs: 'block', sm: 'none' } };
+
   const customerLinkIsActive = activeLink === '/restaurants' || /^\/restaurant\/\d+$/.test(activeLink);
+
+  const navBarContent = currentUser ? [
+    <a
+      className={`navbar-option ${customerLinkIsActive ? 'active' : ''}`}
+      style={{ cursor: 'pointer' }}
+      onClick={() => handleRoleConfirmation(roleData?.role_settings.customerRole, 'customerRole', '/restaurants')}
+    >
+      Customer
+    </a>,
+    <a
+      className={`navbar-option ${activeLink === '/deliveries' ? 'active' : ''}`}
+      style={{ cursor: 'pointer' }}
+      onClick={() => handleRoleConfirmation(roleData?.role_settings.courierRole, 'courierRole', '/deliveries')}
+    >
+      Courier
+    </a>,
+    <Link
+      to="/settings"
+      className={`navbar-option ${activeLink === '/settings' ? 'active' : ''}`}
+      onClick={() => setActiveLink('/settings')}
+    >
+      Settings
+    </Link>,
+    <>
+      <Tooltip title="Active Orders">
+        <IconButton onClick={toggleCustomerDrawer(true)} style={{ color: 'white', marginRight: '16px', fontSize: '2rem' }} className="icon-button">
+          <TranslucentBadge badgeContent={activeOrderCount} color="secondary">
+            <ShoppingBagIcon fontSize="inherit" />
+          </TranslucentBadge>
+        </IconButton>
+      </Tooltip>
+      <Tooltip title="Active Delivery">
+        <IconButton onClick={toggleCourierDrawer(true)} style={{ color: 'white', marginRight: '16px', fontSize: '2rem' }} className="icon-button">
+          <TranslucentBadge badgeContent={activeDeliveryCount} color="secondary">
+            <LocalShippingIcon fontSize="inherit" />
+          </TranslucentBadge>
+        </IconButton>
+      </Tooltip>
+    </>,
+    <button className="navbar-signout" onClick={handleSignOut}>
+      Sign out
+    </button>
+  ] : [
+    <Link to="/login" className="navbar-signin">
+      Sign in
+    </Link>
+  ]
+
 
   // customer path is temporary, replace with actual path
   return (
     <Box sx={{ display: 'flex' }}>
       <CssBaseline />
+      {/* Mobile nav bar */}
+      <AppBar sx={{ ...styleOnlyShowOnMobile }} color='primary'>
+        <nav>
+          <Drawer
+            container={container}
+            variant="temporary"
+            open={mobileOpen}
+            onClose={handleDrawerToggle}
+            ModalProps={{
+              keepMounted: true, // Better open performance on mobile.
+            }}
+            sx={{
+              zIndex: (theme) => theme.zIndex.drawer + 20,
+              '& .MuiDrawer-paper': { 
+                boxSizing: 'border-box', 
+                width: '200px', 
+                zIndex: (theme) => theme.zIndex.drawer + 2, 
+                backgroundColor: (theme) => theme.palette.primary.main,
+              },
+            }}
+          >
+            <List>
+              <ListItem>
+              <div className="navbar-title">
+                <Link
+                  to="/restaurants"
+                  style={{ color: 'white', textDecoration: 'none' }}
+                  onClick={() => setActiveLink('/restaurants')}
+                  className={activeLink === '/restaurants' ? 'active' : ''}
+                >
+                  QuickBytes
+                </Link>
+                <Divider/>
+              </div>
+              </ListItem>
+              { navBarContent.map((el, index) => <ListItem key={index}>{el}</ListItem>) }
+            </List>
+          </Drawer>
+        </nav>
+      </AppBar>
       <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
         <nav className="navbar">
+          <IconButton
+            color="inherit"
+            aria-label="open drawer"
+            edge="start"
+            onClick={handleDrawerToggle}
+            sx={{ mr: 2, ...styleOnlyShowOnMobile }}
+          >
+            <Menu />
+          </IconButton>
           <div className="navbar-title">
             <Link
               to="/restaurants"
@@ -98,54 +207,10 @@ export default function NavBar() {
               QuickBytes
             </Link>
           </div>
-          <div className="navbar-options">
-            {currentUser ? (
-              <>
-                <a
-                  className={`navbar-option ${customerLinkIsActive ? 'active' : ''}`}
-                  style={{ cursor: 'pointer' }}
-                  onClick={() => handleRoleConfirmation(roleData?.role_settings.customerRole, 'customerRole', '/restaurants')}
-                >
-                  Customer
-                </a>
-                <a
-                  className={`navbar-option ${activeLink === '/deliveries' ? 'active' : ''}`}
-                  style={{ cursor: 'pointer' }}
-                  onClick={() => handleRoleConfirmation(roleData?.role_settings.courierRole, 'courierRole', '/deliveries')}
-                >
-                  Courier
-                </a>
-                <Link
-                  to="/settings"
-                  className={`navbar-option ${activeLink === '/settings' ? 'active' : ''}`}
-                  onClick={() => setActiveLink('/settings')}
-                >
-                  Settings
-                </Link>
-                <Tooltip title="Active Orders">
-                  <IconButton onClick={toggleCustomerDrawer(true)} style={{ color: 'white', marginRight: '16px', fontSize: '2rem' }} className="icon-button">
-                    <TranslucentBadge badgeContent={activeOrderCount} color="secondary">
-                      <ShoppingBagIcon fontSize="inherit" />
-                    </TranslucentBadge>
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title="Active Delivery">
-                  <IconButton onClick={toggleCourierDrawer(true)} style={{ color: 'white', marginRight: '16px', fontSize: '2rem' }} className="icon-button">
-                    <TranslucentBadge badgeContent={activeDeliveryCount} color="secondary">
-                      <LocalShippingIcon fontSize="inherit" />
-                    </TranslucentBadge>
-                  </IconButton>
-                </Tooltip>
-                <button className="navbar-signout" onClick={handleSignOut}>
-                  Sign out
-                </button>
-              </>
-            ) : (
-              <Link to="/login" className="navbar-signin">
-                Sign in
-              </Link>
-            )}
-          </div>
+          {/* Desktop nav bar options */}
+          <Stack direction="row" className="navbar-options" sx={{ ...styleOnlyShowOnDesktop }}>
+            { navBarContent }
+          </Stack>
         </nav>
       </AppBar>
       <Drawer anchor="right" open={customerdrawerOpen} onClose={toggleCustomerDrawer(false)}>

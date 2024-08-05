@@ -199,18 +199,18 @@ const CheckoutCart = ({ order, setOrder, pageRestaurantId }: CheckoutCartProps) 
                 anchor='bottom'
                 open={mobileOpen}
                 onClose={() => setMobileOpen(false)}
-                sx={{ display: { xs: 'block', md: 'none' } }}
+                sx={{ display: { xs: 'block', md: 'none', position: 'relative' } }}
             >
                 {content}
                 {/* Button to close mobile cart */}
                 <Fab
-                    color="secondary"
-                    size='medium'
-                    onClick={() => setMobileOpen(false)}
-                    sx={{ display: { xs: mobileOpen ? 'block' : 'none', md: 'none' }, position: 'fixed', top: 16, right: 16 }}
-                >
-                    <Close sx={{ marginTop: 0.5 }} />
-                </Fab>
+                color="secondary"
+                size='medium'
+                onClick={() => setMobileOpen(false)}
+                sx={{ display: { xs: mobileOpen ? 'block' : 'none' }, position: 'absolute', top: 16, right: 16, zIndex: 100 }}
+            >
+                <Close sx={{ marginTop: 0.5 }} />
+            </Fab>
             </Drawer>
         </>
     )

@@ -58,6 +58,15 @@ const MenuAdd = ({ data, close, setOrder, order, restaurantId }: MenuAddProps) =
         setSelectedAddOns(newAddOns)
     }
 
+    const handleQuantityChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const newQuantity = parseInt(event.target.value);
+        if (!isNaN(newQuantity) && newQuantity > 0) {
+            setQuantity(newQuantity);
+        } else {
+            setQuantity(0);
+        }
+    }
+
     const renderOptions = (data: MenuItem) => {
         return (
             <FormControl>
@@ -128,6 +137,8 @@ const MenuAdd = ({ data, close, setOrder, order, restaurantId }: MenuAddProps) =
     }
     const price = optionBasePrice + addOnPrices;
 
+    const isQuantityValid = !isNaN(quantity) && quantity > 0 ;
+
     return (
         <>
             <DialogTitle>
@@ -139,8 +150,6 @@ const MenuAdd = ({ data, close, setOrder, order, restaurantId }: MenuAddProps) =
                 <img style={{ width: '50%', borderRadius: 15 }} src='/shawarma2.jpg' alt={data?.name} />
                 <Stack spacing={2}>
                 <Typography>{data?.description}</Typography>
-
-                <Divider />
 
                 {data.options.length > 1 && renderOptions(data)}
                     <Divider />
@@ -178,24 +187,28 @@ const MenuAdd = ({ data, close, setOrder, order, restaurantId }: MenuAddProps) =
 
                     <FormControl>
                         <FormLabel>Order Quantity</FormLabel>
-                        <TextField inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }} value={quantity} onChange={(e) => setQuantity(parseInt(e.target.value))} />
+                        <TextField required inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }} value={isQuantityValid ? quantity : ""} onChange={handleQuantityChange} error={!isQuantityValid} helperText={!isQuantityValid ? 'Please enter a valid quantity' : ''} />
                     </FormControl>
 
                     <Divider />
 
                     <Typography>Price</Typography>
                     <p>{currencyFormatter.format(price)}</p>
-
+                    
+                    <Stack justifyContent="space-between">
                     { 
+                        (isNaN(quantity) || quantity < 1) ?
+                        <>
+                            <Alert severity="warning">Please enter a valid quantity</Alert>
+                        </>
+                        :
                         (!order || order.restaurant.restaurantId === restaurantId) ?
-
-                        <Stack direction='row' justifyContent="space-between">
                             <Button disabled={isAddItemPending} variant='contained' color='success' onClick={onAddSubmit} startIcon={!isAddItemPending ? <Add /> : <CircularProgress/>}>Add To Order</Button>
-                            <Button disabled={isAddItemPending} onClick={close} color='error'>Cancel</Button>
-                        </Stack>
                         :
                         <Alert severity="warning">You currently have an order in-progress for {order?.restaurant.restaurantName}. You cannot order from more than 1 restaurant or have more than one order pending delivery at the same time.</Alert>
                     }
+                    <Button disabled={isAddItemPending} onClick={close} color='error' sx={{marginTop: '10px'}}>Cancel</Button>
+                    </Stack>
 
                     { isCreateOrderError && <Alert severity='error'>Encountered an error while creating your order. Please try again.</Alert> }
                     { isAddItemError && <Alert severity='error'>Encountered an error while adding this item. Please try again.</Alert> }
