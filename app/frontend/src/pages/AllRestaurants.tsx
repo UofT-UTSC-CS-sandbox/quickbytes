@@ -1,12 +1,11 @@
-import { Grid, Container, CircularProgress, Typography, Stack, InputAdornment, FormControl, OutlinedInput, Autocomplete, TextField } from "@mui/material";
-import NavBar from "../components/Navbar";
+import { Grid, CircularProgress, Typography, Stack, InputAdornment, FormControl, OutlinedInput, Autocomplete, TextField, Container } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import RestaurantItem, { RestaurantInfo } from "../components/RestaurantItem";
 import restaurantService from "../services/restaurantService";
 import { SearchRounded } from "@mui/icons-material";
-import { AppBar, CssBaseline, Box } from '@mui/material';
 import { useEffect, useMemo, useState } from "react";
 import PageHead from "../components/PageHead";
+import Layout from "../components/Layout";
 
 const AllRestaurants = () => {
 
@@ -42,19 +41,12 @@ const AllRestaurants = () => {
     }, [data, search, selectedLocations, isSuccess]);
 
     const wrapContent = (content: JSX.Element) => {
-        return <>
-            <PageHead title="Restaurants" description="View all on-campus restaurants available to order from" />
-            <Box sx={{ display: 'flex' }}>
-                <CssBaseline />
-                <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
-                    <NavBar />
-                </AppBar>
-                <Container sx={{ padding: '70px' }}>
-                    <h1 style={{ textAlign: 'left' }}>All Restaurants</h1>
-                    {content}
-                </Container>
-            </Box>
-        </>
+        return <Layout pageHeader={<PageHead title="Restaurants" description="View all on-campus restaurants available to order from" />}>
+            <Container>
+                <h1 style={{ textAlign: 'left', marginTop: 0 }}>All Restaurants</h1>
+            </Container>
+            {content}
+        </Layout>
     }
 
     if (isLoading) {
@@ -70,7 +62,7 @@ const AllRestaurants = () => {
     }
 
     return wrapContent(
-        <Stack>
+        <>
             <Grid container spacing={1}>
                 <Grid item xs={12} md={6} >
                     <FormControl variant="outlined" sx={{ width: '100%' }}>
@@ -108,7 +100,7 @@ const AllRestaurants = () => {
                     )
                 }
             </Grid>
-        </Stack>
+        </>
     )
 };
 
