@@ -36,7 +36,7 @@ function CustomerOrderTracking() {
     if (orderSuccess) {
       setOrderData(order.data);
     }
-    
+
   }, [order]);
 
   const nav = useNavigate();
@@ -61,7 +61,7 @@ function CustomerOrderTracking() {
 
   const OrderSummary = () => {
     return (
-      <div style={{ maxWidth: 600, margin: 'auto', padding: 20, border: '1px solid #ccc', borderRadius: 5, boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }}>
+      <div style={{ maxWidth: 600, margin: 'auto', padding: 20, paddingTop: 100, border: '1px solid #ccc', borderRadius: 5, boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }}>
         <Typography variant="h5" gutterBottom>
           Order Summary
         </Typography>
@@ -83,8 +83,8 @@ function CustomerOrderTracking() {
         </Typography>
 
         <Typography variant="body2" style={{ marginTop: 10, textAlign: 'center', fontStyle: 'italic' }}>
-          {directionsAvailable ? "Your courier is on the way with your order!" : 
-                                    "Your order has been succesfully placed. Looking for a courier..."}
+          {directionsAvailable ? "Your courier is on the way with your order!" :
+            "Your order has been succesfully placed. Looking for a courier..."}
         </Typography>
         {directionsAvailable ? null : <div style={{ marginTop: 20, textAlign: 'center' }}>
           <Button variant="contained" color="primary" onClick={() => setUpdatingLocation(true)}> {/* TODO add a pop-up to reselect pickup location */}
@@ -115,7 +115,7 @@ function CustomerOrderTracking() {
     if (directionsAvailable) {
       return (
         <div style={{ height: "100vh", width: "100%", display: "flex" }}>
-          <NavBar/>
+          <NavBar />
           <div style={{ width: "300px", background: "#f4f4f4", padding: "10px" }}>
             {OrderSummary()}
           </div>
@@ -126,18 +126,18 @@ function CustomerOrderTracking() {
     }
     if (updatingLocation) {
       return (<div style={{ height: "100vh", width: "100%", display: "flex" }}>
-        <NavBar/>
-      <SingleMarkerMap
-        sendSetPickupLocation={sendSetPickupLocation}
-        rejectLocationChange={() => setUpdatingLocation(false)}
-        orderId={orderData.orderId}
-        initialPosition={orderData.tracking.dropOff}
-      /></div>);
+        <NavBar />
+        <SingleMarkerMap
+          sendSetPickupLocation={sendSetPickupLocation}
+          rejectLocationChange={() => setUpdatingLocation(false)}
+          orderId={orderData.orderId}
+          initialPosition={orderData.tracking.dropOff}
+        /></div>);
     }
     return (<div style={{ height: "100vh", width: "100%", display: "flex" }}>
-       <NavBar/>
+      <NavBar />
       <OrderSummary />
-     </div>)
+    </div>)
   }
 
   return (getView())

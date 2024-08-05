@@ -42,7 +42,7 @@ const StaffOrderItem = ({ order, restaurantId }: StaffOrderItemProps) => {
         }
     ).useMutation();
 
-    const { data, error, isLoading } = restaurantService.getCourierConfirmationPin(restaurantId, order.orderId).useQuery();
+    const { data, error, isLoading } = restaurantService.getCourierConfirmationPin(restaurantId, order.orderId, order.tracking.status === OrderStatus.AWAITING_PICK_UP).useQuery();
 
     const { mutate: updateCourierConfirmationStatus } = restaurantService.updateCourierConfirmationStatus(
         restaurantId,

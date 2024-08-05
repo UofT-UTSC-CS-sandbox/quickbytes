@@ -33,6 +33,7 @@ export async function getActiveDelivery(req: Request, res: Response) {
           return res.status(404).send({ data: "Order not found" });
         }
         const delivery = deliverySnapshot.val();
+        delivery.orderId = deliveryId;
         res.status(200).json({ data: delivery });
       } else {
         res.status(404).json({ message: 'Delivery not found' });
@@ -167,7 +168,7 @@ export async function getActiveOrder(req: Request, res: Response) {
         }
         const order = orderSnapshot.val();
         order.orderId = orderId;
-        
+
         res.status(200).json({ data: order });
       } else {
         res.status(404).json({ message: 'Order not found' });
@@ -323,13 +324,13 @@ export const getCurrentLocationFromOrder = async (req: Request, res: Response) =
     const orderDataSnap = await admin.database().ref(`orders/${orderId}`).get();
     const orderData = orderDataSnap.exists() ? orderDataSnap.val() : null;
 
-    
+
     const courierId = orderData.courierId;
     console.log("this is the orderdata:", orderData)
     console.log("this is the courierid: ", courierId)
     const userId = req.user?.uid; // TODO extract this from auth
     // Verify that the issuer of this request is in some way associated with the order
-    if (courierId !== userId && orderData.userId !== userId){
+    if (courierId !== userId && orderData.userId !== userId) {
       console.log("the order is not found")
       return res.status(404).send({ data: "Order not found" });
     }
@@ -375,7 +376,7 @@ export const getOrderRestaurantLocation = async (req: Request, res: Response) =>
         const restaurantLocation = {
           restaurantId,
           restaurantName: restaurantData.information.name,
-          location: { lat: restaurantData.information.coordinateX, lng: restaurantData.information.coordinateY}
+          location: { lat: restaurantData.information.coordinateX, lng: restaurantData.information.coordinateY }
         };
         res.status(200).json({ restaurant: restaurantLocation });
       } else {

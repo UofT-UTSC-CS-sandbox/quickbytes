@@ -66,7 +66,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <AuthProvider>
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<PrivateRoute> <WelcomePage /> </PrivateRoute>} />
+              <Route path="/" element={<PrivateRoute> <AllRestaurants /> </PrivateRoute>} />
               <Route path="/user-page" element={<PrivateRoute> <WelcomePage /> </PrivateRoute>} />
               <Route path="/staff/:restaurantId" element={<PrivateRoute> <StaffOrders /> </PrivateRoute>} />
               <Route path="/deliveries" element={<PrivateRoute> <Deliveries /> </PrivateRoute>} />

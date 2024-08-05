@@ -191,7 +191,7 @@ export default {
      * @param orderId The ID of the entire active order.
      * @returns Service endpoint to get the courier confirmation pin of the active order.
      */
-    getCourierConfirmationPin: (restaurantId: number, orderId: string) =>
+    getCourierConfirmationPin: (restaurantId: number, orderId: string, enabled: boolean) =>
         useGetEndpoint<GetCourierConfirmationPinResponse>(
             {
                 inputUrl: `staff/${restaurantId}/${orderId}/get-pin`,
@@ -199,6 +199,7 @@ export default {
             },
             {
                 queryKey: ['getCourierConfirmationPin', restaurantId, orderId],
+                enabled, // This will control whether the query is executed or not
             }
         ),
 
