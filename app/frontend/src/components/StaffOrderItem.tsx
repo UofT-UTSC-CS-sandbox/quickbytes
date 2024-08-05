@@ -5,6 +5,7 @@ import { convertOrderStatusToString } from "../model/OrderStatus"
 import { ActiveOrderItem, ItemsOrdered } from "../services/restaurantService";
 import restaurantService from '../services/restaurantService';
 import OrderStatus from "../model/OrderStatus";
+import deliveryService from "../services/deliveryService";
 
 interface StaffOrderItemProps {
     order: ActiveOrderItem;
@@ -110,6 +111,17 @@ const StaffOrderItem = ({ order, restaurantId }: StaffOrderItemProps) => {
         setOpen(false);
     };
 
+    const { mutate: updateOrderStatus } = deliveryService.updateOrderStatus((d) => {
+        console.log(d.message)
+    }).useMutation();
+
+    const handleUpdateStatus = (orderId: string) => {
+        const newStatus = OrderStatus.AWAITING_PICK_UP; // change later to change status depending on where in the workflow
+        const courier = true
+        updateOrderStatus({ orderId: orderId, status: newStatus, courierRequest: courier });
+
+    };
+
     return (
         <>
             <ListItem sx={{ padding: '40px' }}>
@@ -161,6 +173,13 @@ const StaffOrderItem = ({ order, restaurantId }: StaffOrderItemProps) => {
                             </Stack>
                         ))}
                     </Stack>
+                    {order.tracking.status === OrderStatus.ACCEPTED ? (
+                        <Stack direction="row" justifyContent="center">
+                            <Button variant="contained" color="primary" onClick={() => handleUpdateStatus(order.orderId)} size="small" sx={{ width: 'fit-content' }}>
+                                Update Awaiting for pickup
+                            </Button>
+                        </Stack>
+                    ) : null}
                     {isCourierConfirmed ? (
                         <Stack direction="row" spacing={1} alignItems="center">
                             <CheckCircle color="success" />
