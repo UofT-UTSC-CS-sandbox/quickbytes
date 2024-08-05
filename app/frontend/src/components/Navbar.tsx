@@ -61,23 +61,25 @@ export default function NavBar() {
     }
   };
 
-  const toggleCustomerDrawer = (open) => (event) => {
+  const toggleCustomerDrawer = (open: boolean) => (event) => {
     if (
       event.type === 'keydown' &&
       ((event.key === 'Tab' || event.key === 'Shift'))
     ) {
       return;
     }
+    if (open) setMobileOpen(false);
     setCustomerDrawerOpen(open);
   };
 
-  const toggleCourierDrawer = (open) => (event) => {
+  const toggleCourierDrawer = (open: boolean) => (event) => {
     if (
       event.type === 'keydown' &&
       ((event.key === 'Tab' || event.key === 'Shift'))
     ) {
       return;
     }
+    if (open) setMobileOpen(false);
     setCourierDrawerOpen(open);
   };
 
