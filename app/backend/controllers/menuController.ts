@@ -243,6 +243,10 @@ export async function addItemToOrder(req: Request, res: Response, database: Data
             }, 0) || 0;
         }
 
+        price *= orderObject.quantity;
+        // round
+        price = Math.ceil(price * 100) / 100
+
         // Add the item to the set of items
         const itemKey = admin.database().ref(`orders/${orderId}/order/items`).push().key;
         const itemLocation = `orders/${orderId}/order/items/${itemKey}`;
@@ -375,7 +379,7 @@ export async function getCustomerInProgressOrder(req: Request, res: Response) {
 export async function deleteItemFromOrder(req: Request, res: Response) {
     const { orderId, itemId } = req.params;
     const database = admin.database();
-    const userId = req.user!.uid;
+    const userIdRef = database.ref(`orders/${orderId}/userId`);
 
     const itemLocation = `orders/${orderId}/order/items/${itemId}`;
 
@@ -385,9 +389,10 @@ export async function deleteItemFromOrder(req: Request, res: Response) {
         const snapshot = await trackingRef.get();
         if (snapshot.exists()) {
             const value = snapshot.val();
-            const userId = req.user?.uid; // TODO extract this from auth
-            if (value.userId != userId)
+            const userId = req.user?.uid; 
+            if ((await userIdRef.get()).val() != userId) {
                 return res.status(404).send({ data: "Order not found" });
+            }
             if (value.status !== OrderStatus.ORDERING) {
                 res.status(400).send({ data: "Cannot delete items from an order that has already been placed" });
                 return;
@@ -421,9 +426,10 @@ export async function deleteItemFromOrder(req: Request, res: Response) {
         const orderSnapshotAfterDelete = await orderLocation.get();
 
         if (orderSnapshotAfterDelete.exists()) {
-            const items = orderSnapshotAfterDelete.val().order.items ?? {};
+            const orderVal = orderSnapshotAfterDelete.val();
+            const items = orderVal.order.items ?? {};
             res.send({
-                data: { ...orderSnapshotAfterDelete.val().order, items, id: orderId, status: orderSnapshotAfterDelete.val().tracking.status },
+                data: { ...orderVal.order, restaurant: orderVal.restaurant, items, id: orderId, status: orderVal.tracking.status },
                 orderKey: orderId
             });
         } else {
