@@ -31,6 +31,8 @@ function CustomerOrderTracking() {
       setUpdatingLocation(false);
     }
   ).useMutation()
+  const { data: location, isSuccess: locationSuccess, isError } = trackingService.getRestaurantLocation(orderData?.orderId as string | null).useQuery();
+
   useEffect(() => {
     console.log(order)
     if (orderSuccess) {
@@ -110,8 +112,8 @@ function CustomerOrderTracking() {
   }
 
   const getView = () => {
-    if (orderData == null)
-      return null;
+    if (orderData == null || location == null)
+      return <>loading</>;
     if (directionsAvailable) {
       return (
         <div style={{ height: "100vh", width: "100%", display: "flex" }}>
@@ -120,7 +122,7 @@ function CustomerOrderTracking() {
             {OrderSummary()}
           </div>
           <div style={{ flex: 1 }}>
-            <MasterMap dest={orderData.tracking.dropOff} />
+          {orderData.tracking.status === OrderStatus.EN_ROUTE ? (<MasterMap dest={orderData.tracking.dropOff} orderId={orderData.orderId} />) : <MasterMap dest={location.restaurant.location} orderId={orderData.orderId} />}
           </div>
         </div>)
     }

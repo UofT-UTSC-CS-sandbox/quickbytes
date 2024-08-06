@@ -19,13 +19,14 @@ function CourierOrderTracking() {
   const [orderData, setOrderData] = useState<ActiveOrderItem | null>(null);
   const { data: order, isSuccess: orderSuccess, isLoading: orderLoading } = deliveryService.getCourierActiveOrder().useQuery();
   const { data: location, isSuccess: locationSuccess, isError } = trackingService.getRestaurantLocation(orderData?.orderId as string | null).useQuery();
+  console.log("is it null or undefined:", orderData?.orderId as string | null)
   const { data: roleData } = settingService.getRoleSettings().useQuery();
   
   const {mutate: updateOrderStatus} = deliveryService.updateOrderStatus((d) => {
     console.log(d.message)
   }).useMutation();
   
-  const courier = roleData.role_settings.courierRole
+  const courier = roleData?.role_settings?.courierRole
   const nav = useNavigate();
 
   const handleUpdateStatus = () => {
@@ -59,8 +60,9 @@ function CourierOrderTracking() {
 
   useEffect(() => {
     console.log(isError)
+    console.log("restaurant location: ", location);
     if (locationSuccess)
-      console.log(location);
+      console.log("restaurant locations: ", location.restaurant.location);
   }, [location, locationSuccess, orderData]);
 
 
@@ -96,14 +98,14 @@ function CourierOrderTracking() {
 
   
   return (
-    orderData == null ? <>loading</> : (
+    (orderData == null || location == null) ? <>loading</> : (
       <div style={{ height: "100vh", width: "100%", display: "flex" }}>
         <NavBar/>
         <div style={{ width: "300px", background: "#f4f4f4", padding: "10px" }}>
           {SidePanel()}
         </div>
         <div style={{ flex: 1 }}>
-          <MasterMap dest={orderData.tracking.dropOff} />
+        {orderData.tracking.status === OrderStatus.EN_ROUTE ? (<MasterMap dest={orderData.tracking.dropOff} orderId={orderData.orderId} />) : <MasterMap dest={location.restaurant.location} orderId={orderData.orderId} />}
         </div>
       </div>
     )
