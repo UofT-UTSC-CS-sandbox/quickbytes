@@ -98,9 +98,10 @@ app.listen(port, () => {
 
 /*
 
+
 const updateCourierLocation = (location:any) => {
   const db = admin.database();
-  db.ref(`user/7gPDsXFo8WaI9awl87qlbcJsJBx2/currentLocation`).set(location)
+  db.ref(`user/GTkKmsJVzmdVZ7eWwmm2FF3UjfG3/currentLocation`).set(location)
     .then(() => {
       console.log(`Courier location updated to: ${location.lat}, ${location.lng}`);
     })
@@ -112,8 +113,8 @@ const updateCourierLocation = (location:any) => {
 const simulateCourierMovement = ( duration:any) => {
   const steps = duration / 1000;
   const latStep = 0.0001;
-  const lngStep = 0.0001
-  let currentLocation = { lat:43.79, lng:-79.18742833862305 };
+  const lngStep = 0.0001;
+  let currentLocation = { lat:43.779, lng:-79.1909 };
   let currentStep = 0;
 
   const intervalId = setInterval(() => {
@@ -121,8 +122,8 @@ const simulateCourierMovement = ( duration:any) => {
       clearInterval(intervalId);
       console.log('Simulation completed');
     } else {
-      currentLocation.lat -= latStep;
-      currentLocation.lng -= lngStep;
+      currentLocation.lat += latStep;
+      //currentLocation.lng += lngStep;
       updateCourierLocation(currentLocation);
       currentStep++;
     }
