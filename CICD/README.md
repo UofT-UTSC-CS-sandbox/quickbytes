@@ -2,7 +2,7 @@
 
 
 We ran out of compute minutes for our pipeline on gitlab, so for all new commits the pipeline failed since none of the jobs were created. When we still had compute minutes, the pipeline was successfully running, and you can find such a commit at sha: 33cb9e9f0c3d16aaa7b08b59a7032b5dd25f339d
-
+https://gitlab.com/johnguirgis/quickbytes/-/pipelines
 
 # QuickBytes CICD Pipeline
 
