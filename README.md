@@ -1,5 +1,7 @@
 # QuickBytes 🍔
 
+__NOTE__: Our CI/CD pipeline for A2 was performed on GitLab and can be accessed [here](https://gitlab.com/johnguirgis/quickbytes). The application is deployed [here](https://main--quickbytes-app.netlify.app/).
+
 ## Overview
 Welcome to QuickBytes, the innovative solution designed to revolutionize how university students access food and drinks from on-campus establishments. Our application bridges the gap between convenience, community support, and safety by allowing students to place delivery orders without leaving their study spots.
 
