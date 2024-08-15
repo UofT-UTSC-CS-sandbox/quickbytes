@@ -1,0 +1,13 @@
+The following images were downloaded from https://unsplash.com/ using the Unsplash license.
+
+bubbletea.jpg
+burger.jpg 
+burger2.jpg
+chicken.jpg
+coffee.jpg
+coffee2.jpg
+salad.jpg
+shawarma2.jpg
+
+The tab icon was downloaded from https://www.flaticon.com/free-icons/restaurant
+<a href="https://www.flaticon.com/free-icons/restaurant" title="restaurant icons">Restaurant icons created by Freepik - Flaticon</a>
